@@ -1,0 +1,205 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Shop {
+  id                       String     @id @default(cuid())
+  domain                   String     @unique
+  accessToken              String
+  installedAt              DateTime   @default(now())
+  updatedAt                DateTime   @updatedAt
+  delhiveryApiKey          String?
+  razorpayKeyId            String?
+  razorpayKeySecret        String?
+  shiprocketEmail          String?
+  shiprocketToken          String?
+  webhookSecret            String?
+  heroImage                String?
+  heroVideo                String?
+  heroTitle                String?
+  heroSubtitle             String?
+  heroButtonText           String?    @default("Discover")
+  latestCurationTitle      String?    @default("Latest curation")
+  latestCurationSubtitle   String?    @default("Season Drop")
+  archiveTitle             String?    @default("The Archive")
+  archiveSubtitle          String?    @default("Organic Evolution")
+  blueprintTitle           String?    @default("The blueprint of Zica Bella")
+  blueprintSubtitle        String?    @default("Technique & Motion")
+  showHeroText             Boolean    @default(true)
+  showLatestCuration       Boolean    @default(true)
+  showArchive              Boolean    @default(true)
+  showBlueprint            Boolean    @default(true)
+  showProductVideo         Boolean    @default(true)
+  showSizeChart            Boolean    @default(true)
+  showBrand                Boolean    @default(true)
+  showShippingReturn       Boolean    @default(true)
+  showCare                 Boolean    @default(true)
+  showSizeFit              Boolean    @default(true)
+  showDetails              Boolean    @default(true)
+  pdpBackground            String?
+  instagramUrl             String?
+  appleUrl                 String?
+  spotifyUrl               String?
+  youtubeUrl               String?
+  featuredMedia            String?
+  collectionsMedia         String?
+  footerVideo              String?
+  mainMenuHandle           String?
+  secondaryMenuHandle      String?
+  showTreeText             Boolean    @default(true)
+  enabledCollectionsHeader String?
+  enabledCollectionsPage   String?
+  enabledCollectionsMenu   String?
+  featuredMediaImage       String?
+  kineticMeshProducts      String?
+  customers                Customer[]
+  orders                   Order[]
+  products                 Product[]
+}
+
+model Customer {
+  id             String    @id @default(cuid())
+  shopId         String
+  shopifyId      String    @unique
+  email          String?
+  name           String?
+  phone          String?
+  defaultAddress String?
+  ordersCount    Int       @default(0)
+  totalSpent     Float     @default(0)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  shop           Shop      @relation(fields: [shopId], references: [id])
+  orders         Order[]
+  payments       Payment[]
+  returns        Return[]
+}
+
+model Order {
+  id                String      @id @default(cuid())
+  shopId            String
+  shopifyOrderId    String      @unique
+  customerId        String
+  status            String
+  totalPrice        Float
+  subtotalPrice     Float?
+  totalTax          Float?
+  currency          String      @default("INR")
+  paymentStatus     String
+  fulfillmentStatus String
+  deliveryStatus    String      @default("pending")
+  shippingAddress   String?
+  billingAddress    String?
+  note              String?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  exchanges         Exchange[]
+  customer          Customer    @relation(fields: [customerId], references: [id])
+  shop              Shop        @relation(fields: [shopId], references: [id])
+  items             OrderItem[]
+  payments          Payment[]
+  returns           Return[]
+  shipments         Shipment[]
+}
+
+model OrderItem {
+  id                String   @id @default(cuid())
+  orderId           String
+  shopifyLineItemId String   @unique
+  productId         String?
+  title             String
+  quantity          Int
+  price             Float
+  sku               String?
+  product           Product? @relation(fields: [productId], references: [id])
+  order             Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model Product {
+  id                String      @id @default(cuid())
+  shopId            String
+  shopifyProductId  String      @unique
+  title             String
+  sku               String?
+  barcode           String?
+  inventoryItemId   String?     @unique
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  newExchanges      Exchange[]  @relation("NewProduct")
+  originalExchanges Exchange[]  @relation("OriginalProduct")
+  inventory         Inventory[]
+  orderItems        OrderItem[]
+  shop              Shop        @relation(fields: [shopId], references: [id])
+  returns           Return[]
+}
+
+model Inventory {
+  id               String   @id @default(cuid())
+  productId        String
+  locationId       String
+  stockQuantity    Int      @default(0)
+  reservedQuantity Int      @default(0)
+  updatedAt        DateTime @updatedAt
+  product          Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, locationId])
+}
+
+model Return {
+  id          String   @id @default(cuid())
+  orderId     String
+  productId   String
+  customerId  String
+  sku         String?
+  reason      String
+  status      String
+  requestedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  customer    Customer @relation(fields: [customerId], references: [id])
+  product     Product  @relation(fields: [productId], references: [id])
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model Exchange {
+  id                String   @id @default(cuid())
+  orderId           String
+  originalProductId String
+  newProductId      String
+  status            String
+  priceDifference   Float    @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  newProduct        Product  @relation("NewProduct", fields: [newProductId], references: [id])
+  originalProduct   Product  @relation("OriginalProduct", fields: [originalProductId], references: [id])
+  order             Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model Payment {
+  id         String   @id @default(cuid())
+  orderId    String
+  customerId String
+  amount     Float
+  type       String
+  status     String
+  gateway    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  customer   Customer @relation(fields: [customerId], references: [id])
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model Shipment {
+  id             String   @id @default(cuid())
+  orderId        String
+  trackingNumber String?
+  courier        String?
+  status         String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}

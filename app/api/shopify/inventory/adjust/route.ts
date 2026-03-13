@@ -1,0 +1,73 @@
+import { NextResponse } from 'next/server';
+import { adjustInventoryLevel, fetchLocations } from '@/lib/shopify-admin';
+import prisma from '@/lib/db';
+
+export const dynamic = 'force-dynamic';
+
+/**
+ * POST /api/shopify/inventory/adjust
+ * Body: { inventoryItemId, locationId?, delta }
+ * If locationId is 0 or omitted, auto-resolves the first active Shopify location.
+ * Adjusts inventory in Shopify and syncs to local DB.
+ */
+export async function POST(req: Request) {
+  try {
+    const body = await req.json();
+    const { inventoryItemId, delta } = body;
+    let { locationId } = body;
+
+    if (!inventoryItemId || typeof delta !== 'number') {
+      return NextResponse.json(
+        { error: 'inventoryItemId and delta (number) are required' },
+        { status: 400 }
+      );
+    }
+
+    // Auto-resolve location if not provided or is 0
+    if (!locationId || locationId === 0) {
+      const locations = await fetchLocations();
+      const activeLocation = locations.find((l) => l.active) || locations[0];
+      if (!activeLocation) {
+        return NextResponse.json({ error: 'No Shopify location found' }, { status: 400 });
+      }
+      locationId = String(activeLocation.id);
+    }
+
+    // Push adjustment to Shopify
+    const updatedLevel = await adjustInventoryLevel(
+      String(inventoryItemId),
+      String(locationId),
+      delta
+    );
+
+    // Sync local DB
+    const product = await prisma.product.findUnique({
+      where: { inventoryItemId: String(inventoryItemId) },
+    });
+
+    if (product) {
+      await prisma.inventory.upsert({
+        where: {
+          productId_locationId: {
+            productId: product.id,
+            locationId: String(locationId),
+          },
+        },
+        create: {
+          productId: product.id,
+          locationId: String(locationId),
+          stockQuantity: updatedLevel.available ?? 0,
+          reservedQuantity: 0,
+        },
+        update: {
+          stockQuantity: updatedLevel.available ?? 0,
+        },
+      });
+    }
+
+    return NextResponse.json({ success: true, inventoryLevel: updatedLevel });
+  } catch (error: any) {
+    console.error('Inventory Adjust Error:', error.message);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}

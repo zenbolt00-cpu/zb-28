@@ -1,0 +1,51 @@
+{% comment %}
+  Zica Bella - Return & Exchange Button for Order Details Page
+  Place this snippet in your theme's customers/order.liquid file, 
+  typically right above or below the order details table.
+{% endcomment %}
+
+<style>
+  .zb-return-exchange-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 24px;
+    background-color: #000000;
+    color: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    text-decoration: none;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s ease-in-out;
+    margin: 20px 0;
+  }
+  
+  .zb-return-exchange-btn:hover {
+    background-color: #1a1a1a;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+    transform: translateY(-1px);
+    color: #ffffff;
+  }
+</style>
+
+{% if order.fulfillment_status == 'fulfilled' %}
+  <div class="zb-return-exchange-wrapper">
+    <!-- Replace NEXT_PUBLIC_PORTAL_URL with your actual Vercel deployment URL once live -->
+    <a 
+      href="https://your-vercel-deployment-url.vercel.app/portal/login?email={{ customer.email | url_encode }}&shop={{ shop.domain | url_encode }}&order={{ order.name | replace: '#', '' | url_encode }}" 
+      class="zb-return-exchange-btn"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;">
+        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+        <path d="M3 3v5h5"/>
+      </svg>
+      Request Return / Exchange
+    </a>
+  </div>
+{% endif %}

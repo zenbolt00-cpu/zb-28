@@ -1,0 +1,242 @@
+import { NextResponse } from 'next/server';
+import {
+  fetchAllOrders,
+  fetchAllCustomers,
+  fetchAllProducts,
+  fetchLocations,
+  fetchInventoryLevels,
+} from '@/lib/shopify-admin';
+import prisma from '@/lib/db';
+
+export const dynamic = 'force-dynamic';
+
+/**
+ * POST /api/shopify/sync
+ * Performs a full sync: pulls all products, orders, customers from Shopify
+ * and upserts them into the local SQLite database.
+ */
+export async function POST() {
+  const results = {
+    products: 0,
+    orders: 0,
+    customers: 0,
+    inventory: 0,
+    errors: [] as string[],
+  };
+
+  try {
+    // Ensure shop record exists
+    const shopDomain = process.env.SHOPIFY_STORE_DOMAIN || '8tiahf-bk.myshopify.com';
+    let shop = await prisma.shop.findUnique({ where: { domain: shopDomain } });
+    if (!shop) {
+      shop = await prisma.shop.create({
+        data: {
+          domain: shopDomain,
+          accessToken: process.env.SHOPIFY_ADMIN_ACCESS_TOKEN || 'env_token',
+        },
+      });
+    }
+
+    // ─── Sync Products ─────────────────────────────────────────────
+    try {
+      const products = await fetchAllProducts(250);
+      for (const p of products) {
+        const firstVariant = p.variants[0];
+        await prisma.product.upsert({
+          where: { shopifyProductId: String(p.id) },
+          create: {
+            shopId: shop.id,
+            shopifyProductId: String(p.id),
+            title: p.title,
+            sku: firstVariant?.sku || null,
+            barcode: firstVariant?.barcode || null,
+            inventoryItemId: firstVariant ? String(firstVariant.inventory_item_id) : null,
+          },
+          update: {
+            title: p.title,
+            sku: firstVariant?.sku || null,
+            barcode: firstVariant?.barcode || null,
+            inventoryItemId: firstVariant ? String(firstVariant.inventory_item_id) : null,
+          },
+        });
+        results.products++;
+      }
+    } catch (e: any) {
+      results.errors.push(`Products: ${e.message}`);
+    }
+
+    // ─── Sync Customers ────────────────────────────────────────────
+    try {
+      const customers = await fetchAllCustomers(250);
+      for (const c of customers) {
+        await prisma.customer.upsert({
+          where: { shopifyId: String(c.id) },
+          create: {
+            shopId: shop.id,
+            shopifyId: String(c.id),
+            email: c.email,
+            name: `${c.first_name || ''} ${c.last_name || ''}`.trim(),
+            phone: c.phone,
+            defaultAddress: c.default_address ? JSON.stringify(c.default_address) : null,
+            ordersCount: c.orders_count || 0,
+            totalSpent: c.total_spent ? parseFloat(c.total_spent) : 0,
+          },
+          update: {
+            email: c.email,
+            name: `${c.first_name || ''} ${c.last_name || ''}`.trim(),
+            phone: c.phone,
+            defaultAddress: c.default_address ? JSON.stringify(c.default_address) : null,
+            ordersCount: c.orders_count || 0,
+            totalSpent: c.total_spent ? parseFloat(c.total_spent) : 0,
+          },
+        });
+        results.customers++;
+      }
+    } catch (e: any) {
+      results.errors.push(`Customers: ${e.message}`);
+    }
+
+    // ─── Sync Orders ───────────────────────────────────────────────
+    try {
+      const orders = await fetchAllOrders(250);
+      for (const o of orders) {
+        const customerId = o.customer ? String(o.customer.id) : 'anonymous';
+
+        // Ensure customer exists
+        let dbCustomer;
+        if (o.customer) {
+          dbCustomer = await prisma.customer.upsert({
+            where: { shopifyId: customerId },
+            create: {
+              shopId: shop.id,
+              shopifyId: customerId,
+              email: o.customer.email,
+              name: `${o.customer.first_name || ''} ${o.customer.last_name || ''}`.trim(),
+              phone: o.customer.phone,
+              defaultAddress: o.customer.default_address ? JSON.stringify(o.customer.default_address) : null,
+              ordersCount: o.customer.orders_count || 0,
+              totalSpent: o.customer.total_spent ? parseFloat(o.customer.total_spent) : 0,
+            },
+            update: {},
+          });
+        } else {
+          dbCustomer = await prisma.customer.upsert({
+            where: { shopifyId: 'anonymous' },
+            create: { shopId: shop.id, shopifyId: 'anonymous', name: 'Anonymous' },
+            update: {},
+          });
+        }
+
+        const order = await prisma.order.upsert({
+          where: { shopifyOrderId: String(o.id) },
+          create: {
+            shopId: shop.id,
+            shopifyOrderId: String(o.id),
+            customerId: dbCustomer.id,
+            status: 'active',
+            totalPrice: parseFloat(o.total_price || '0'),
+            subtotalPrice: o.subtotal_price ? parseFloat(o.subtotal_price) : null,
+            totalTax: o.total_tax ? parseFloat(o.total_tax) : null,
+            currency: o.currency || 'INR',
+            paymentStatus: o.financial_status || 'pending',
+            fulfillmentStatus: o.fulfillment_status || 'unfulfilled',
+            shippingAddress: o.shipping_address ? JSON.stringify(o.shipping_address) : null,
+            billingAddress: o.billing_address ? JSON.stringify(o.billing_address) : null,
+            note: o.note || null,
+            createdAt: new Date(o.created_at),
+          },
+          update: {
+            totalPrice: parseFloat(o.total_price || '0'),
+            subtotalPrice: o.subtotal_price ? parseFloat(o.subtotal_price) : null,
+            totalTax: o.total_tax ? parseFloat(o.total_tax) : null,
+            currency: o.currency || 'INR',
+            paymentStatus: o.financial_status || 'pending',
+            fulfillmentStatus: o.fulfillment_status || 'unfulfilled',
+            shippingAddress: o.shipping_address ? JSON.stringify(o.shipping_address) : null,
+            billingAddress: o.billing_address ? JSON.stringify(o.billing_address) : null,
+            note: o.note || null,
+          },
+        });
+
+        // Line items
+        for (const item of o.line_items) {
+          const shopifyProductId = item.product_id ? String(item.product_id) : null;
+          let dbProductId = null;
+          if (shopifyProductId) {
+            const prod = await prisma.product.findUnique({ where: { shopifyProductId } });
+            dbProductId = prod?.id || null;
+          }
+
+          await prisma.orderItem.upsert({
+            where: { shopifyLineItemId: String(item.id) },
+            create: {
+              orderId: order.id,
+              shopifyLineItemId: String(item.id),
+              productId: dbProductId,
+              title: item.title,
+              quantity: item.quantity,
+              price: parseFloat(item.price || '0'),
+              sku: item.sku || null,
+            },
+            update: {
+              quantity: item.quantity,
+              price: parseFloat(item.price || '0'),
+              sku: item.sku || null,
+            },
+          });
+        }
+        results.orders++;
+      }
+    } catch (e: any) {
+      results.errors.push(`Orders: ${e.message}`);
+    }
+
+    // ─── Sync Inventory Levels ─────────────────────────────────────
+    try {
+      const locations = await fetchLocations();
+      if (locations.length > 0) {
+        const locationIds = locations.map((l) => String(l.id));
+        const levels = await fetchInventoryLevels(locationIds);
+
+        for (const level of levels) {
+          const product = await prisma.product.findUnique({
+            where: { inventoryItemId: String(level.inventory_item_id) },
+          });
+          if (product) {
+            await prisma.inventory.upsert({
+              where: {
+                productId_locationId: {
+                  productId: product.id,
+                  locationId: String(level.location_id),
+                },
+              },
+              create: {
+                productId: product.id,
+                locationId: String(level.location_id),
+                stockQuantity: level.available ?? 0,
+                reservedQuantity: 0,
+              },
+              update: {
+                stockQuantity: level.available ?? 0,
+              },
+            });
+            results.inventory++;
+          }
+        }
+      }
+    } catch (e: any) {
+      results.errors.push(`Inventory: ${e.message}`);
+    }
+
+    return NextResponse.json({
+      success: true,
+      synced: results,
+    });
+  } catch (error: any) {
+    console.error('Sync Error:', error.stack);
+    return NextResponse.json(
+      { error: 'Sync failed', details: error.message, partialResults: results },
+      { status: 500 }
+    );
+  }
+}

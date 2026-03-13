@@ -1,101 +1,184 @@
-import Image from "next/image";
+import { fetchAllProducts, fetchEnabledCollections, fetchPolicies } from "@/lib/shopify-admin";
+import prisma from "@/lib/db";
+import NextImage from "next/image";
+import Link from "next/link";
+import { ChevronRight, Instagram, Youtube, Music2, Disc } from "lucide-react";
+import CollectionCarousel from "@/components/CollectionCarousel";
+import PremiumTreeRoot from "@/components/PremiumTreeRoot";
+import ProductCard from "@/components/ProductCard";
+import { ShopifyProduct } from "@/lib/shopify-admin";
+import NeuralProductMesh from "@/components/NeuralProductMesh";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  // Gracefully handle Shopify API errors — show empty state instead of crashing
+  const [products, collections, shop, policies] = await Promise.all([
+    fetchAllProducts(24).catch((e) => { console.error("fetchAllProducts:", e.message); return [] as ShopifyProduct[]; }),
+    fetchEnabledCollections('header').catch(() => []),
+    prisma.shop.findFirst().catch(() => null),
+    fetchPolicies().catch(() => []),
+  ]);
+
+  const s = shop as any;
+
+  const heroTitle      = s?.heroTitle       || "Redefine The Standard";
+  const heroSubtitle   = s?.heroSubtitle    || "Explore the latest drops tailored for the relentless.";
+  const heroButtonText = s?.heroButtonText  || "Discover";
+  const heroImage      = s?.heroImage       || "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=2070&auto=format&fit=crop";
+  const heroVideo      = s?.heroVideo;
+  const latestTitle    = s?.latestCurationTitle    || "Latest Curation";
+  const latestSubtitle = s?.latestCurationSubtitle || "Season Drop";
+  const archiveTitle   = s?.archiveTitle    || "The Archive";
+  const archiveSubtitle = s?.archiveSubtitle || "Organic Evolution";
+  const blueprintTitle = s?.blueprintTitle  || "The Blueprint";
+  const blueprintSub   = s?.blueprintSubtitle || "Technique & Motion";
+  const collectionsMedia = s?.collectionsMedia;
+  const featuredMedia  = s?.featuredMedia;
+  const featuredMediaImage = s?.featuredMediaImage;
+  const footerVideo    = s?.footerVideo;
+  const kineticHandles = s?.kineticMeshProducts ? s.kineticMeshProducts.split(',').map((h: string) => h.trim()) : [];
+
+  const socialLinks = [
+    { url: s?.instagramUrl, icon: Instagram, label: "Instagram" },
+    { url: s?.appleUrl,     icon: Disc,      label: "Apple Music" },
+    { url: s?.spotifyUrl,   icon: Music2,    label: "Spotify" },
+    { url: s?.youtubeUrl,   icon: Youtube,   label: "YouTube" },
+  ].filter((item) => item.url);
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <>
+      <div className="relative z-10 max-w-[410px] mx-auto px-2 pb-32 pt-header">
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+        {/* ═══ HERO ═══ */}
+        <section className="relative w-full h-[98svh] sm:aspect-[4/5] sm:h-auto rounded-[1.2rem] overflow-hidden -mt-4 sm:mt-2 mb-3 group shadow-xl bg-muted z-10">
+          {heroVideo ? (
+            <video src={heroVideo} autoPlay loop muted playsInline
+              className="absolute inset-0 w-full h-full object-cover transition-all duration-1000"
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+          ) : (
+            <NextImage src={heroImage} alt="Hero" fill priority
+              className="object-cover brightness-90 group-hover:brightness-100 transition-all duration-1000"
+            />
+          )}
+          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"
+            style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 60%)" }}
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
+          {s?.showHeroText && (
+            <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black/80 via-black/25 to-transparent">
+              <h1 className="font-heading text-[14px] mb-2 leading-snug uppercase tracking-wide text-white">
+                {heroTitle}
+              </h1>
+              <p className="text-[7px] text-white/55 max-w-[88%] mb-5 font-extralight leading-relaxed tracking-widest uppercase">
+                {heroSubtitle}
+              </p>
+              <button className="px-8 py-2.5 bg-white text-black text-[8px] font-extralight uppercase tracking-[0.4em] rounded-full hover:bg-white/90 active:scale-95 transition-all shadow-lg">
+                {heroButtonText}
+              </button>
+            </div>
+          )}
+        </section>
+
+        {/* ═══ SECTION LABEL: Latest ═══ */}
+        {s?.showLatestCuration && (
+          <div className="flex justify-between items-end mb-3 px-1.5 mt-6">
+            <div>
+              <p className="text-[7px] font-extralight uppercase tracking-[0.5em] text-muted-foreground/35 mb-1">{latestSubtitle}</p>
+              <h2 className="font-heading text-[10px] uppercase tracking-[0.18em] text-foreground/75">{latestTitle}</h2>
+            </div>
+            <Link href="/search" className="flex items-center gap-1 text-[8px] uppercase tracking-widest text-muted-foreground/50 hover:text-foreground transition-colors mb-[2px]">
+              View all <ChevronRight className="w-2.5 h-2.5" />
+            </Link>
+          </div>
+        )}
+
+        {/* ═══ PRODUCT GRID 1 ═══ */}
+        <section className="mb-6 px-[1px]">
+          <div className="grid grid-cols-2 gap-x-1 gap-y-5">
+            {products.slice(0, 4).map((p: ShopifyProduct, idx: number) => (
+              <ProductCard key={p.id} product={p} priority={idx < 4} />
+            ))}
+          </div>
+        </section>
+
+        {/* ═══ ABOVE-COLLECTION MEDIA ═══ */}
+        {collectionsMedia && (
+          <section className="mb-4 relative w-full aspect-video rounded-[1rem] overflow-hidden bg-muted shadow-lg border border-foreground/5">
+            <video src={collectionsMedia} autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover opacity-80" />
+          </section>
+        )}
+
+        {/* ═══ COLLECTIONS CAROUSEL ═══ */}
+        <section className="py-12 -mx-2">
+          {s?.showArchive && (
+            <div className="flex justify-center mb-6 px-4">
+              <span className="text-[7px] font-extralight uppercase tracking-[0.9em] text-muted-foreground/22">— {archiveTitle} —</span>
+            </div>
+          )}
+          <CollectionCarousel collections={collections} />
+          {s?.showArchive && (
+            <div className="flex justify-center mt-6 mb-2">
+              <span className="text-[7px] font-extralight uppercase tracking-[0.4em] text-muted-foreground/18">{archiveSubtitle}</span>
+            </div>
+          )}
+        </section>
+
+        {/* ═══ PRODUCT GRID 2 ═══ */}
+        <section className="mb-6 px-[1px]">
+          <div className="grid grid-cols-2 gap-x-1 gap-y-5">
+            {products.slice(4, 8).map((p: ShopifyProduct) => <ProductCard key={p.id} product={p} />)}
+          </div>
+        </section>
+
+        {/* ═══ FEATURED MEDIA ═══ */}
+        {(featuredMedia || featuredMediaImage || heroVideo) && (
+          <section className="mb-4 relative w-full aspect-[4/5] rounded-[2rem] overflow-hidden bg-muted border border-foreground/[0.03]">
+            {featuredMedia || heroVideo ? (
+              <video 
+                src={featuredMedia || heroVideo} 
+                autoPlay 
+                loop 
+                muted 
+                playsInline 
+                className="w-full h-full object-cover" 
+              />
+            ) : featuredMediaImage ? (
+              <NextImage
+                src={featuredMediaImage}
+                alt="Featured Highlight"
+                fill
+                className="w-full h-full object-cover"
+                priority
+              />
+            ) : null}
+            
+            {s?.showBlueprint && (
+              <div className="absolute inset-x-0 bottom-0 p-8 text-center z-10">
+                <h3 className="font-heading text-[10px] uppercase tracking-[0.3em] text-foreground mb-1.5">{blueprintSub}</h3>
+                <p className="text-[8px] font-extralight uppercase tracking-[0.2em] text-foreground/40">{blueprintTitle}</p>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* ═══ KINETIC MESH ═══ */}
+        <section className="mb-6 -mx-2">
+          <NeuralProductMesh 
+            products={kineticHandles.length > 0 
+              ? products.filter((p: ShopifyProduct) => kineticHandles.includes(p.handle))
+              : products.slice(8, 16)
+            } 
           />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+        </section>
+
+        {/* ═══ PRODUCT GRID 3 ═══ */}
+        <section className="mb-8 px-[1px]">
+          <div className="grid grid-cols-2 gap-x-1 gap-y-5">
+            {products.slice(12, 16).map((p: ShopifyProduct) => <ProductCard key={p.id} product={p} />)}
+          </div>
+        </section>
+
+      </div>
+    </>
   );
 }
