@@ -74,6 +74,7 @@ function InputField({
   placeholder,
   type = 'text',
   secret = false,
+  disabled = false,
 }: {
   label: string;
   value: string;
@@ -81,6 +82,7 @@ function InputField({
   placeholder?: string;
   type?: string;
   secret?: boolean;
+  disabled?: boolean;
 }) {
   const [show, setShow] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -92,15 +94,18 @@ function InputField({
   };
 
   return (
-    <div className="space-y-1.5">
-      <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wider">{label}</label>
+    <div className={`space-y-1.5 ${disabled ? 'opacity-70' : ''}`}>
+      <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wider">
+        {label} {disabled && <span className="ml-1 normal-case text-[10px] opacity-40 font-normal italic">(Managed via Environment)</span>}
+      </label>
       <div className="relative flex items-center gap-2">
         <input
           type={secret && !show ? 'password' : 'text'}
           value={value}
           onChange={e => onChange(e.target.value)}
           placeholder={placeholder}
-          className="flex-1 bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-2.5 text-foreground text-sm placeholder-muted-foreground/40 focus:outline-none focus:ring-1 focus:ring-foreground/20 focus:border-foreground/20 transition-all font-mono"
+          disabled={disabled}
+          className={`flex-1 bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-2.5 text-foreground text-sm placeholder-muted-foreground/40 focus:outline-none focus:ring-1 focus:ring-foreground/20 focus:border-foreground/20 transition-all font-mono ${disabled ? 'cursor-not-allowed bg-muted/20' : ''}`}
         />
         {secret && (
           <button type="button" onClick={() => setShow(v => !v)} className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground transition-colors flex-shrink-0">
@@ -456,6 +461,7 @@ export default function SettingsPage() {
             value={settings.shopDomain}
             onChange={set('shopDomain')}
             placeholder="your-store.myshopify.com"
+            disabled={true}
           />
           <InputField
             label="Shopify Admin API Token"
@@ -463,6 +469,7 @@ export default function SettingsPage() {
             onChange={set('accessToken')}
             placeholder="shpat_..."
             secret
+            disabled={true}
           />
           <a
             href={`https://${settings.shopDomain}/admin/apps`}

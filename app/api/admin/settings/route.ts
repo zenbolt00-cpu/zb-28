@@ -8,16 +8,25 @@ export const dynamic = 'force-dynamic';
 export async function GET(req: Request) {
   try {
     const url = new URL(req.url);
-    const domainOverride = url.searchParams.get('shop');
+    const domainOverride = url.searchParams.get('shop') || process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN;
 
-    let shop =
-      domainOverride
-        ? await prisma.shop.findFirst({ where: { domain: domainOverride } })
-        : await prisma.shop.findFirst();
+    let shop = domainOverride
+      ? await prisma.shop.findFirst({ where: { domain: domainOverride } })
+      : await prisma.shop.findFirst();
+
+    if (!shop && domainOverride) {
+      // Create shop if missing but domain is forced via ENV
+      shop = await prisma.shop.create({
+        data: {
+          domain: domainOverride,
+          accessToken: process.env.SHOPIFY_ADMIN_ACCESS_TOKEN || 'shpat_required',
+        }
+      });
+    }
 
     if (!shop) {
       return NextResponse.json(
-        { error: 'Shop not found. Run /api/shopify/sync first.' },
+        { error: 'Shop not found. Environment variables NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN or SHOPIFY_ADMIN_ACCESS_TOKEN might be missing.' },
         { status: 404 },
       );
     }
@@ -25,9 +34,10 @@ export async function GET(req: Request) {
     const shopData = shop as any;
 
     // Return raw values; the UI is responsible for masking/secrecy.
+    // We prioritize ENV for the primary Shopify credentials to ensure production stability.
     return NextResponse.json({
-      shopDomain: shopData.domain,
-      accessToken: shopData.accessToken || '',
+      shopDomain: process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || shopData.domain,
+      accessToken: process.env.SHOPIFY_ADMIN_ACCESS_TOKEN || shopData.accessToken || '',
       delhiveryApiKey: shopData.delhiveryApiKey || '',
       razorpayKeyId: shopData.razorpayKeyId || '',
       razorpayKeySecret: shopData.razorpayKeySecret || '',
@@ -90,25 +100,26 @@ export async function GET(req: Request) {
 export async function PATCH(req: Request) {
   try {
     const body = await req.json();
-    const { shopDomain, ...updates } = body;
+    const { shopDomain: bodyDomain, ...updates } = body;
 
-    let shop;
-    if (shopDomain) {
-      shop = await prisma.shop.findUnique({ where: { domain: shopDomain } });
-    }
-    
-    if (!shop) {
-      shop = await prisma.shop.findFirst();
-    }
+    const envDomain = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN;
+    const targetDomain = envDomain || bodyDomain;
 
-    if (!shop) {
-      const defaultDomain = shopDomain || process.env.SHOPIFY_STORE_DOMAIN || '8tiahf-bk.myshopify.com';
+    let shop = targetDomain 
+      ? await prisma.shop.findFirst({ where: { domain: targetDomain } })
+      : await prisma.shop.findFirst();
+
+    if (!shop && targetDomain) {
       shop = await prisma.shop.create({
         data: {
-          domain: defaultDomain,
+          domain: targetDomain,
           accessToken: process.env.SHOPIFY_ADMIN_ACCESS_TOKEN || 'shpat_required',
         }
       });
+    }
+
+    if (!shop) {
+      throw new Error("No shop record found and no domain provided in ENV or Body.");
     }
 
     const data: any = {};
