@@ -8,6 +8,8 @@ import { notFound } from "next/navigation";
 
 import CollectionHeaderClient from "@/components/CollectionHeaderClient";
 
+export const dynamic = "force-dynamic";
+
 export default async function CollectionPage({
   params,
   searchParams,
