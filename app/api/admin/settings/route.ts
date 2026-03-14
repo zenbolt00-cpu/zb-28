@@ -72,6 +72,9 @@ export async function GET(req: Request) {
       showCommunity: !!shopData.showCommunity,
       communityTitle: shopData.communityTitle || 'Featured Looks',
       communitySubtitle: shopData.communitySubtitle || 'Community',
+      spotlightTitle: shopData.spotlightTitle || 'AUTHENTIC STREETWEAR',
+      spotlightSubtitle: shopData.spotlightSubtitle || 'Luxury Indian streetwear for modern men. Redefining bold everyday style.',
+      kineticMeshTitle: shopData.kineticMeshTitle || 'ARCHIVE EDITION',
     });
   } catch (e) {
     // eslint-disable-next-line no-console
@@ -157,7 +160,10 @@ export async function PATCH(req: Request) {
       'showTreeText',
       'showCommunity',
       'communityTitle',
-      'communitySubtitle'
+      'communitySubtitle',
+      'spotlightTitle',
+      'spotlightSubtitle',
+      'kineticMeshTitle'
     ] as const;
 
     const booleanKeys = [

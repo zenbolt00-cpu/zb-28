@@ -4,7 +4,6 @@ import NextImage from "next/image";
 import Link from "next/link";
 import { ChevronRight, Instagram, Youtube, Music2, Disc } from "lucide-react";
 import CollectionCarousel from "@/components/CollectionCarousel";
-import PremiumTreeRoot from "@/components/PremiumTreeRoot";
 import ProductCard from "@/components/ProductCard";
 import { ShopifyProduct } from "@/lib/shopify-admin";
 import NeuralProductMesh from "@/components/NeuralProductMesh";
@@ -15,14 +14,27 @@ export const dynamic = "force-dynamic";
 
 export default async function Home() {
   // Gracefully handle Shopify API errors — show empty state instead of crashing
-  const [products, collections, shop, policies] = await Promise.all([
+  const [products, collections] = await Promise.all([
     fetchProducts(24).catch(() => [] as ShopifyProduct[]),
     fetchEnabledCollections('header').catch(() => []),
-    prisma.shop.findFirst().catch(() => null),
-    fetchPolicies().catch(() => []),
   ]);
 
-  const s = shop as any;
+  const shop = await prisma.shop.findFirst().catch(() => null);
+  const policies = await fetchPolicies().catch(() => []);
+
+  // Ensure shop is never null for subsequent logic
+  const s = (shop as any) || {
+    heroTitle: "Redefine The Standard",
+    showHeroText: true,
+    showLatestCuration: true,
+    showArchive: true,
+    showBlueprint: true,
+    showCommunity: true,
+    communityTitle: "Featured Looks",
+    communitySubtitle: "Community",
+    spotlightTitle: "AUTHENTIC STREETWEAR",
+    spotlightSubtitle: "Luxury Indian streetwear for modern men."
+  };
 
   const heroTitle      = s?.heroTitle       || "Redefine The Standard";
   const heroSubtitle   = s?.heroSubtitle    || "Explore the latest drops tailored for the relentless.";
@@ -49,8 +61,8 @@ export default async function Home() {
   ].filter((item) => item.url);
 
   return (
-    <>
-      <div className="relative z-10 max-w-[410px] mx-auto px-2 pb-32 pt-header">
+    <>{/* Reduced spacing for premium feel */}
+      <div className="relative z-10 max-w-[410px] mx-auto px-2 pb-1 pt-header">
 
         {/* ═══ HERO ═══ */}
         <section className="relative w-full h-[98svh] sm:aspect-[4/5] sm:h-auto rounded-[1.2rem] overflow-hidden -mt-4 sm:mt-2 mb-3 group shadow-xl bg-muted z-10">
@@ -83,7 +95,7 @@ export default async function Home() {
 
         {/* ═══ SECTION LABEL: Latest ═══ */}
         {s?.showLatestCuration && (
-          <div className="flex justify-between items-end mb-3 px-1.5 mt-6">
+          <div className="flex justify-between items-end mb-1 px-1.5 mt-2">
             <div>
               <p className="text-[7px] font-extralight uppercase tracking-[0.5em] text-muted-foreground/35 mb-1">{latestSubtitle}</p>
               <h2 className="font-heading text-[10px] uppercase tracking-[0.18em] text-foreground/75">{latestTitle}</h2>
@@ -95,7 +107,7 @@ export default async function Home() {
         )}
 
         {/* ═══ PRODUCT GRID 1 ═══ */}
-        <section className="mb-6 px-[1px]">
+        <section className="mb-2 px-[1px]">
           <div className="grid grid-cols-2 gap-x-1 gap-y-5">
             {products.slice(0, 4).map((p: ShopifyProduct, idx: number) => (
               <ProductCard key={p.id} product={p} priority={idx < 4} />
@@ -105,7 +117,7 @@ export default async function Home() {
 
         {/* ═══ ABOVE-COLLECTION MEDIA ═══ */}
         {collectionsMedia && (
-          <section className="mb-4 relative w-full aspect-video rounded-[1rem] overflow-hidden bg-muted shadow-lg border border-foreground/5">
+          <section className="mb-2 relative w-full aspect-video rounded-[1rem] overflow-hidden bg-muted shadow-lg border border-foreground/5">
             <video src={collectionsMedia} autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover opacity-80" />
           </section>
         )}
@@ -126,7 +138,7 @@ export default async function Home() {
         </section>
 
         {/* ═══ PRODUCT GRID 2 ═══ */}
-        <section className="mb-6 px-[1px]">
+        <section className="mb-2 px-[1px]">
           <div className="grid grid-cols-2 gap-x-1 gap-y-5">
             {products.slice(4, 8).map((p: ShopifyProduct) => <ProductCard key={p.id} product={p} />)}
           </div>
@@ -134,7 +146,7 @@ export default async function Home() {
 
         {/* ═══ FEATURED MEDIA ═══ */}
         {(featuredMedia || featuredMediaImage || heroVideo) && (
-          <section className="mb-4 relative w-full aspect-[4/5] rounded-[2rem] overflow-hidden bg-muted border border-foreground/[0.03]">
+          <section className="mb-2 relative w-full aspect-[4/5] rounded-[2rem] overflow-hidden bg-muted border border-foreground/[0.03]">
             {featuredMedia || heroVideo ? (
               <video 
                 src={featuredMedia || heroVideo} 
@@ -164,8 +176,9 @@ export default async function Home() {
         )}
 
         {/* ═══ KINETIC MESH ═══ */}
-        <section className="mb-6 -mx-2">
+        <section className="mb-2 -mx-2">
           <NeuralProductMesh 
+            title={s?.kineticMeshTitle}
             products={kineticHandles.length > 0 
               ? products.filter((p: ShopifyProduct) => kineticHandles.includes(p.handle))
               : products.slice(8, 16)
@@ -174,17 +187,38 @@ export default async function Home() {
         </section>
 
         {/* ═══ PRODUCT GRID 3 ═══ */}
-        <section className="mb-20 px-[1px]">
+        <section className="mb-6 px-[1px]">
           <div className="grid grid-cols-2 gap-x-1 gap-y-5">
             {products.slice(12, 16).map((p: ShopifyProduct) => <ProductCard key={p.id} product={p} />)}
           </div>
         </section>
 
         {/* ═══ SPOTLIGHT ═══ */}
-        <SpotlightSection />
+        <SpotlightSection 
+          title={s?.spotlightTitle} 
+          subtitle={s?.spotlightSubtitle} 
+        />
 
         {/* ═══ FEATURED LOOKS (COMMUNITY) ═══ */}
-        <FeaturedUsersSection />
+        <FeaturedUsersSection 
+          showCommunity={s?.showCommunity} 
+          title={s?.communityTitle} 
+          subtitle={s?.communitySubtitle} 
+        />
+
+        {/* ═══ FOOTER VIDEO ═══ */}
+        {footerVideo && (
+          <section className="mt-1 -mx-2 aspect-[9/16] sm:aspect-video rounded-[2.5rem] overflow-hidden bg-muted group shadow-2xl">
+            <video 
+              src={footerVideo} 
+              autoPlay 
+              loop 
+              muted 
+              playsInline 
+              className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-1000"
+            />
+          </section>
+        )}
 
       </div>
     </>

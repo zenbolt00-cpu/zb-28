@@ -53,12 +53,22 @@ const prismaClientSingleton = () => {
     }
 
     if (dbUrl) {
-      const pool = new Pool({ connectionString: dbUrl });
+      // Ensure the pool doesn't crash the process on immediate connection failure
+      const pool = new Pool({ 
+        connectionString: dbUrl,
+        connectionTimeoutMillis: 5000,
+        idleTimeoutMillis: 30000,
+      });
+      
+      pool.on('error', (err) => {
+        console.error('Unexpected error on idle client', err);
+      });
+
       const adapter = new PrismaPg(pool as any);
       return new PrismaClient({ adapter });
     }
   } catch (error) {
-    console.error('Prisma initialization error:', error);
+    console.error('Critical Prisma initialization error:', error);
   }
 
   // Final fallback to a safe proxy if everything fails

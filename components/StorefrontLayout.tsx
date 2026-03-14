@@ -47,7 +47,7 @@ export default function StorefrontLayout({ children, footer }: StorefrontLayoutP
       </div>
 
       {/* ── Footer (passed from server) ── */}
-      {footer}
+      {pathname !== "/login" && footer}
 
       {/* ── Shared Bottom Nav ── */}
       <StorefrontNav />

@@ -22,6 +22,7 @@ interface FeaturedUser {
   styleDescription: string | null;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
   isTopFeatured: boolean;
+  orderId?: string | null;
   createdAt: string;
   reviews: any[];
 }
@@ -35,8 +36,12 @@ export default function FeaturedUsersModeration() {
     setLoading(true);
     try {
       const res = await fetch("/api/admin/featured-users");
+      if (!res.ok) throw new Error("Failed to fetch submissions");
       const data = await res.json();
       if (data.users) setSubmissions(data.users);
+      else if (data.error) throw new Error(data.error);
+    } catch (err) {
+      console.error("Fetch submissions error:", err);
     } finally {
       setLoading(false);
     }
@@ -104,7 +109,7 @@ export default function FeaturedUsersModeration() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">Community Moderation</h1>
           <div className="flex items-center gap-3 mt-1">
@@ -114,21 +119,33 @@ export default function FeaturedUsersModeration() {
             </span>
           </div>
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 bg-foreground/5 rounded-xl border border-foreground/10">
-          <Users className="w-4 h-4 text-muted-foreground" />
-          <span className="text-sm font-medium">{submissions.length} Submissions</span>
+        
+        <div className="flex items-center gap-4">
+          <a 
+            href="/community" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:opacity-90 transition-all shadow-lg active:scale-95"
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+            Live Community
+          </a>
+          <div className="flex items-center gap-2 px-4 py-2 bg-foreground/5 rounded-xl border border-foreground/10">
+            <Users className="w-4 h-4 text-muted-foreground" />
+            <span className="text-sm font-medium">{submissions.length} Submissions</span>
+          </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {submissions.map((item) => (
-          <div key={item.id} className={`glass-card rounded-2xl overflow-hidden border transition-all ${
+          <div key={item.id} className={`glass-card rounded-2xl overflow-hidden border transition-all hover:scale-[1.01] ${
             item.isTopFeatured ? 'ring-2 ring-emerald-500 ring-offset-2 ring-offset-background border-emerald-500/50' :
             item.status === 'APPROVED' ? 'border-emerald-500/20' : 
             item.status === 'REJECTED' ? 'border-red-500/20' : 'border-foreground/10'
           }`}>
             <div className="relative aspect-[4/5] bg-foreground/5">
-              <Image src={item.imageUrl} alt={item.name} fill className="object-cover" />
+              <Image src={item.imageUrl || "/placeholder.png"} alt={item.name} fill className="object-cover" />
               <div className="absolute top-4 right-4 flex flex-col items-end gap-2">
                 <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-lg flex items-center gap-1.5 ${
                   item.status === 'APPROVED' ? 'bg-emerald-500 text-white' : 
@@ -152,7 +169,14 @@ export default function FeaturedUsersModeration() {
                   <h3 className="text-sm font-bold text-foreground">{item.name}</h3>
                   <span className="text-[10px] text-muted-foreground">{new Date(item.createdAt).toLocaleDateString()}</span>
                 </div>
-                <p className="text-[11px] text-muted-foreground mt-1 underline truncate">{item.email}</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <p className="text-[10px] text-muted-foreground underline truncate max-w-[120px]">{item.email}</p>
+                  {item.orderId && (
+                    <span className="text-[9px] font-bold text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded uppercase tracking-tighter">
+                      OrderID: {item.orderId.substring(0, 8)}...
+                    </span>
+                  )}
+                </div>
               </div>
 
               <div className="p-3 bg-foreground/5 rounded-xl border border-foreground/5 italic text-[11px] text-muted-foreground/80 leading-relaxed min-h-[50px]">

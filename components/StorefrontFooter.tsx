@@ -29,7 +29,7 @@ export default async function StorefrontFooter() {
   ].filter((item) => item.url);
 
   return (
-    <footer className="w-full pb-10 pt-16 px-4 text-center mt-20 relative z-10 glass rounded-t-[3rem] border-t-0">
+    <footer className="w-full pb-10 pt-12 px-4 text-center mt-1 relative z-10 glass rounded-t-[3rem] border-t-0">
       <div className="max-w-md mx-auto px-4">
         {/* 3D GLB Logo */}
         <div className="mb-6 flex justify-center">

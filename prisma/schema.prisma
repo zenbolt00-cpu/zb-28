@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
 }
 
 model Shop {
@@ -59,6 +59,9 @@ model Shop {
   enabledCollectionsMenu   String?
   featuredMediaImage       String?
   kineticMeshProducts      String?
+  spotlightTitle           String?    @default("AUTHENTIC STREETWEAR")
+  spotlightSubtitle        String?    @default("Luxury Indian streetwear for modern men. Redefining bold everyday style.")
+  kineticMeshTitle         String?    @default("ARCHIVE EDITION")
   customers                Customer[]
   orders                   Order[]
   products                 Product[]

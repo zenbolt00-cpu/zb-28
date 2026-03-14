@@ -25,7 +25,11 @@ export async function getShopConfig() {
   
   let accessToken = shop?.accessToken;
   // If the token in DB is empty or a placeholder, fallback to the real env var
-  if (!accessToken || accessToken === 'test_token' || accessToken === '') {
+  const isPlaceholder = !accessToken || 
+    ['test_token', 'shpat_placeholder', 'shpat_required', 'shpat_env_token'].includes(accessToken) || 
+    accessToken === '';
+    
+  if (isPlaceholder) {
     accessToken = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN || '';
   }
   
@@ -278,6 +282,11 @@ export async function fetchOrder(orderId: string): Promise<ShopifyOrder> {
   return data.order;
 }
 
+export async function createOrder(order: any): Promise<ShopifyOrder> {
+  const data = await shopifyPost<{ order: ShopifyOrder }>('orders.json', { order });
+  return data.order;
+}
+
 // ─── Customers ───────────────────────────────────────────────────────
 
 export interface ShopifyCustomer {
@@ -325,6 +334,18 @@ export async function fetchAllCustomers(limit = 250): Promise<ShopifyCustomer[]>
     order: 'created_at desc',
   }, 'customers');
   return customers;
+}
+
+export async function createCustomer(customer: any): Promise<ShopifyCustomer> {
+  const data = await shopifyPost<{ customer: ShopifyCustomer }>('customers.json', { customer });
+  return data.customer;
+}
+
+export async function updateCustomer(customerId: string, updates: any): Promise<ShopifyCustomer> {
+  const data = await shopifyPatch<{ customer: ShopifyCustomer }>(`customers/${customerId}.json`, {
+    customer: { id: parseInt(customerId, 10), ...updates }
+  });
+  return data.customer;
 }
 
 // ─── Collections ─────────────────────────────────────────────────────

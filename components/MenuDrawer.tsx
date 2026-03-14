@@ -1,6 +1,6 @@
 "use client";
 
-import { X, Plus, Minus, ChevronRight, User } from "lucide-react";
+import { X, Plus, Minus, ChevronRight, User, Package } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
@@ -184,9 +184,25 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
                       Collaborations
                     </Link>
                     <Link 
-                      href="/login" 
+                      href="/community" 
+                      onClick={onClose}
+                      className="flex items-center gap-3 text-[17px] font-bold tracking-tight text-foreground/80 hover:text-foreground transition-colors"
+                    >
+                      <Plus className="w-5 h-5 text-foreground/60" />
+                      Community
+                    </Link>
+                    <Link 
+                      href="/orders" 
                       onClick={onClose}
                       className="flex items-center gap-3 text-[17px] font-bold tracking-tight text-foreground/80 hover:text-foreground transition-colors mt-2"
+                    >
+                      <Package className="w-5 h-5 text-foreground/60" />
+                      Orders
+                    </Link>
+                    <Link 
+                      href="/login" 
+                      onClick={onClose}
+                      className="flex items-center gap-3 text-[17px] font-bold tracking-tight text-foreground/80 hover:text-foreground transition-colors"
                     >
                       <User className="w-5 h-5 text-foreground/60" />
                       Login / Profile

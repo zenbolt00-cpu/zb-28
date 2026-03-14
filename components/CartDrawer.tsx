@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/lib/cart-context";
+import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 
 const CheckoutWebView = dynamic(() => import("./CheckoutWebView"), { ssr: false });
@@ -17,40 +18,17 @@ interface CartDrawerProps {
 }
 
 export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
+  const router = useRouter();
   const { items, count, subtotal, remove, update, clear } = useCart();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
-  const handleCheckout = async () => {
+  const handleCheckout = () => {
     if (items.length === 0) return;
-    setIsCheckingOut(true);
-    setCheckoutError(null);
-
-    try {
-      const res = await fetch("/api/shopify/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          items: items.map((item) => ({
-            variantId: item.variantId,
-            quantity: item.quantity,
-          })),
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok || !data.checkoutUrl) {
-        throw new Error(data.error || "Could not start checkout");
-      }
-
-      setCheckoutUrl(data.checkoutUrl);
-    } catch (err: any) {
-      setCheckoutError(err.message || "Something went wrong. Please try again.");
-    } finally {
-      setIsCheckingOut(false);
-    }
+    onClose();
+    router.push("/checkout");
   };
 
   const handleOrderSuccess = () => {

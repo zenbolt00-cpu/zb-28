@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { ShoppingBag, Loader2, Bookmark, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ShoppingBag, Loader2, Bookmark, X, Plus } from "lucide-react";
 import { ShopifyProduct } from "@/lib/shopify-admin";
 import { parseShopifyRichText, matchKey } from "@/lib/utils";
 import Image from "next/image";
@@ -38,6 +39,7 @@ export default function ProductDetailsClient({
   recommendedProducts?: ShopifyProduct[];
   allImages?: any[];
 }) {
+  const router = useRouter();
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>("details");
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
@@ -45,6 +47,7 @@ export default function ProductDetailsClient({
   const [showSizeChart, setShowSizeChart] = useState(false);
   const [scrollPos, setScrollPos] = useState(0);
   const [activeImg, setActiveImg] = useState(0);
+  const [direction, setDirection] = useState(0);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [winHeight, setWinHeight] = useState(800);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
@@ -52,6 +55,7 @@ export default function ProductDetailsClient({
   const [showSuccess, setShowSuccess] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [isAdded, setIsAdded] = useState(false);
+
 
   // Refs for scroll sync — avoids fragile querySelector
   const bgScrollRef = useRef<HTMLDivElement>(null);
@@ -106,7 +110,12 @@ export default function ProductDetailsClient({
       return;
     }
 
-    const variant = product.variants.find(v => v.option1 === selectedSize) || product.variants[0];
+    const variant = product.variants?.find(v => v.option1 === selectedSize) || product.variants?.[0];
+
+    if (!variant) {
+      alert("This product is currently unavailable.");
+      return;
+    }
 
     addToCart({
       productId: product.id.toString(),
@@ -128,26 +137,24 @@ export default function ProductDetailsClient({
       return;
     }
 
-    const variant = product.variants.find((v) => v.option1 === selectedSize) || product.variants[0];
+    const variant = product.variants?.find((v) => v.option1 === selectedSize) || product.variants?.[0];
 
-    setIsCheckingOut(true);
-    setCheckoutError(null);
-    try {
-      const res = await fetch("/api/shopify/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          items: [{ variantId: variant.id.toString(), quantity: 1 }],
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok || !data.checkoutUrl) throw new Error(data.error || "Checkout failed");
-      setCheckoutUrl(data.checkoutUrl);
-    } catch (err: any) {
-      setCheckoutError(err.message || "Something went wrong");
-    } finally {
-      setIsCheckingOut(false);
+    if (!variant) {
+      alert("This product is currently unavailable.");
+      return;
     }
+
+    addToCart({
+      productId: product.id.toString(),
+      handle: product.handle,
+      variantId: variant.id.toString(),
+      title: product.title,
+      size: selectedSize,
+      price: variant.price,
+      image: product.image?.src || product.images[0]?.src || "/placeholder.png"
+    });
+
+    router.push("/checkout");
   };
 
   const initialPrice = product.variants?.[0]?.price || "0.00";
@@ -155,6 +162,18 @@ export default function ProductDetailsClient({
   const productVideoUrl = getMeta('product-video');
   const sizeChartImageUrl = getMeta('size-chart-image');
   
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const isScrolling = useRef(false);
+
+  const handleScroll = () => {
+    if (!scrollRef.current) return;
+    const { scrollLeft, clientWidth } = scrollRef.current;
+    const index = Math.round(scrollLeft / clientWidth);
+    if (index !== activeImg) {
+      setActiveImg(index);
+    }
+  };
+
   const tabs = [
     { id: 'details', label: 'Description', show: shopSettings?.showDetails ?? true },
     { id: 'more-details', label: 'Details', show: (shopSettings?.showDetails ?? true) && !!getMeta('DETAILS') },
@@ -166,71 +185,65 @@ export default function ProductDetailsClient({
 
   return (
     <>
-      {/* FIXED SNAP BACKGROUND */}
-      <div className="fixed top-0 left-0 w-full h-[100dvh] z-0 overflow-hidden bg-background">
-        <div
-          ref={bgScrollRef}
-          className={`h-full flex overflow-x-auto snap-x snap-mandatory hide-scrollbar pointer-events-auto transition-transform duration-500`}
-          style={{ 
-            scrollBehavior: 'smooth',
-            WebkitOverflowScrolling: 'touch',
-            pointerEvents: scrollPos > 50 ? 'none' : 'auto',
-            touchAction: scrollPos > 50 ? 'auto' : 'pan-x' 
-          }}
-          onScroll={(e) => {
-            const target = e.currentTarget;
-            const index = Math.round(target.scrollLeft / target.clientWidth);
-            if (activeImg !== index) setActiveImg(index);
+      {/* Native Standard Glass Box Image Carousel */}
+      <div className="relative z-10 px-2 pt-[73px] pb-2">
+        <div 
+          className="relative aspect-[4/6.4] w-full max-w-[500px] mx-auto rounded-[2rem] overflow-hidden shadow-xl border border-foreground/[0.04] group transition-all duration-300"
+          style={{
+            background: "hsla(var(--glass-bg), 0.1)",
+            backdropFilter: "blur(30px)",
+            WebkitBackdropFilter: "blur(30px)",
           }}
         >
-          {allImages.map((img, i) => {
-            // Memory Optimization: Only render current image and its neighbors
-            const isNear = Math.abs(activeImg - i) <= 1;
-            if (!isNear) return <div key={`bg-${i}`} className="w-full h-full flex-shrink-0 snap-start" />;
-            
-            return (
+          <div 
+            ref={scrollRef}
+            onScroll={handleScroll}
+            className="flex h-full w-full overflow-x-auto snap-x snap-mandatory scroll-smooth hide-scrollbar touch-manipulation"
+          >
+            {allImages.map((img, i) => (
               <div 
-                key={`bg-${img.src}`} 
-                className="w-full h-full flex-shrink-0 snap-start relative"
-                onClick={() => setIsGalleryOpen(true)}
+                key={`${i}-${img.src}`} 
+                className="relative w-full h-full flex-shrink-0 snap-center snap-always transition-opacity duration-300"
               >
                 <Image
                   src={img.src}
                   alt={product.title}
                   fill
-                  className="object-cover transition-opacity duration-700"
-                  priority={i === activeImg}
-                  sizes="100vw"
-                  quality={90}
+                  className="object-cover"
+                  priority
+                  sizes="(max-width: 768px) 100vw, 500px"
+                  quality={100}
+                  draggable={false}
                 />
               </div>
-            );
-          })}
+            ))}
+          </div>
         </div>
-        <div id="pdp-blur-overlay-internal" className="absolute inset-0 z-10 pointer-events-none" />
       </div>
 
-      <main className="relative z-20 pt-[82dvh] sm:pt-[75dvh]">
+      <main className="relative z-20 mt-[1px] product-page px-[1px] pb-[1px]">
         <div 
-          className="min-h-[120vh] rounded-t-[1.1rem] px-2 pt-7 pb-32 border-t border-foreground/[0.08] shadow-2xl"
+          className="min-h-[60vh] rounded-[1.2rem] px-[5px] pt-4 pb-[6px] border border-foreground/[0.05]"
           style={{ 
             background: "hsla(var(--glass-bg), 0.94)",
             backdropFilter: "blur(20px)",
             WebkitBackdropFilter: "blur(20px)",
-            boxShadow: "0 -20px 80px -10px hsla(var(--glass-shadow), 0.35)"
+            boxShadow: "0 20px 80px -10px hsla(var(--glass-shadow), 0.35)"
           }}
         >
           {/* Image Variants/Thumbnails - Vibrant Glass Theme */}
-          <div className="flex overflow-x-auto gap-2.5 mb-4 pb-1 hide-scrollbar snap-x px-1">
+          <div className="flex overflow-x-auto gap-2.5 mb-3 pb-1 hide-scrollbar snap-x px-1">
             {allImages.map((img, i) => (
               <button
                 key={`thumb-${img.src || i}`}
                 onClick={() => {
                   setActiveImg(i);
-                  // Use ref for reliable scroll sync
-                  bgScrollRef.current?.scrollTo({ left: i * window.innerWidth, behavior: 'smooth' });
+                  scrollRef.current?.scrollTo({
+                    left: i * scrollRef.current.clientWidth,
+                    behavior: 'smooth'
+                  });
                 }}
-                className={`relative w-[52px] h-[52px] rounded-[0.8rem] overflow-hidden flex-shrink-0 snap-start border transition-all duration-500 shadow-sm outline-none ${
+                className={`relative w-[42px] h-[42px] rounded-[0.6rem] overflow-hidden flex-shrink-0 snap-start border transition-all duration-500 shadow-sm outline-none ${
                   activeImg === i 
                     ? "border-foreground/50 scale-105 shadow-lg shadow-foreground/5 opacity-100 ring-1 ring-foreground/10" 
                     : "border-foreground/5 opacity-60 hover:opacity-90"
@@ -241,10 +254,10 @@ export default function ProductDetailsClient({
             ))}
           </div>
 
-          <div className="flex justify-between items-start mb-4 px-1" onClick={() => setIsGalleryOpen(true)}>
+          <div className="flex justify-between items-start mb-2 px-1">
             <div className="flex-1">
-              <div className="flex items-center gap-2 mb-0.5">
-                <h1 className="text-[20px] sm:text-[24px] font-bold tracking-tighter leading-[1] text-foreground">
+              <div className="flex items-center gap-3 mb-1">
+                <h1 className="text-[11px] sm:text-[12px] font-bold tracking-[0.25em] uppercase leading-tight text-foreground/90 font-heading">
                   {product.title}
                 </h1>
                 {comparePrice && parseFloat(comparePrice) > parseFloat(initialPrice) && (
@@ -254,7 +267,7 @@ export default function ProductDetailsClient({
                 )}
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-[13px] font-medium text-foreground/40 tracking-tight">₹{parseFloat(initialPrice).toLocaleString('en-IN')}</span>
+                <span className="text-[11px] font-medium text-foreground/40 tracking-tight">₹{parseFloat(initialPrice).toLocaleString('en-IN')}</span>
                 {comparePrice && parseFloat(comparePrice) > parseFloat(initialPrice) && (
                   <span className="text-[10px] font-light text-foreground/15 line-through tracking-wider">₹{parseFloat(comparePrice).toLocaleString('en-IN')}</span>
                 )}
@@ -263,6 +276,10 @@ export default function ProductDetailsClient({
             <button 
               onClick={(e) => {
                 e.stopPropagation();
+                if (!selectedSize && sizes.length > 0) {
+                  alert("Please select a size first!");
+                  return;
+                }
                 toggleBookmark(product);
                 setIsOpen(true);
               }}
@@ -272,7 +289,7 @@ export default function ProductDetailsClient({
             </button>
           </div>
 
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1.5">
             {/* Size Section - Ultra Tiny */}
             {sizes.length > 0 && (
               <div className="space-y-2">
@@ -359,7 +376,7 @@ export default function ProductDetailsClient({
             </div>
 
             <div 
-              className="mt-1 p-3 rounded-[1.2rem]"
+              className="mt-0.5 p-2.5 rounded-[1.2rem]"
               style={{
                 background: "hsla(var(--glass-bg), 0.2)",
                 backdropFilter: "blur(16px)",
@@ -367,7 +384,7 @@ export default function ProductDetailsClient({
                 border: "1px solid hsla(var(--glass-border), 0.06)"
               }}
             >
-              <div className="flex overflow-x-auto hide-scrollbar gap-1.5 mb-3.5 px-0.5">
+              <div className="flex overflow-x-auto hide-scrollbar gap-1.5 mb-2 px-0.5">
                 {tabs.map((tab) => (
                   <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`shrink-0 px-3 py-1.5 rounded-full text-[7px] font-bold uppercase tracking-widest transition-all ${activeTab === tab.id ? "bg-foreground/10 text-foreground/90 shadow-inner" : "text-foreground/30 hover:text-foreground/60 bg-transparent"}`}>
                     {tab.label}
@@ -375,7 +392,7 @@ export default function ProductDetailsClient({
                 ))}
               </div>
               <div 
-                className="rounded-[0.9rem] p-3.5"
+                className="rounded-[0.9rem] p-2.5"
                 style={{
                   background: "hsla(var(--glass-bg), 0.3)",
                   boxShadow: "inset 0 2px 10px hsla(var(--glass-shadow), 0.05)"
@@ -384,14 +401,11 @@ export default function ProductDetailsClient({
                 {activeTab === "details" ? (
                   <div className="relative">
                     <div className={`text-[9.5px] font-light leading-[1.6] tracking-wide text-foreground/60 space-y-3 ${!isDescriptionExpanded ? 'line-clamp-3' : ''}`} dangerouslySetInnerHTML={{ __html: product.body_html || "" }} />
-                    <button onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)} className="mt-3.5 px-4 py-1.5 rounded-full text-[7px] font-bold uppercase tracking-[0.2em] transition-all"
-                      style={{
-                        background: "hsla(var(--glass-bg), 0.4)",
-                        border: "1px solid hsla(var(--glass-border), 0.1)",
-                        color: "hsla(var(--foreground), 0.6)"
-                      }}
+                    <button 
+                      onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)} 
+                      className="mt-3 px-3 py-1 rounded-full text-[6px] font-bold uppercase tracking-[0.15em] transition-all bg-foreground/5 border border-foreground/5 text-foreground/40 hover:text-foreground"
                     >
-                      {isDescriptionExpanded ? "Collapse -" : "Expand +"}
+                      {isDescriptionExpanded ? "View Less" : "View More"}
                     </button>
                   </div>
                 ) : (
@@ -402,26 +416,46 @@ export default function ProductDetailsClient({
               </div>
             </div>
 
-            {/* Video Reference */}
             {(shopSettings?.showProductVideo ?? true) && productVideoUrl && (
-              <div className="mt-4">
-                <span className="text-[7.5px] font-bold uppercase tracking-[0.4em] text-foreground/20 ml-1 mb-4 block">Experimental Reference</span>
-                <div className="aspect-[9/16] rounded-[2.2rem] overflow-hidden bg-foreground/[0.02] border border-foreground/[0.05] shadow-inner">
-                  <video key={productVideoUrl} autoPlay loop muted={isMuted} playsInline className="w-full h-full object-cover">
+              <div className="mt-1 -mx-0.5">
+                <span className="text-[7.5px] font-bold uppercase tracking-[0.4em] text-foreground/20 ml-1 mb-1.5 block">Experimental Reference</span>
+                <div 
+                  className="relative aspect-[9/16] rounded-[2.2rem] overflow-hidden bg-foreground/[0.02] border border-foreground/[0.05] shadow-inner cursor-pointer"
+                  onClick={() => setIsMuted(!isMuted)}
+                >
+                  <video 
+                    key={productVideoUrl} 
+                    autoPlay 
+                    loop 
+                    muted={isMuted} 
+                    playsInline 
+                    className="w-full h-full object-cover pointer-events-none"
+                  >
                     <source src={productVideoUrl} type="video/mp4" />
                   </video>
+                  {/* Premium Minimal Audio Indicator */}
+                  <div className="absolute bottom-4 right-4 z-10">
+                    {isMuted ? (
+                      <X className="w-2.5 h-2.5 text-white/50" />
+                    ) : (
+                      <div className="flex items-center gap-0.5 opacity-80">
+                        <div className="w-[1.5px] h-2 bg-white animate-pulse" />
+                        <div className="w-[1.5px] h-2.5 bg-white animate-pulse" style={{ animationDelay: '0.1s' }} />
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
 
             {/* Recommended Products */}
             {recommendedProducts.length > 0 && (
-              <div className="mt-12">
-                <div className="flex items-center justify-between mb-8 px-1">
-                  <h2 className="text-[9.5px] font-bold tracking-[0.4em] uppercase text-foreground/30 font-rocaston">Curated Pairs</h2>
+              <div className="mt-[1px] -mx-0.5">
+                <div className="flex items-center justify-between mb-[1px] px-1">
+                  <h2 className="text-[10px] font-bold tracking-[0.15em] uppercase text-foreground/40 font-heading">Curated Pairs</h2>
                   <Link href="/" className="text-[7.5px] font-bold uppercase tracking-widest text-foreground/20 hover:text-foreground">View Collection</Link>
                 </div>
-                <div className="grid grid-cols-2 gap-x-1 gap-y-8">
+                <div className="grid grid-cols-2 gap-x-[6px] gap-y-[1px]">
                   {recommendedProducts.slice(0, 4).map((p) => <ProductCard key={p.id} product={p} />)}
                 </div>
               </div>
@@ -429,11 +463,11 @@ export default function ProductDetailsClient({
 
             {/* Recently Viewed */}
             {recentlyViewed.length > 1 && (
-              <div className="mt-12 pt-12 border-t border-foreground/[0.05]">
-                <div className="flex items-center justify-between mb-8 px-1">
-                  <h2 className="text-[9.5px] font-bold tracking-[0.4em] uppercase text-foreground/30 font-rocaston">Recently Viewed</h2>
+              <div className="mt-[1px] pt-[1px] border-t border-foreground/[0.05] -mx-0.5">
+                <div className="flex items-center justify-between mb-[1px] px-1">
+                  <h2 className="text-[10px] font-bold tracking-[0.15em] uppercase text-foreground/40 font-heading">Recently Viewed</h2>
                 </div>
-                <div className="grid grid-cols-2 gap-x-1 gap-y-8">
+                <div className="grid grid-cols-2 gap-x-[6px] gap-y-[1px]">
                   {recentlyViewed.filter(p => p.id !== product.id).slice(0, 4).map((p) => <ProductCard key={p.id} product={p} />)}
                 </div>
               </div>

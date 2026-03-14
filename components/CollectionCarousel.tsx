@@ -100,7 +100,7 @@ function CollectionCard({
         damping: 32,
         mass: 1
       }}
-      className="absolute w-[72vw] max-w-[320px] aspect-[3/4.2] rounded-[2.5rem] overflow-hidden shadow-2xl origin-center"
+      className="absolute w-[65vw] max-w-[280px] aspect-[3/4] rounded-[2rem] overflow-hidden shadow-xl origin-center"
       style={{
         zIndex: 10 - Math.round(Math.abs(diff)),
         pointerEvents: isActive ? "auto" : "none",

@@ -10,6 +10,7 @@ import { CartProvider } from '../lib/cart-context';
 
 import { BookmarkProvider } from '../lib/bookmark-context';
 import { RecentlyViewedProvider } from '../lib/recently-viewed-context';
+import { SessionProvider } from "next-auth/react";
 
 function AppBridgeWrapper({ children }: { children: React.ReactNode }) {
   const searchParams = useSearchParams();
@@ -23,18 +24,20 @@ function AppBridgeWrapper({ children }: { children: React.ReactNode }) {
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-      <CartProvider>
-        <BookmarkProvider>
-          <RecentlyViewedProvider>
-            <PolarisProvider i18n={enTranslations}>
-              <Suspense fallback={null}>
-                <AppBridgeWrapper>{children}</AppBridgeWrapper>
-              </Suspense>
-            </PolarisProvider>
-          </RecentlyViewedProvider>
-        </BookmarkProvider>
-      </CartProvider>
-    </ThemeProvider>
+    <SessionProvider>
+      <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+        <CartProvider>
+          <BookmarkProvider>
+            <RecentlyViewedProvider>
+              <PolarisProvider i18n={enTranslations}>
+                <Suspense fallback={null}>
+                  <AppBridgeWrapper>{children}</AppBridgeWrapper>
+                </Suspense>
+              </PolarisProvider>
+            </RecentlyViewedProvider>
+          </BookmarkProvider>
+        </CartProvider>
+      </ThemeProvider>
+    </SessionProvider>
   );
 }

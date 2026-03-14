@@ -6,6 +6,10 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useBookmarks } from "@/lib/bookmark-context";
 import { useCart } from "@/lib/cart-context";
+import dynamic from "next/dynamic";
+import { useState } from "react";
+
+const QuickAddModal = dynamic(() => import("./QuickAddModal"), { ssr: false });
 
 interface BookmarkDrawerProps {
   isOpen: boolean;
@@ -15,20 +19,10 @@ interface BookmarkDrawerProps {
 export default function BookmarkDrawer({ isOpen, onClose }: BookmarkDrawerProps) {
   const { bookmarks, removeBookmark } = useBookmarks();
   const { add: addToCart } = useCart();
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
 
   const handleQuickAdd = (product: any) => {
-    const variant = product.variants?.[0];
-    if (!variant) return;
-
-    addToCart({
-      productId: product.id.toString(),
-      handle: product.handle,
-      variantId: variant.id.toString(),
-      title: product.title,
-      size: variant.option1 || null,
-      price: variant.price,
-      image: product.image?.src || product.images?.[0]?.src || "/placeholder.png"
-    });
+    setSelectedProduct(product);
   };
 
   return (
@@ -152,6 +146,13 @@ export default function BookmarkDrawer({ isOpen, onClose }: BookmarkDrawerProps)
             )}
           </motion.div>
         </>
+      )}
+      
+      {selectedProduct && (
+        <QuickAddModal 
+          product={selectedProduct} 
+          onClose={() => setSelectedProduct(null)} 
+        />
       )}
     </AnimatePresence>
   );

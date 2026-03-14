@@ -8,6 +8,7 @@ import { ShopifyProduct } from "@/lib/shopify-admin";
 
 interface NeuralProductMeshProps {
   products: ShopifyProduct[];
+  title?: string;
 }
 
 interface Orb {
@@ -26,10 +27,14 @@ interface Orb {
 const RADIUS = 50; 
 const SPEED_LIMIT = 10; // Increased from 6 for v4.0
 
-export default function NeuralProductMesh({ products }: NeuralProductMeshProps) {
+export default function NeuralProductMesh({ products, title = "ARCHIVE EDITION" }: NeuralProductMeshProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [orbs, setOrbs] = useState<Orb[]>([]);
   const displayProducts = products.slice(0, 8); 
+
+  // ... (lines 34-149)
+  
+  // Update the rendering part around 166:
 
   // Initialize Orbs
   useEffect(() => {
@@ -163,7 +168,7 @@ export default function NeuralProductMesh({ products }: NeuralProductMeshProps) 
             className="text-[9px] md:text-[11px] font-light uppercase tracking-[0.8em] leading-none text-nowrap drop-shadow-[0_0_10px_rgba(255,255,255,0.15)]"
             style={{ fontFamily: "'HeadingPro', sans-serif" }}
           >
-            ARCHIVE EDITION
+            {title}
           </motion.h2>
         </div>
       </div>

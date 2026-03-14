@@ -14,7 +14,13 @@ const AUTHENTIC_HEADINGS = [
   "GRAPHIC SOUL"
 ];
 
-export default function SpotlightSection() {
+export default function SpotlightSection({ 
+  title = "AUTHENTIC STREETWEAR", 
+  subtitle = "Luxury Indian streetwear for modern men. Redefining bold everyday style." 
+}: { 
+  title?: string; 
+  subtitle?: string; 
+}) {
   const [products, setProducts] = useState<ShopifyProduct[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -45,9 +51,9 @@ export default function SpotlightSection() {
   return (
     <section className="mt-16 mb-20 px-4">
       <div className="text-center mb-12">
-        <h2 className="font-heading text-[32px] tracking-tight text-foreground mb-4 uppercase">AUTHENTIC STREETWEAR</h2>
+        <h2 className="font-heading text-[32px] tracking-tight text-foreground mb-4 uppercase">{title}</h2>
         <p className="text-[11px] text-muted-foreground max-w-[280px] mx-auto leading-relaxed tracking-wider font-extralight uppercase">
-          Luxury Indian streetwear for modern men. Redefining bold everyday style.
+          {subtitle}
         </p>
       </div>
 

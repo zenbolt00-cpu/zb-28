@@ -27,14 +27,24 @@ export async function POST() {
   try {
     // Ensure shop record exists
     const shopDomain = process.env.SHOPIFY_STORE_DOMAIN || '8tiahf-bk.myshopify.com';
+    const envToken = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
+    
     let shop = await prisma.shop.findUnique({ where: { domain: shopDomain } });
+    
     if (!shop) {
       shop = await prisma.shop.create({
         data: {
           domain: shopDomain,
-          accessToken: process.env.SHOPIFY_ADMIN_ACCESS_TOKEN || 'env_token',
+          accessToken: envToken || 'shpat_placeholder',
         },
       });
+    } else if (envToken && (!shop.accessToken || shop.accessToken.includes('placeholder') || shop.accessToken.includes('required'))) {
+      // Heal the shop record if it has a placeholder but we have a real token in env
+      shop = await prisma.shop.update({
+        where: { id: shop.id },
+        data: { accessToken: envToken }
+      });
+      console.log(`[Sync Route] Updated shop ${shopDomain} with real token from environment.`);
     }
 
     // ─── Parallel Syncing ──────────────────────────────────────────
@@ -42,7 +52,7 @@ export async function POST() {
       try {
         const products = await fetchAllProducts(250);
         await Promise.all(products.map(async (p) => {
-          const firstVariant = p.variants[0];
+          const firstVariant = p.variants?.[0];
           await prisma.product.upsert({
             where: { shopifyProductId: String(p.id) },
             create: {

@@ -30,8 +30,9 @@
   font-weight: 700;
 }
 
-/* Home-page specifically can use HeadingPro */
-.home-page .font-heading {
+/* Home-page and Product-page can use HeadingPro */
+.home-page .font-heading,
+.product-page .font-heading {
   font-family: 'HeadingPro', -apple-system, sans-serif;
   letter-spacing: -0.01em;
 }

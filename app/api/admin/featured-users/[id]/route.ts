@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
+import { revalidatePath } from 'next/cache';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,6 +30,10 @@ export async function PATCH(
       data,
     });
 
+    // Real-time sync for homepage and community
+    revalidatePath('/');
+    revalidatePath('/community');
+
     return NextResponse.json({ success: true, user });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -42,6 +47,11 @@ export async function DELETE(
   try {
     const { id } = params;
     await prisma.featuredUser.delete({ where: { id } });
+    
+    // Real-time sync for homepage and community
+    revalidatePath('/');
+    revalidatePath('/community');
+
     return NextResponse.json({ success: true });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

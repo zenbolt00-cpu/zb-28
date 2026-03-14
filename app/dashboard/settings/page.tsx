@@ -54,6 +54,9 @@ interface SettingsData {
   showCommunity: boolean;
   communityTitle: string;
   communitySubtitle: string;
+  spotlightTitle: string;
+  spotlightSubtitle: string;
+  kineticMeshTitle: string;
 }
 
 const WEBHOOK_TOPICS = [
@@ -223,6 +226,9 @@ export default function SettingsPage() {
     showCommunity: true,
     communityTitle: 'Featured Looks',
     communitySubtitle: 'Community',
+    spotlightTitle: 'AUTHENTIC STREETWEAR',
+    spotlightSubtitle: 'Luxury Indian streetwear for modern men. Redefining bold everyday style.',
+    kineticMeshTitle: 'ARCHIVE EDITION',
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -293,6 +299,9 @@ export default function SettingsPage() {
           showCommunity: data.showCommunity ?? true,
           communityTitle: data.communityTitle || 'Featured Looks',
           communitySubtitle: data.communitySubtitle || 'Community',
+          spotlightTitle: data.spotlightTitle || 'AUTHENTIC STREETWEAR',
+          spotlightSubtitle: data.spotlightSubtitle || 'Luxury Indian streetwear for modern men. Redefining bold everyday style.',
+          kineticMeshTitle: data.kineticMeshTitle || 'ARCHIVE EDITION',
         });
         setLoading(false);
         setTimeout(() => setIsInitialLoad(false), 500);
@@ -742,6 +751,26 @@ export default function SettingsPage() {
               value={settings.communityTitle}
               onChange={set('communityTitle')}
               placeholder="e.g. Featured Looks"
+            />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+             <InputField
+              label="Spotlight Title"
+              value={settings.spotlightTitle}
+              onChange={set('spotlightTitle')}
+              placeholder="e.g. AUTHENTIC STREETWEAR"
+            />
+            <InputField
+              label="Spotlight Subtitle"
+              value={settings.spotlightSubtitle}
+              onChange={set('spotlightSubtitle')}
+              placeholder="e.g. Luxury Indian streetwear..."
+            />
+            <InputField
+              label="Kinetic Mesh Title"
+              value={settings.kineticMeshTitle}
+              onChange={set('kineticMeshTitle')}
+              placeholder="e.g. ARCHIVE EDITION"
             />
           </div>
         </SectionCard>
