@@ -335,22 +335,11 @@ export default function SettingsPage() {
       .finally(() => setFetchingProducts(false));
   }, []);
 
-  // Simple Auto-save logic
-  useEffect(() => {
-    // Don't auto-save during initial load or while a save is already in progress
-    if (isInitialLoad || loading || saving) return;
-
-    const timer = setTimeout(() => {
-      handleSave();
-    }, 2500); // 2.5s debounce for auto-save
-
-    return () => clearTimeout(timer);
-  }, [settings]);
-
+  // Manual Save logic only to ensure stability in production without race conditions
   const [saveError, setSaveError] = useState<string | null>(null);
 
   const handleSave = async () => {
-    if (saving) return; // Prevent concurrent saves
+    if (saving) return; 
     setSaving(true);
     setSaveStatus('idle');
     setSaveError(null);
@@ -370,11 +359,11 @@ export default function SettingsPage() {
         throw new Error(msg);
       }
       setSaveStatus('success');
-      console.log('[Settings Page] Successfully synced shop settings for:', settings.shopDomain);
+      console.log('[Settings Page] Successfully persisted settings for:', settings.shopDomain);
     } catch (err: any) {
       console.error('HandleSave error:', err);
       setSaveStatus('error');
-      setSaveError(err.message || 'Network communication error');
+      setSaveError(err.message || 'System was unable to persist settings. Please try again.');
     } finally {
       setSaving(false);
       setTimeout(() => setSaveStatus('idle'), 4000);
