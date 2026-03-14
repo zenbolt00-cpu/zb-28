@@ -4,9 +4,11 @@ import { Pool } from 'pg'
 import { PrismaPg } from '@prisma/adapter-pg'
 
 // Mock Prisma client for when database is unavailable
-const createMockPrismaClient = () => {
+const createMockPrismaClient = (reason: string) => {
   const handler: any = {
     get: function(target: any, prop: any) {
+      if (prop === '_isMock') return true;
+      if (prop === '_mockReason') return reason;
       if (prop === 'then') return undefined;
       if (typeof prop === 'string' && prop.startsWith('$')) {
         return () => Promise.resolve([]);
@@ -29,20 +31,7 @@ const prismaClientSingleton = () => {
   const isProdWithoutDb = process.env.NODE_ENV === 'production' && (!dbUrl || dbUrl.includes('placeholder'));
 
   if (isBuild || isProdWithoutDb) {
-    const handler: any = {
-      get: function(target: any, prop: any) {
-        if (prop === 'then') return undefined;
-        if (typeof prop === 'string' && prop.startsWith('$')) return () => Promise.resolve([]);
-        return new Proxy(() => Promise.resolve(null), {
-          get: (t, p) => {
-            if (p === 'then') return undefined;
-            return () => Promise.resolve(null);
-          }
-        });
-      },
-      apply: () => Promise.resolve(null)
-    };
-    return new Proxy({}, handler) as PrismaClient;
+    return createMockPrismaClient(isBuild ? 'build' : 'prod_without_db');
   }
   
   try {
@@ -72,19 +61,7 @@ const prismaClientSingleton = () => {
   }
 
   // Final fallback to a safe proxy if everything fails
-  const fallbackHandler: any = {
-    get: (target: any, prop: any) => {
-      if (prop === 'then') return undefined;
-      if (typeof prop === 'string' && prop.startsWith('$')) return () => Promise.resolve([]);
-      return new Proxy(() => Promise.resolve(null), {
-        get: (t, p) => {
-          if (p === 'then') return undefined;
-          return () => Promise.resolve(null);
-        }
-      });
-    }
-  };
-  return new Proxy({}, fallbackHandler) as PrismaClient;
+  return createMockPrismaClient('error_fallback');
 }
 
 declare const globalThis: {

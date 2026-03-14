@@ -42,8 +42,12 @@ export async function GET(req: Request) {
 
     const shopData = shop as any;
 
+    // Check for mock status (connection failure)
+    const isMock = (prisma as any)._isMock || false;
+
     return NextResponse.json({
       id: shop.id,
+      dbStatus: isMock ? 'mock_failure' : 'connected',
       shopDomain: envDomain || shopData.domain,
       accessToken: process.env.SHOPIFY_ADMIN_ACCESS_TOKEN || shopData.accessToken || '',
       delhiveryApiKey: shopData.delhiveryApiKey || '',
@@ -173,6 +177,11 @@ export async function PATCH(req: Request) {
           data[key] = updates[key];
         }
       }
+    }
+
+    // FAIL EXPLICITLY if database is in mock mode (production safety)
+    if ((prisma as any)._isMock) {
+      throw new Error("Database connection is currently MOCKED (missing DATABASE_URL). Cannot persist changes to permanent storage.");
     }
 
     const updatedShop = await prisma.shop.update({

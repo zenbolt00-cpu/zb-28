@@ -241,6 +241,8 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [webhookUrl, setWebhookUrl] = useState('');
+  const [dbStatus, setDbStatus] = useState<'connected' | 'mock_failure' | 'loading'>('loading');
+  const [resyncing, setResyncing] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [availableMenus, setAvailableMenus] = useState<{ id: string; title: string; handle: string }[]>([]);
   const [allProducts, setAllProducts] = useState<any[]>([]);
@@ -311,10 +313,12 @@ export default function SettingsPage() {
           spotlightSubtitle: data.spotlightSubtitle || 'Luxury Indian streetwear for modern men. Redefining bold everyday style.',
           kineticMeshTitle: data.kineticMeshTitle || 'ARCHIVE EDITION',
         });
+        setDbStatus(data.dbStatus || 'connected');
         setLoading(false);
         setTimeout(() => setIsInitialLoad(false), 500);
       })
       .catch(() => {
+        setDbStatus('mock_failure');
         setLoading(false);
         setIsInitialLoad(false);
       });
@@ -374,6 +378,27 @@ export default function SettingsPage() {
     }
   };
 
+  const handleResync = async () => {
+    if (resyncing) return;
+    setResyncing(true);
+    setSaveStatus('idle');
+    try {
+      const res = await fetch('/api/shopify/sync', { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Sync failed');
+      setSaveStatus('success');
+      // Refresh menus after sync
+      window.location.reload();
+    } catch (err: any) {
+      console.error('Resync error:', err);
+      setSaveStatus('error');
+      setSaveError(`Resync failed: ${err.message}`);
+    } finally {
+      setResyncing(false);
+      setTimeout(() => setSaveStatus('idle'), 4000);
+    }
+  };
+
   const set = (key: keyof SettingsData) => (value: any) => setSettings(prev => ({ ...prev, [key]: value }));
 
   if (loading) {
@@ -388,12 +413,33 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Settings & Integrations</h1>
+        <div className="flex flex-col">
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">Settings & Integrations</h1>
+            <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[10px] font-bold uppercase tracking-wider ${
+              dbStatus === 'connected' 
+                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' 
+                : dbStatus === 'loading'
+                  ? 'bg-foreground/5 border-foreground/10 text-muted-foreground'
+                  : 'bg-red-500/10 border-red-500/20 text-red-500'
+            }`}>
+              <div className={`w-1.5 h-1.5 rounded-full ${dbStatus === 'connected' ? 'bg-emerald-500' : dbStatus === 'loading' ? 'bg-muted-foreground animate-pulse' : 'bg-red-500 animate-pulse'}`} />
+              {dbStatus === 'connected' ? 'Database Connected' : dbStatus === 'loading' ? 'Checking DB...' : 'DB Connection Error'}
+            </div>
+          </div>
           <p className="text-muted-foreground text-sm mt-0.5">Manage API keys, webhooks, and storefront customization.</p>
         </div>
         
         <div className="flex items-center gap-4">
+          <button
+            onClick={handleResync}
+            disabled={resyncing || dbStatus !== 'connected'}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-foreground/5 hover:bg-foreground/10 border border-foreground/10 transition-all text-foreground/80 disabled:opacity-50"
+            title="Update menus, products, and sync data from Shopify"
+          >
+            {resyncing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+            {resyncing ? 'Syncing...' : 'Full Store Sync'}
+          </button>
           <div className="flex bg-foreground/5 rounded-xl p-1 border border-foreground/5">
             <button
               onClick={() => setActiveTab('integrations')}
