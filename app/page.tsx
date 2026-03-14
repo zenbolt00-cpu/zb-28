@@ -14,22 +14,10 @@ export const dynamic = "force-dynamic";
 export default async function Home() {
   // Gracefully handle Shopify API errors — show empty state instead of crashing
   const [products, collections, shop, policies] = await Promise.all([
-    fetchAllProducts(24).catch((e) => { 
-      console.error("Home: fetchAllProducts failed:", e.message); 
-      return [] as ShopifyProduct[]; 
-    }),
-    fetchEnabledCollections('header').catch((e) => {
-      console.error("Home: fetchEnabledCollections failed:", e.message);
-      return [];
-    }),
-    prisma.shop.findFirst().catch((e) => {
-      console.error("Home: Prisma shop lookup failed:", e.message);
-      return null;
-    }),
-    fetchPolicies().catch((e) => {
-      console.error("Home: fetchPolicies failed:", e.message);
-      return [];
-    }),
+    fetchAllProducts(24).catch(() => [] as ShopifyProduct[]),
+    fetchEnabledCollections('header').catch(() => []),
+    prisma.shop.findFirst().catch(() => null),
+    fetchPolicies().catch(() => []),
   ]);
 
   const s = shop as any;

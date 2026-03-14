@@ -17,7 +17,7 @@ export async function getShopConfig() {
   try {
     shop = await prisma.shop.findFirst();
   } catch (error) {
-    console.error('[Shopify Config] Database connection failed, using environment variables:', error);
+    // Database connection failed, will use environment variables
   }
   
   let accessToken = shop?.accessToken;
