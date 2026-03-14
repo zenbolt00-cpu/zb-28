@@ -9,19 +9,13 @@ export default async function StorefrontFooter() {
 
   try {
     const [shopData, policiesData] = await Promise.all([
-      prisma.shop.findFirst().catch(e => {
-        console.error("Footer: prisma failed:", e.message);
-        return null;
-      }),
-      fetchPolicies().catch(e => {
-        console.error("Footer: fetchPolicies failed:", e.message);
-        return [];
-      }),
+      prisma.shop.findFirst().catch(() => null),
+      fetchPolicies().catch(() => []),
     ]);
     shop = shopData;
     policies = policiesData as any[];
   } catch (error) {
-    console.error("Critical Footer Error:", error);
+    // Silently handle errors - fall back to defaults
   }
 
   const s = shop as any;

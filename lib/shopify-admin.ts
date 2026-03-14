@@ -360,7 +360,7 @@ export async function fetchEnabledCollections(location: 'header' | 'page' | 'men
     console.log(`[Shopify Admin] Filtered results for ${location}: ${filtered.length} of ${allCollections.length} enabled`);
     return filtered;
   } catch (e) {
-    console.error(`Error fetching enabled collections for ${location}:`, e);
+    // Database connection failed, return all collections as fallback
     return allCollections;
   }
 }
