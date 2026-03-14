@@ -1,7 +1,5 @@
 import { PrismaClient } from '@prisma/client'
 
-import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
-
 const prismaClientSingleton = () => {
   if (process.env.npm_lifecycle_event === 'build' || process.env.NEXT_PHASE === 'phase-production-build' || process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL) {
     // Return a mock handler during build if DATABASE_URL is not present
