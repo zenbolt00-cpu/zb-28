@@ -207,6 +207,9 @@ export async function PATCH(req: Request) {
         console.log(`[Settings API] Raw SQL updated ${key} for shop ${shop.domain}`);
       }
     }
+    
+    // Invalidate the Shopify Config cache to ensure the new settings take effect immediately
+    clearShopConfigCache();
 
     console.log(`[Settings API] Successfully updated shop ${shop.domain}`);
     return NextResponse.json({ success: true, shopDomain: shop.domain });
