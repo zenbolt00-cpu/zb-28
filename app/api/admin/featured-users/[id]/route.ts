@@ -10,15 +10,23 @@ export async function PATCH(
   try {
     const { id } = params;
     const body = await req.json();
-    const { status } = body;
+    const { status, isTopFeatured } = body;
 
-    if (!['APPROVED', 'REJECTED', 'PENDING'].includes(status)) {
-      return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
+    const data: any = {};
+    if (status !== undefined) {
+      if (!['APPROVED', 'REJECTED', 'PENDING'].includes(status)) {
+        return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
+      }
+      data.status = status;
+    }
+    
+    if (isTopFeatured !== undefined) {
+      data.isTopFeatured = !!isTopFeatured;
     }
 
     const user = await prisma.featuredUser.update({
       where: { id },
-      data: { status },
+      data,
     });
 
     return NextResponse.json({ success: true, user });

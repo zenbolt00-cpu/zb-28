@@ -21,6 +21,7 @@ interface FeaturedUser {
   imageUrl: string;
   styleDescription: string | null;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  isTopFeatured: boolean;
   createdAt: string;
   reviews: any[];
 }
@@ -59,6 +60,26 @@ export default function FeaturedUsersModeration() {
     }
   };
 
+  const handleToggleTopFeatured = async (id: string, current: boolean) => {
+    const featuredCount = submissions.filter(s => s.isTopFeatured).length;
+    if (!current && featuredCount >= 20) {
+      alert("You can only feature up to 20 users on the homepage. Please unfeature someone first.");
+      return;
+    }
+
+    setUpdatingId(id);
+    try {
+      await fetch(`/api/admin/featured-users/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isTopFeatured: !current }),
+      });
+      fetchSubmissions();
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this submission?")) return;
     setUpdatingId(id);
@@ -69,6 +90,8 @@ export default function FeaturedUsersModeration() {
       setUpdatingId(null);
     }
   };
+
+  const featuredTopCount = submissions.filter(s => s.isTopFeatured).length;
 
   if (loading && submissions.length === 0) {
     return (
@@ -84,23 +107,29 @@ export default function FeaturedUsersModeration() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">Community Moderation</h1>
-          <p className="text-muted-foreground text-sm mt-0.5">Approve or reject community-submitted looks for the homepage showcase.</p>
+          <div className="flex items-center gap-3 mt-1">
+            <p className="text-muted-foreground text-sm">Approve and curate the homepage showcase.</p>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest ${featuredTopCount >= 20 ? 'bg-orange-500/10 text-orange-500' : 'bg-emerald-500/10 text-emerald-500'}`}>
+              {featuredTopCount}/20 Featured
+            </span>
+          </div>
         </div>
         <div className="flex items-center gap-2 px-4 py-2 bg-foreground/5 rounded-xl border border-foreground/10">
           <Users className="w-4 h-4 text-muted-foreground" />
-          <span className="text-sm font-medium">{submissions.length} Total Submissions</span>
+          <span className="text-sm font-medium">{submissions.length} Submissions</span>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {submissions.map((item) => (
           <div key={item.id} className={`glass-card rounded-2xl overflow-hidden border transition-all ${
+            item.isTopFeatured ? 'ring-2 ring-emerald-500 ring-offset-2 ring-offset-background border-emerald-500/50' :
             item.status === 'APPROVED' ? 'border-emerald-500/20' : 
             item.status === 'REJECTED' ? 'border-red-500/20' : 'border-foreground/10'
           }`}>
             <div className="relative aspect-[4/5] bg-foreground/5">
               <Image src={item.imageUrl} alt={item.name} fill className="object-cover" />
-              <div className="absolute top-4 right-4 group">
+              <div className="absolute top-4 right-4 flex flex-col items-end gap-2">
                 <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-lg flex items-center gap-1.5 ${
                   item.status === 'APPROVED' ? 'bg-emerald-500 text-white' : 
                   item.status === 'REJECTED' ? 'bg-red-500 text-white' : 'bg-yellow-500 text-black'
@@ -109,6 +138,11 @@ export default function FeaturedUsersModeration() {
                    item.status === 'REJECTED' ? <XCircle className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
                   {item.status}
                 </span>
+                {item.isTopFeatured && (
+                  <span className="bg-emerald-500 text-white px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl animate-pulse">
+                    TOP 20
+                  </span>
+                )}
               </div>
             </div>
 
@@ -121,7 +155,7 @@ export default function FeaturedUsersModeration() {
                 <p className="text-[11px] text-muted-foreground mt-1 underline truncate">{item.email}</p>
               </div>
 
-              <div className="p-3 bg-foreground/5 rounded-xl border border-foreground/5 italic text-[11px] text-muted-foreground/80 leading-relaxed">
+              <div className="p-3 bg-foreground/5 rounded-xl border border-foreground/5 italic text-[11px] text-muted-foreground/80 leading-relaxed min-h-[50px]">
                 "{item.styleDescription || "No style description provided."}"
               </div>
 
@@ -142,6 +176,22 @@ export default function FeaturedUsersModeration() {
                     title="Reject"
                   >
                     <XCircle className="w-4 h-4" />
+                  </button>
+                  <div className="w-[1px] h-6 bg-foreground/10 mx-1" />
+                  <button 
+                    disabled={updatingId === item.id || item.status !== 'APPROVED'}
+                    onClick={() => handleToggleTopFeatured(item.id, item.isTopFeatured)}
+                    className={`p-2 rounded-lg transition-all flex items-center gap-2 ${
+                      item.isTopFeatured 
+                        ? 'bg-emerald-500 text-white shadow-lg' 
+                        : 'bg-foreground/5 text-muted-foreground hover:bg-emerald-500/10 hover:text-emerald-500'
+                    }`}
+                    title={item.isTopFeatured ? "Remove from Home" : "Feature on Home"}
+                  >
+                    <Star className={`w-4 h-4 ${item.isTopFeatured ? 'fill-white' : ''}`} />
+                    <span className="text-[9px] font-bold uppercase tracking-widest hidden sm:inline">
+                      {item.isTopFeatured ? 'Featured' : 'Feature'}
+                    </span>
                   </button>
                 </div>
 

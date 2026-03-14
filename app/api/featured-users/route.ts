@@ -3,14 +3,23 @@ import prisma from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const { searchParams } = new URL(req.url);
+    const isTopFeatured = searchParams.get('isTopFeatured') === 'true';
+
+    const where: any = { status: 'APPROVED' };
+    if (isTopFeatured) {
+      where.isTopFeatured = true;
+    }
+
     const users = await prisma.featuredUser.findMany({
-      where: { status: 'APPROVED' },
+      where,
       include: {
         reviews: true,
       },
       orderBy: { createdAt: 'desc' },
+      take: isTopFeatured ? 20 : undefined,
     });
     return NextResponse.json({ users });
   } catch (error: any) {

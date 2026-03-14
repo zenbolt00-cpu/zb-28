@@ -3,11 +3,15 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Package, ArrowLeftRight, Clock, ChevronRight, LogOut, Loader2 } from "lucide-react";
+import { Package, ArrowLeftRight, Clock, ChevronRight, LogOut, Loader2, Star, Camera, X, Send, CheckCircle2 } from "lucide-react";
 
 export default function PortalDashboard() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [featuredOrder, setFeaturedOrder] = useState<{ id: string, itemTitle: string } | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submissionSuccess, setSubmissionSuccess] = useState(false);
+  const [submissionData, setSubmissionData] = useState({ imageUrl: '', description: '' });
   const router = useRouter();
 
   useEffect(() => {
@@ -150,16 +154,23 @@ export default function PortalDashboard() {
 
                         {/* Actions */}
                         {order.deliveryStatus === 'delivered' ? (
-                          <div className="flex gap-3">
+                          <div className="flex flex-wrap gap-2 sm:gap-3">
+                            <button
+                              onClick={() => setFeaturedOrder({ id: order.id, itemTitle: item.title })}
+                              className="text-[10px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-500/5 hover:bg-emerald-500/10 border border-emerald-500/10 px-4 py-2.5 rounded-xl transition-all active:scale-95 flex items-center"
+                            >
+                              <Star className="w-3 h-3 mr-1.5 fill-emerald-500" />
+                              Become Featured
+                            </button>
                             <button
                               onClick={() => router.push(`/portal/requests/new?type=return&orderId=${order.id}&itemId=${item.id}`)}
-                              className="text-[10px] font-black uppercase tracking-widest text-muted-foreground bg-foreground/[0.04] hover:bg-foreground/[0.08] hover:text-foreground px-5 py-2.5 rounded-xl transition-all active:scale-95"
+                              className="text-[10px] font-black uppercase tracking-widest text-muted-foreground bg-foreground/[0.04] hover:bg-foreground/[0.08] hover:text-foreground px-4 py-2.5 rounded-xl transition-all active:scale-95"
                             >
                               Return
                             </button>
                             <button
                               onClick={() => router.push(`/portal/requests/new?type=exchange&orderId=${order.id}&itemId=${item.id}`)}
-                              className="text-[10px] font-black uppercase tracking-widest text-background bg-foreground hover:opacity-90 px-5 py-2.5 rounded-xl transition-all shadow-lg active:scale-95 flex items-center"
+                              className="text-[10px] font-black uppercase tracking-widest text-background bg-foreground hover:opacity-90 px-4 py-2.5 rounded-xl transition-all shadow-lg active:scale-95 flex items-center"
                             >
                               <ArrowLeftRight className="w-3 h-3 mr-2 stroke-[3px]" />
                               Exchange
@@ -206,6 +217,110 @@ export default function PortalDashboard() {
           </div>
         )}
       </div>
+      
+      {/* Become Featured Modal */}
+      {featuredOrder && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => !submitting && setFeaturedOrder(null)} />
+          <div className="relative w-full max-w-lg glass-card rounded-[2.5rem] border border-white/20 shadow-2xl overflow-hidden animate-in zoom-in duration-300">
+            <div className="p-8">
+              <div className="flex justify-between items-start mb-8">
+                <div>
+                  <h3 className="text-2xl font-black text-foreground tracking-tighter uppercase">Become Featured</h3>
+                  <p className="text-[10px] text-muted-foreground font-bold tracking-[0.2em] uppercase mt-1">Showcase your look in {featuredOrder.itemTitle}</p>
+                </div>
+                <button 
+                  onClick={() => setFeaturedOrder(null)}
+                  className="p-2 rounded-full hover:bg-foreground/5 transition-colors"
+                >
+                  <X className="w-5 h-5 text-muted-foreground" />
+                </button>
+              </div>
+
+              {submissionSuccess ? (
+                <div className="py-12 flex flex-col items-center justify-center text-center animate-in fade-in duration-500">
+                  <div className="w-20 h-20 rounded-full bg-emerald-500/10 flex items-center justify-center mb-6">
+                    <CheckCircle2 className="w-10 h-10 text-emerald-500" />
+                  </div>
+                  <h4 className="text-xl font-bold text-foreground uppercase tracking-tight mb-2">Submission Received</h4>
+                  <p className="text-muted-foreground text-sm max-w-[280px]">Our curators will review your look. Once approved, you'll be featured on our homepage!</p>
+                  <button 
+                    onClick={() => { setFeaturedOrder(null); setSubmissionSuccess(false); }}
+                    className="mt-8 px-8 py-3 bg-foreground text-background rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:opacity-90 transition-all"
+                  >
+                    Done
+                  </button>
+                </div>
+              ) : (
+                <form className="space-y-6" onSubmit={async (e) => {
+                  e.preventDefault();
+                  setSubmitting(true);
+                  try {
+                    const res = await fetch('/api/featured-users/submit', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        name: localStorage.getItem('customerName') || 'Premium Client',
+                        email: localStorage.getItem('customerEmail') || 'client@zicabella.com',
+                        imageUrl: submissionData.imageUrl,
+                        styleDescription: submissionData.description,
+                        orderId: featuredOrder.id
+                      })
+                    });
+                    if (res.ok) {
+                      setSubmissionSuccess(true);
+                    }
+                  } finally {
+                    setSubmitting(false);
+                  }
+                }}>
+                  <div className="space-y-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest pl-1">Photo URL (wearing the product)</label>
+                      <div className="relative">
+                        <Camera className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <input 
+                          type="url"
+                          required
+                          placeholder="Link to your image/media..."
+                          className="w-full bg-foreground/[0.03] border border-foreground/[0.08] rounded-2xl py-4 pl-12 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-foreground/10 transition-all font-medium"
+                          value={submissionData.imageUrl}
+                          onChange={(e) => setSubmissionData(prev => ({ ...prev, imageUrl: e.target.value }))}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest pl-1">Your Style Vibe</label>
+                      <textarea 
+                        required
+                        placeholder="Tell us about your look..."
+                        rows={3}
+                        className="w-full bg-foreground/[0.03] border border-foreground/[0.08] rounded-2xl p-4 text-sm focus:outline-none focus:ring-2 focus:ring-foreground/10 transition-all font-medium resize-none"
+                        value={submissionData.description}
+                        onChange={(e) => setSubmissionData(prev => ({ ...prev, description: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+
+                  <button 
+                    type="submit"
+                    disabled={submitting}
+                    className="w-full py-4 bg-foreground text-background rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] flex items-center justify-center hover:opacity-90 transition-all disabled:opacity-50"
+                  >
+                    {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : (
+                      <>
+                        <Send className="w-4 h-4 mr-2" />
+                        Submit Look
+                      </>
+                    )}
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
