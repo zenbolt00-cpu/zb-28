@@ -4,10 +4,25 @@ import prisma from "@/lib/db";
 import { fetchPolicies } from "@/lib/shopify-admin";
 
 export default async function StorefrontFooter() {
-  const [shop, policies] = await Promise.all([
-    prisma.shop.findFirst(),
-    fetchPolicies(),
-  ]);
+  let shop = null;
+  let policies = [];
+
+  try {
+    const [shopData, policiesData] = await Promise.all([
+      prisma.shop.findFirst().catch(e => {
+        console.error("Footer: prisma failed:", e.message);
+        return null;
+      }),
+      fetchPolicies().catch(e => {
+        console.error("Footer: fetchPolicies failed:", e.message);
+        return [];
+      }),
+    ]);
+    shop = shopData;
+    policies = policiesData as any[];
+  } catch (error) {
+    console.error("Critical Footer Error:", error);
+  }
 
   const s = shop as any;
   const footerVideo = s?.footerVideo;
