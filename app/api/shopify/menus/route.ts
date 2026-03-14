@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { fetchMenus } from '@/lib/shopify-admin';
+
+export const dynamic = 'force-dynamic';
 import prisma from '@/lib/db';
 
 export async function GET() {

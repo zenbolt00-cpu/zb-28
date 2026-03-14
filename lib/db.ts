@@ -25,8 +25,13 @@ const prismaClientSingleton = () => {
     return new PrismaClient({ adapter });
   }
 
-  // Default to standard PrismaClient for PostgreSQL / other providers
-  return new PrismaClient();
+  // Default to PostgreSQL
+  const { Pool } = require('pg');
+  const { PrismaPg } = require('@prisma/adapter-pg');
+  const pool = new Pool({ connectionString: dbUrl });
+  const adapter = new PrismaPg(pool);
+  
+  return new PrismaClient({ adapter });
 }
 
 declare const globalThis: {

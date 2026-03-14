@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+
 // GET: Fetch settings for the primary shop
 export async function GET(req: Request) {
   try {

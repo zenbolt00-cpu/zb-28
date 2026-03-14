@@ -13,6 +13,8 @@ const geistSans = localFont({
   weight: "100 900",
 });
 
+export const dynamic = "force-dynamic";
+
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
