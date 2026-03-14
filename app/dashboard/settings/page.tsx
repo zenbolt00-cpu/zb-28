@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 
 interface SettingsData {
+  id: string;
   shopDomain: string;
   accessToken: string;
   delhiveryApiKey: string;
@@ -185,6 +186,7 @@ function ToggleField({
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<SettingsData>({
+    id: '',
     shopDomain: '',
     accessToken: '',
     delhiveryApiKey: '',
@@ -258,6 +260,7 @@ export default function SettingsPage() {
           return;
         }
         setSettings({
+          id: data.id || '',
           shopDomain: data.shopDomain || '',
           accessToken: data.accessToken || '',
           delhiveryApiKey: data.delhiveryApiKey || '',
@@ -349,6 +352,7 @@ export default function SettingsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...settings,
+          shopId: settings.id,
           shopDomain: settings.shopDomain || undefined
         }),
       });

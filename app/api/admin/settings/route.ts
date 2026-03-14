@@ -43,6 +43,7 @@ export async function GET(req: Request) {
     const shopData = shop as any;
 
     return NextResponse.json({
+      id: shop.id,
       shopDomain: envDomain || shopData.domain,
       accessToken: process.env.SHOPIFY_ADMIN_ACCESS_TOKEN || shopData.accessToken || '',
       delhiveryApiKey: shopData.delhiveryApiKey || '',
@@ -103,38 +104,43 @@ export async function GET(req: Request) {
 export async function PATCH(req: Request) {
   try {
     const body = await req.json();
-    const { shopDomain: bodyDomain, ...updates } = body;
+    const { shopId, shopDomain: bodyDomain, ...updates } = body;
 
     const envDomain = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN;
     const targetDomain = envDomain || bodyDomain;
 
-    let shop = await prisma.shop.findFirst({
-      where: targetDomain ? { domain: targetDomain } : {}
-    });
+    let shop = null;
 
+    // 1. Try finding by ID if provided (most reliable)
+    if (shopId) {
+      shop = await prisma.shop.findUnique({ where: { id: shopId } });
+    }
+
+    // 2. Try finding by domain
+    if (!shop && targetDomain) {
+      shop = await prisma.shop.findFirst({ where: { domain: targetDomain } });
+    }
+
+    // 3. Try finding ANY shop record
     if (!shop) {
-      // If domain lookup fails, try getting ANY shop record available
       shop = await prisma.shop.findFirst();
     }
 
-    if (!shop && targetDomain) {
-      // Create if completely missing
+    // 4. Create a record if none exist at all
+    if (!shop) {
+      console.log('[Settings API] No shop found, initializing new record...');
       shop = await prisma.shop.create({
         data: {
-          domain: targetDomain,
+          domain: targetDomain || 'zica-bella.myshopify.com',
           accessToken: process.env.SHOPIFY_ADMIN_ACCESS_TOKEN || 'shpat_required',
         }
       });
     }
 
-    if (!shop) {
-      // Extreme fallback for empty DB
-      shop = await prisma.shop.create({
-        data: {
-          domain: 'zica-bella.myshopify.com',
-          accessToken: process.env.SHOPIFY_ADMIN_ACCESS_TOKEN || 'shpat_required',
-        }
-      });
+    // FINAL GUARD: Ensure shop is definitely not null before accessing .id
+    if (!shop || !shop.id) {
+      console.error('[Settings API] Critical Failure: Could not resolve or initialize a shop record.');
+      return NextResponse.json({ error: 'System error: Shop record could not be resolved.' }, { status: 500 });
     }
 
     const data: any = {};
