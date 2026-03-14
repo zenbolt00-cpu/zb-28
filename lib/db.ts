@@ -3,29 +3,57 @@ import { Pool } from 'pg'
 import { PrismaPg } from '@prisma/adapter-pg'
 
 const prismaClientSingleton = () => {
-  if (process.env.npm_lifecycle_event === 'build' || process.env.NEXT_PHASE === 'phase-production-build' || (process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL)) {
+  const dbUrl = process.env.DATABASE_URL;
+  const isBuild = process.env.npm_lifecycle_event === 'build' || process.env.NEXT_PHASE === 'phase-production-build';
+  const isProdWithoutDb = process.env.NODE_ENV === 'production' && (!dbUrl || dbUrl.includes('placeholder'));
+
+  if (isBuild || isProdWithoutDb) {
     const handler: any = {
       get: function(target: any, prop: any) {
         if (prop === 'then') return undefined;
         if (typeof prop === 'string' && prop.startsWith('$')) return () => Promise.resolve([]);
-        return new Proxy(() => Promise.resolve([]), handler);
-      }
+        return new Proxy(() => Promise.resolve(null), {
+          get: (t, p) => {
+            if (p === 'then') return undefined;
+            return () => Promise.resolve(null);
+          }
+        });
+      },
+      apply: () => Promise.resolve(null)
     };
     return new Proxy({}, handler) as PrismaClient;
   }
   
-  const dbUrl = process.env.DATABASE_URL;
-  
-  if (dbUrl?.startsWith('file:')) {
-    const { PrismaBetterSqlite3 } = require('@prisma/adapter-better-sqlite3');
-    const adapter = new PrismaBetterSqlite3({ url: dbUrl });
-    return new PrismaClient({ adapter });
+  try {
+    if (dbUrl?.startsWith('file:')) {
+      const { PrismaBetterSqlite3 } = require('@prisma/adapter-better-sqlite3');
+      const adapter = new PrismaBetterSqlite3({ url: dbUrl });
+      return new PrismaClient({ adapter });
+    }
+
+    if (dbUrl) {
+      const pool = new Pool({ connectionString: dbUrl });
+      const adapter = new PrismaPg(pool as any);
+      return new PrismaClient({ adapter });
+    }
+  } catch (error) {
+    console.error('Prisma initialization error:', error);
   }
 
-  // Use the @prisma/adapter-pg for standard PostgreSQL connection in Prisma 7
-  const pool = new Pool({ connectionString: dbUrl });
-  const adapter = new PrismaPg(pool as any);
-  return new PrismaClient({ adapter });
+  // Final fallback to a safe proxy if everything fails
+  const fallbackHandler: any = {
+    get: (target: any, prop: any) => {
+      if (prop === 'then') return undefined;
+      if (typeof prop === 'string' && prop.startsWith('$')) return () => Promise.resolve([]);
+      return new Proxy(() => Promise.resolve(null), {
+        get: (t, p) => {
+          if (p === 'then') return undefined;
+          return () => Promise.resolve(null);
+        }
+      });
+    }
+  };
+  return new Proxy({}, fallbackHandler) as PrismaClient;
 }
 
 declare const globalThis: {

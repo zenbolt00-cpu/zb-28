@@ -194,11 +194,12 @@ export async function PATCH(req: Request) {
     }
 
     // 2. Update problematic fields via Raw SQL to bypass stale Prisma Client
+    let i = 1;
     for (const key of rawKeys) {
       if (rawFields[key] !== undefined) {
-        // SQLite: Use executeRaw to directly update the TEXT columns
+        // PostgreSQL: Use $n placeholders
         await prisma.$executeRawUnsafe(
-          `UPDATE "Shop" SET "${key}" = ? WHERE id = ?`,
+          `UPDATE "Shop" SET "${key}" = $1 WHERE id = $2`,
           rawFields[key],
           shop.id
         );

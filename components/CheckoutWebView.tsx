@@ -131,7 +131,7 @@ export default function CheckoutWebView({ checkoutUrl, onSuccess, onClose }: Pro
           >
             <div className="w-1.5 h-1.5 rounded-full bg-green-400 flex-shrink-0" />
             <span className="text-[9px] font-medium text-foreground/40 truncate tracking-wide">
-              Secure Checkout · {SHOPIFY_STORE_DOMAIN}
+              Secure Checkout · {new URL(checkoutUrl).hostname}
             </span>
           </div>
 
@@ -192,5 +192,3 @@ export default function CheckoutWebView({ checkoutUrl, onSuccess, onClose }: Pro
   );
 }
 
-// Store domain for display
-const SHOPIFY_STORE_DOMAIN = "8tiahf-bk.myshopify.com";
