@@ -265,11 +265,13 @@ export async function fetchOrders(limit = 250, status = 'any'): Promise<ShopifyO
 }
 
 export async function fetchAllOrders(limit = 250, status = 'any'): Promise<ShopifyOrder[]> {
+  console.log(`[Shopify Sync] Fetching all orders with status: ${status}`);
   const orders = await shopifyFetchAll<ShopifyOrder>('orders.json', {
     limit: String(limit),
-    status,
+    status: status, // explicitly use the status parameter
     order: 'created_at desc',
   }, 'orders');
+  console.log(`[Shopify Sync] Done. Fetched ${orders.length} orders.`);
   return orders;
 }
 
