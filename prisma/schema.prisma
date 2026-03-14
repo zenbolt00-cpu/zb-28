@@ -202,3 +202,26 @@ model Shipment {
   updatedAt      DateTime @updatedAt
   order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
+
+model FeaturedUser {
+  id               String   @id @default(cuid())
+  name             String
+  email            String
+  imageUrl         String
+  styleDescription String?
+  status           String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  reviews          Review[]
+}
+
+model Review {
+  id             String       @id @default(cuid())
+  featuredUserId String
+  featuredUser   FeaturedUser @relation(fields: [featuredUserId], references: [id], onDelete: Cascade)
+  reviewerName   String
+  rating         Int          @default(5)
+  comment        String?
+  status         String       @default("APPROVED")
+  createdAt      DateTime     @default(now())
+}

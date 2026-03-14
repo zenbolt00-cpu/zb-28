@@ -172,51 +172,11 @@ export default async function Home() {
         </section>
 
         {/* ═══ PRODUCT GRID 3 ═══ */}
-        <section className="mb-12 px-[1px]">
+        <section className="mb-8 px-[1px]">
           <div className="grid grid-cols-2 gap-x-1 gap-y-5">
             {products.slice(12, 16).map((p: ShopifyProduct) => <ProductCard key={p.id} product={p} />)}
           </div>
         </section>
-
-        {/* ═══ NEW PREMIUM SPOTLIGHT (Image-based as requested) ═══ */}
-        <section className="mb-12 relative w-full aspect-[4/5] rounded-[2.5rem] overflow-hidden group shadow-2xl border border-white/10">
-          <NextImage 
-            src={heroImage || "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1020&auto=format&fit=crop"} 
-            alt="Spotlight" 
-            fill 
-            className="object-cover transition-transform duration-[2s] group-hover:scale-110" 
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
-          <div className="absolute inset-x-0 bottom-0 p-10 text-center">
-            <h4 className="text-[9px] uppercase tracking-[0.6em] text-white/50 mb-3 animate-pulse">Eternal Collection</h4>
-            <h2 className="font-heading text-[22px] text-white mb-6 leading-tight tracking-tight">
-              THE ART OF <br /> PERSISTENCE
-            </h2>
-            <button className="island-blur border-white/20 px-10 py-3 rounded-full text-[9px] uppercase tracking-[0.4em] text-white hover:bg-white/10 active:scale-95 transition-all">
-              Explore Now
-            </button>
-          </div>
-        </section>
-
-        {/* ═══ VIDEO FEATURE (Missing Section Restore) ═══ */}
-        {footerVideo && (
-          <section className="mb-12 relative w-full aspect-video rounded-[1.5rem] overflow-hidden shadow-xl border border-foreground/5">
-            <video 
-              src={footerVideo} 
-              autoPlay 
-              loop 
-              muted 
-              playsInline 
-              className="absolute inset-0 w-full h-full object-cover grayscale opacity-60 contrast-125" 
-            />
-            <div className="absolute inset-0 flex items-center justify-center backdrop-blur-[2px]">
-              <div className="text-center">
-                <p className="text-[8px] uppercase tracking-[0.8em] text-foreground/40 mb-2 font-light">Zica Bella Motion</p>
-                <div className="w-12 h-0.5 bg-foreground/10 mx-auto" />
-              </div>
-            </div>
-          </section>
-        )}
 
       </div>
     </>

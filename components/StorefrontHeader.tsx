@@ -40,12 +40,7 @@ export default function StorefrontHeader({ collections: initialCollections = [] 
         <div className="flex items-center gap-2 pointer-events-auto">
           <button 
             onClick={() => setIsMenuOpen(true)}
-            className="h-10 w-10 flex items-center justify-center rounded-full island-blur active:scale-90 transition-all shadow-sm group"
-            style={{ 
-              background: "hsla(var(--glass-bg), 0.15)", // More transparent
-              backdropFilter: "blur(20px)",
-              WebkitBackdropFilter: "blur(20px)"
-            }}
+            className="h-10 w-10 flex items-center justify-center rounded-full glass-vibrancy active:scale-90 transition-all shadow-xl group border border-foreground/[0.08]"
             aria-label="Menu"
           >
             <Plus className="w-4 h-4 text-foreground/70 group-hover:rotate-90 transition-transform duration-300" />
@@ -53,12 +48,7 @@ export default function StorefrontHeader({ collections: initialCollections = [] 
           
           <Link 
             href="/" 
-            className="h-10 flex items-center gap-2 px-5 rounded-full island-blur active:scale-95 transition-transform shadow-sm"
-            style={{ 
-              background: "hsla(var(--glass-bg), 0.15)", // More transparent
-              backdropFilter: "blur(20px)",
-              WebkitBackdropFilter: "blur(20px)"
-            }}
+            className="h-10 flex items-center gap-2 px-5 rounded-full glass-vibrancy active:scale-95 transition-transform shadow-xl border border-foreground/[0.08]"
           >
             <div className="relative w-5 h-5 flex-shrink-0">
               <NextImage
@@ -74,12 +64,7 @@ export default function StorefrontHeader({ collections: initialCollections = [] 
 
         {/* Right: Actions Island */}
         <div 
-          className="flex items-center gap-1 h-10 p-1 px-1.5 rounded-full island-blur pointer-events-auto border border-foreground/[0.08]"
-          style={{ 
-            background: "hsla(var(--glass-bg), 0.15)", // More transparent
-            backdropFilter: "blur(20px)",
-            WebkitBackdropFilter: "blur(20px)"
-          }}
+          className="flex items-center gap-1 h-10 p-1 px-1.5 rounded-full glass-vibrancy pointer-events-auto border border-foreground/[0.08] shadow-xl"
         >
           <ThemeToggle />
           <button 

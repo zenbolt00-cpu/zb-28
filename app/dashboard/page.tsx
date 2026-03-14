@@ -45,9 +45,9 @@ export default function DashboardOverview() {
     setLoading(true);
     try {
       const [ordersRes, productsRes, customersRes] = await Promise.all([
-        fetch("/api/shopify/orders?limit=100&status=any"),
+        fetch("/api/shopify/orders?limit=50"),
         fetch("/api/shopify/products?limit=250"),
-        fetch("/api/shopify/customers?limit=250"),
+        fetch("/api/shopify/customers?limit=50"),
       ]);
 
       const ordersData = await ordersRes.json();
@@ -57,8 +57,6 @@ export default function DashboardOverview() {
       const orders = ordersData.orders || [];
       const products = productsData.products || [];
       const customers = customersData.customers || [];
-      
-      console.log(`[Dashboard] Fetched ${orders.length} orders from API`);
 
       // Calculate revenue from orders
       const totalRevenue = orders.reduce(
