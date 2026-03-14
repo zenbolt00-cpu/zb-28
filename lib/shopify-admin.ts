@@ -650,10 +650,23 @@ export async function fetchOrderRefunds(orderId: string): Promise<any[]> {
 
 /**
  * Fetch shop policies (privacy, refund, terms, shipping, legal).
+ * Uses explicit caching to prevent Next.js Dynamic Server Usage 500 errors on static routes.
  */
 export async function fetchPolicies(): Promise<{ title: string; body: string; url: string; handle: string }[]> {
   try {
-    const data = await shopifyFetch<{ policies: any[] }>('policies.json');
+    const url = await adminUrl('policies.json');
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: await headers(),
+      // Allow caching for policies to avoid 500 errors on statically generated layouts
+      next: { revalidate: 3600 } 
+    });
+
+    if (!res.ok) {
+      throw new Error(`Shopify API ${res.status}`);
+    }
+
+    const data = await res.json();
     return (data.policies || []).map((p: any) => ({
       title: p.title,
       body: p.body,
