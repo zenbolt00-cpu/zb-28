@@ -42,17 +42,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Logo */}
         <div className="h-20 flex items-center px-6 border-b border-foreground/5">
           <Link href="/dashboard" className="flex items-center gap-3.5 group">
-            <div className="relative w-10 h-10 flex-shrink-0 bg-foreground/5 rounded-xl flex items-center justify-center border border-foreground/10 group-hover:border-foreground/20 transition-all duration-300">
+            <div className="relative w-10 h-10 flex-shrink-0 bg-foreground/5 rounded-xl flex items-center justify-center border border-foreground/10 group-hover:border-foreground/20 transition-all duration-300 shadow-inner">
               <Image
                 src="/zica-bella-logo_8.png"
                 alt="Logo"
                 fill
-                className="object-contain p-1.5 grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all"
+                className="object-contain p-1.5 transition-all"
               />
             </div>
             <div className="flex flex-col">
               <span className="font-rocaston text-sm tracking-[0.2em] text-foreground leading-none mb-0.5">ZICA BELLA</span>
-              <span className="text-[8px] font-extralight uppercase tracking-[0.3em] text-muted-foreground/60">Admin Portal</span>
+              <span className="text-[7px] font-extralight uppercase tracking-[0.4em] text-muted-foreground/30">Admin Portal</span>
             </div>
           </Link>
         </div>

@@ -59,8 +59,13 @@ export async function GET(request: Request) {
     const status = searchParams.get('status') || 'any';
     
     // Fetch all orders for the given status (paginated under the hood)
-    const orders = await fetchAllOrders(250, status);
+    const orders = await fetchAllOrders(250, status) || [];
     
+    if (!Array.isArray(orders)) {
+      console.error('[Orders API] fetchAllOrders did not return an array:', orders);
+      return NextResponse.json({ orders: [] });
+    }
+
     // Enrich with local delivery status
     const shopifyOrderIds = orders.map(o => String(o.id));
     const localOrders = await prisma.order.findMany({

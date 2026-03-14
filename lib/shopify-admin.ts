@@ -68,6 +68,11 @@ async function shopifyFetchPage<T>(urlStr: string): Promise<{ data: T; nextPageU
   }
 
   const data = await res.json();
+  if (!data) {
+    console.error(`[Shopify Admin] API returned empty/null data`);
+    return { data: {} as T, nextPageUrl: undefined };
+  }
+
   const linkHeader = res.headers.get('Link');
   let nextPageUrl: string | undefined;
 
@@ -134,10 +139,20 @@ async function shopifyFetchAll<T>(endpoint: string, params?: Record<string, stri
     console.log(`[Shopify Sync] Fetching page: ${currentUrl}`);
     const pageData: { data: any; nextPageUrl?: string } = await shopifyFetchPage<any>(currentUrl);
     
+    if (!pageData.data) {
+      console.warn(`[Shopify Sync] No data returned for URL: ${currentUrl}`);
+      break;
+    }
+
     // Shopify returns data wrapped in a key like { orders: [...] }
-    const items = dataKey && pageData.data[dataKey] ? pageData.data[dataKey] : Object.values(pageData.data)[0];
+    const items = dataKey && pageData.data[dataKey] 
+      ? pageData.data[dataKey] 
+      : (typeof pageData.data === 'object' ? Object.values(pageData.data)[0] : null);
+
     if (Array.isArray(items)) {
       allResults = allResults.concat(items);
+    } else {
+      console.warn(`[Shopify Sync] Items at ${dataKey || 'first key'} is not an array:`, items);
     }
     
     currentUrl = pageData.nextPageUrl;

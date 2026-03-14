@@ -68,7 +68,7 @@ export default function StorefrontHeader({ collections: initialCollections = [] 
                 className="object-contain"
               />
             </div>
-            <span className="font-rocaston text-[11px] tracking-[0.05em] text-foreground mt-0.5 uppercase whitespace-nowrap">ZICA BELLA</span>
+            <span className="font-rocaston text-[11px] tracking-[0.2em] text-foreground mt-0.5 uppercase whitespace-nowrap">ZICA BELLA</span>
           </Link>
         </div>
 
