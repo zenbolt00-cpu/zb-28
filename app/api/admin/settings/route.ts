@@ -69,6 +69,9 @@ export async function GET(req: Request) {
       mainMenuHandle: shopData.mainMenuHandle || '',
       secondaryMenuHandle: shopData.secondaryMenuHandle || '',
       showTreeText: !!shopData.showTreeText,
+      showCommunity: !!shopData.showCommunity,
+      communityTitle: shopData.communityTitle || 'Featured Looks',
+      communitySubtitle: shopData.communitySubtitle || 'Community',
     });
   } catch (e) {
     // eslint-disable-next-line no-console
@@ -151,13 +154,16 @@ export async function PATCH(req: Request) {
       'footerVideo',
       'mainMenuHandle',
       'secondaryMenuHandle',
-      'showTreeText'
+      'showTreeText',
+      'showCommunity',
+      'communityTitle',
+      'communitySubtitle'
     ] as const;
 
     const booleanKeys = [
       'showHeroText', 'showLatestCuration', 'showArchive', 'showBlueprint',
       'showProductVideo', 'showSizeChart', 'showBrand', 'showShippingReturn',
-      'showCare', 'showSizeFit', 'showDetails', 'showTreeText'
+      'showCare', 'showSizeFit', 'showDetails', 'showTreeText', 'showCommunity'
     ];
 
     for (const key of allowedKeys) {

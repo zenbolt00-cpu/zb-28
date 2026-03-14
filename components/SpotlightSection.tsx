@@ -51,30 +51,35 @@ export default function SpotlightSection() {
         </p>
       </div>
 
-      <div className="grid grid-cols-3 gap-x-2 gap-y-10 group/grid">
+      <div className="grid grid-cols-3 gap-x-3 gap-y-12 group/grid">
         {(products.length > 0 ? products : Array(6).fill(null)).slice(0, 6).map((product, idx) => (
           <Link 
             key={product?.id || idx} 
             href={product ? `/products/${product.handle || product.id}` : "#"}
-            className="flex flex-col items-center gap-4 group/item active:scale-95 transition-all duration-500"
+            className="flex flex-col items-center gap-5 group/item active:scale-[0.98] transition-all duration-700"
           >
-            <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-foreground/[0.02] flex items-center justify-center border border-foreground/[0.03] group-hover/item:border-foreground/10 transition-colors">
+            <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden bg-foreground/[0.03] border border-foreground/[0.06] group-hover/item:border-foreground/20 transition-all duration-700 shadow-sm group-hover/item:shadow-xl">
               {product?.images?.[0]?.src ? (
                 <NextImage 
                   src={product.images[0].src} 
                   alt={product.title} 
                   fill 
-                  className="object-contain p-2 mix-blend-multiply dark:mix-blend-normal opacity-90 group-hover/item:opacity-100 group-hover/item:scale-110 transition-all duration-700"
+                  className="object-cover opacity-90 group-hover/item:opacity-100 group-hover/item:scale-105 transition-all duration-1000 ease-out"
                 />
               ) : (
-                <div className="w-full h-full bg-foreground/5 flex items-center justify-center">
-                  <span className="text-[8px] text-muted-foreground/30 uppercase tracking-widest">No Image</span>
+                <div className="w-full h-full bg-foreground/[0.02] flex items-center justify-center">
+                  <span className="text-[7px] text-muted-foreground/20 uppercase tracking-[0.3em] font-light">ZB Studio</span>
                 </div>
               )}
+              {/* Subtle overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover/item:opacity-100 transition-opacity duration-700" />
             </div>
-            <span className="text-[9px] font-medium tracking-[0.15em] text-foreground/70 uppercase group-hover/item:text-foreground transition-colors text-center line-clamp-1 px-1">
-              {AUTHENTIC_HEADINGS[idx] || product?.title || "ZICA BELLA"}
-            </span>
+            <div className="flex flex-col items-center gap-1.5 px-1">
+              <span className="text-[8px] font-bold tracking-[0.25em] text-foreground/80 uppercase group-hover/item:text-foreground transition-colors text-center line-clamp-1">
+                {AUTHENTIC_HEADINGS[idx] || product?.title || "ZICA BELLA"}
+              </span>
+              <div className="h-[1px] w-0 group-hover/item:w-full bg-foreground/20 transition-all duration-700 ease-out" />
+            </div>
           </Link>
         ))}
       </div>

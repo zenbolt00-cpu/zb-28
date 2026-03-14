@@ -51,6 +51,9 @@ interface SettingsData {
   secondaryMenuHandle: string;
   showTreeText: boolean;
   kineticMeshProducts: string;
+  showCommunity: boolean;
+  communityTitle: string;
+  communitySubtitle: string;
 }
 
 const WEBHOOK_TOPICS = [
@@ -217,6 +220,9 @@ export default function SettingsPage() {
     secondaryMenuHandle: '',
     showTreeText: true,
     kineticMeshProducts: '',
+    showCommunity: true,
+    communityTitle: 'Featured Looks',
+    communitySubtitle: 'Community',
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -284,6 +290,9 @@ export default function SettingsPage() {
           secondaryMenuHandle: data.secondaryMenuHandle || '',
           showTreeText: data.showTreeText ?? true,
           kineticMeshProducts: data.kineticMeshProducts || '',
+          showCommunity: data.showCommunity ?? true,
+          communityTitle: data.communityTitle || 'Featured Looks',
+          communitySubtitle: data.communitySubtitle || 'Community',
         });
         setLoading(false);
         setTimeout(() => setIsInitialLoad(false), 500);
@@ -718,7 +727,22 @@ export default function SettingsPage() {
             <ToggleField label="Show Latest Curation" checked={settings.showLatestCuration} onChange={set('showLatestCuration')} />
             <ToggleField label="Show Archive Section" checked={settings.showArchive} onChange={set('showArchive')} />
             <ToggleField label="Show Blueprint Section" checked={settings.showBlueprint} onChange={set('showBlueprint')} />
+            <ToggleField label="Show Community Section" checked={settings.showCommunity} onChange={set('showCommunity')} />
             <ToggleField label="Show 3D Tree Text" checked={settings.showTreeText} onChange={set('showTreeText')} />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+             <InputField
+              label="Community Subtitle"
+              value={settings.communitySubtitle}
+              onChange={set('communitySubtitle')}
+              placeholder="e.g. Community"
+            />
+            <InputField
+              label="Community Title"
+              value={settings.communityTitle}
+              onChange={set('communityTitle')}
+              placeholder="e.g. Featured Looks"
+            />
           </div>
         </SectionCard>
 

@@ -12,27 +12,40 @@ interface FeaturedUser {
   reviews: { id: string; rating: number }[];
 }
 
-export default function FeaturedUsersSection() {
+export default function FeaturedUsersSection({ 
+  showCommunity = true, 
+  title = "FEATURED LOOKS", 
+  subtitle = "COMMUNITY" 
+}: { 
+  showCommunity?: boolean;
+  title?: string;
+  subtitle?: string;
+}) {
   const [users, setUsers] = useState<FeaturedUser[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!showCommunity) {
+      setLoading(false);
+      return;
+    }
     fetch("/api/featured-users")
       .then(res => res.json())
       .then(data => {
         if (data.users) setUsers(data.users);
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [showCommunity]);
 
+  if (!showCommunity) return null;
   if (loading) return null;
   if (users.length === 0) return null;
 
   return (
     <section className="mt-20 mb-32 px-4">
       <div className="text-center mb-10">
-        <h2 className="font-heading text-[10px] tracking-[0.4em] text-muted-foreground/40 mb-2 uppercase">COMMUNITY</h2>
-        <p className="font-heading text-[24px] tracking-tight text-foreground uppercase">FEATURED LOOKS</p>
+        <h2 className="font-heading text-[10px] tracking-[0.4em] text-muted-foreground/40 mb-2 uppercase">{subtitle}</h2>
+        <p className="font-heading text-[24px] tracking-tight text-foreground uppercase">{title}</p>
       </div>
 
       <div className="flex gap-4 overflow-x-auto pb-8 hide-scrollbar snap-x">
