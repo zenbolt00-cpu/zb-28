@@ -9,7 +9,7 @@ const navItems = [
   { href: "/",        icon: Home,       label: "Home",    isCart: false },
   { href: "/search",  icon: Search,     label: "Search",  isCart: false },
   { href: "/cart",    icon: ShoppingBag,label: "Cart",    isCart: true  },
-  { href: "/login",   icon: User,       label: "Login",   isCart: false },
+  { href: "/portal/login", icon: User,       label: "Login",   isCart: false },
 ];
 
 export default function StorefrontNav() {
