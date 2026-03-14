@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
+import { clearShopConfigCache } from '@/lib/shopify-admin';
 
 export const dynamic = 'force-dynamic';
 

@@ -29,6 +29,7 @@ export async function getShopConfig() {
     accessToken = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN || '';
   }
   
+  // Enforce the specific domain as a hard fallback if not in DB or ENV
   const config = {
     domain: shop?.domain || process.env.SHOPIFY_STORE_DOMAIN || '8tiahf-bk.myshopify.com',
     accessToken,
@@ -39,6 +40,15 @@ export async function getShopConfig() {
   }
 
   return config;
+}
+
+/**
+ * Clears the in-memory shop configuration cache.
+ * Call this when updating settings in the database to ensure immediate persistence.
+ */
+export function clearShopConfigCache() {
+  (global as any)._cachedShopConfig = null;
+  console.log('[Shopify Admin] Config cache cleared.');
 }
 
 export async function adminUrl(endpoint: string): Promise<string> {
