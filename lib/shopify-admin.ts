@@ -12,7 +12,14 @@ export { parseShopifyRichText };
 const API_VERSION = '2025-07';
 
 export async function getShopConfig() {
-  const shop = await prisma.shop.findFirst();
+  let shop = null;
+  
+  try {
+    shop = await prisma.shop.findFirst();
+  } catch (error) {
+    console.error('[Shopify Config] Database connection failed, using environment variables:', error);
+  }
+  
   let accessToken = shop?.accessToken;
   // If the token in DB is empty or a placeholder, fallback to the real env var
   if (!accessToken || accessToken === 'test_token' || accessToken === '') {
