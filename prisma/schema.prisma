@@ -225,3 +225,11 @@ model Review {
   status         String       @default("APPROVED")
   createdAt      DateTime     @default(now())
 }
+
+model Admin {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
