@@ -6,11 +6,12 @@ export const dynamic = 'force-dynamic';
 export async function GET(req: Request) {
   try {
     const url = new URL(req.url);
-    const customerId = url.searchParams.get('customerId');
+    const email = url.searchParams.get('email');
+    const phone = url.searchParams.get('phone');
     const shopDomain = url.searchParams.get('shopDomain');
 
-    if (!customerId || !shopDomain) {
-      return NextResponse.json({ error: 'Missing customerId or shopDomain' }, { status: 400 });
+    if ((!email && !phone) || !shopDomain) {
+      return NextResponse.json({ error: 'Missing email/phone or shopDomain' }, { status: 400 });
     }
 
     const shop = await prisma.shop.findUnique({ where: { domain: shopDomain } });
@@ -20,8 +21,13 @@ export async function GET(req: Request) {
 
     const orders = await prisma.order.findMany({
       where: { 
-        customerId: customerId,
-        shopId: shop.id
+        shopId: shop.id,
+        customer: {
+          OR: [
+            email ? { email: email } : undefined,
+            phone ? { phone: phone } : undefined
+          ].filter((v): v is { email: string } | { phone: string } => !!v)
+        }
       },
       include: {
         items: true,

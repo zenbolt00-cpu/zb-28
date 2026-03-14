@@ -99,7 +99,7 @@ export default function CommunityPage() {
             })}
 
             {/* JOIN COMMUNITY BOX */}
-            <Link href="/portal/dashboard" className="group">
+            <Link href="/login" className="group">
               <div className="relative aspect-[3/4.5] rounded-[2.5rem] overflow-hidden bg-foreground/5 border-2 border-dashed border-foreground/10 flex flex-col items-center justify-center p-12 text-center transition-all hover:bg-foreground/[0.07] hover:border-foreground/20">
                 <div className="w-16 h-16 rounded-full bg-foreground/5 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
                   <Star className="w-8 h-8 text-secondary/40" />

@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import { Package, ArrowLeftRight, Clock, ChevronRight, LogOut, Loader2, Star, Camera, X, Send, CheckCircle2 } from "lucide-react";
 
 export default function PortalDashboard() {
+  const { data: session, status } = useSession();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [featuredOrder, setFeaturedOrder] = useState<{ id: string, itemTitle: string } | null>(null);
@@ -15,21 +17,24 @@ export default function PortalDashboard() {
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem("customerToken");
-    const customerId = localStorage.getItem("customerId");
-    
-    // In a real app we'd verify the token or shopDomain
-    const shopDomain =
-      process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || "8tiahf-bk.myshopify.com";
-
-    if (!token || !customerId) {
-      router.push("/portal/login");
+    if (status === "unauthenticated") {
+      router.push("/login");
       return;
     }
 
+    if (status === "loading") return;
+
+    // Use session email or phone to fetch orders
+    const email = session?.user?.email;
+    const phone = (session as any)?.customer?.phone;
+    
+    const shopDomain =
+      process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || "8tiahf-bk.myshopify.com";
+
     const fetchOrders = async () => {
       try {
-        const res = await fetch(`/api/portal/orders?customerId=${customerId}&shopDomain=${shopDomain}`);
+        const query = email ? `email=${encodeURIComponent(email)}` : `phone=${encodeURIComponent(phone)}`;
+        const res = await fetch(`/api/portal/orders?${query}&shopDomain=${shopDomain}`);
         const data = await res.json();
         if (res.ok) {
           setOrders(data.orders);
@@ -44,13 +49,15 @@ export default function PortalDashboard() {
       }
     };
 
-    fetchOrders();
-  }, [router]);
+    if (email || phone) {
+      fetchOrders();
+    } else {
+        setLoading(false);
+    }
+  }, [router, session, status]);
 
   const handleLogout = () => {
-    localStorage.removeItem("customerToken");
-    localStorage.removeItem("customerId");
-    router.push("/portal/login");
+    signOut({ callbackUrl: "/login" });
   };
 
   if (loading) {
