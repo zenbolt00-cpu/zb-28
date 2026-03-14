@@ -15,9 +15,12 @@ export async function getShopConfig() {
   let shop = null;
   
   try {
+    // Basic in-memory cache for the life of the serverless function execution
+    if ((global as any)._cachedShopConfig) return (global as any)._cachedShopConfig;
+
     shop = await prisma.shop.findFirst();
   } catch (error) {
-    // Database connection failed, will use environment variables
+    console.warn('[Shopify Admin] Database access failed during config fetch:', error);
   }
   
   let accessToken = shop?.accessToken;
@@ -26,10 +29,16 @@ export async function getShopConfig() {
     accessToken = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN || '';
   }
   
-  return {
+  const config = {
     domain: shop?.domain || process.env.SHOPIFY_STORE_DOMAIN || '8tiahf-bk.myshopify.com',
     accessToken,
+  };
+
+  if (accessToken && shop) {
+    (global as any)._cachedShopConfig = config;
   }
+
+  return config;
 }
 
 export async function adminUrl(endpoint: string): Promise<string> {

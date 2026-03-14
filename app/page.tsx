@@ -1,4 +1,4 @@
-import { fetchAllProducts, fetchEnabledCollections, fetchPolicies } from "@/lib/shopify-admin";
+import { fetchProducts, fetchEnabledCollections, fetchPolicies } from "@/lib/shopify-admin";
 import prisma from "@/lib/db";
 import NextImage from "next/image";
 import Link from "next/link";
@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 export default async function Home() {
   // Gracefully handle Shopify API errors — show empty state instead of crashing
   const [products, collections, shop, policies] = await Promise.all([
-    fetchAllProducts(24).catch(() => [] as ShopifyProduct[]),
+    fetchProducts(24).catch(() => [] as ShopifyProduct[]),
     fetchEnabledCollections('header').catch(() => []),
     prisma.shop.findFirst().catch(() => null),
     fetchPolicies().catch(() => []),
