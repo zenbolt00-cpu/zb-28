@@ -30,6 +30,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: "Products", href: "/dashboard/products", icon: ShoppingBag },
     { name: "Collections", href: "/dashboard/collections", icon: Package },
     { name: "Inventory", href: "/dashboard/inventory", icon: Package },
+    { name: "Community", href: "/dashboard/featured-users", icon: Users },
     { name: "Returns", href: "/dashboard/returns", icon: Undo2 },
     { name: "Exchanges", href: "/dashboard/exchanges", icon: ArrowLeftRight },
     { name: "Scanner", href: "/dashboard/scanner", icon: ScanLine },

@@ -8,6 +8,8 @@ import PremiumTreeRoot from "@/components/PremiumTreeRoot";
 import ProductCard from "@/components/ProductCard";
 import { ShopifyProduct } from "@/lib/shopify-admin";
 import NeuralProductMesh from "@/components/NeuralProductMesh";
+import SpotlightSection from "@/components/SpotlightSection";
+import FeaturedUsersSection from "@/components/FeaturedUsersSection";
 
 export const dynamic = "force-dynamic";
 
@@ -172,11 +174,17 @@ export default async function Home() {
         </section>
 
         {/* ═══ PRODUCT GRID 3 ═══ */}
-        <section className="mb-8 px-[1px]">
+        <section className="mb-20 px-[1px]">
           <div className="grid grid-cols-2 gap-x-1 gap-y-5">
             {products.slice(12, 16).map((p: ShopifyProduct) => <ProductCard key={p.id} product={p} />)}
           </div>
         </section>
+
+        {/* ═══ SPOTLIGHT ═══ */}
+        <SpotlightSection />
+
+        {/* ═══ FEATURED LOOKS (COMMUNITY) ═══ */}
+        <FeaturedUsersSection />
 
       </div>
     </>
