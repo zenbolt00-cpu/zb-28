@@ -40,7 +40,12 @@ const prismaClientSingleton = () => {
   }
 
   try {
-      const pool = new Pool({ connectionString: dbUrl }) as any
+      const pool = new Pool({ 
+        connectionString: dbUrl,
+        ssl: process.env.NODE_ENV === 'production' 
+          ? { rejectUnauthorized: false } 
+          : undefined
+      }) as any
       const adapter = new PrismaPg(pool)
 
       const client = new PrismaClient({
