@@ -12,7 +12,7 @@ function envSettings() {
   return {
     id: 'env-fallback',
     dbStatus: 'mock_failure',
-    dbError: 'DATABASE_URL is not configured in Vercel. Settings shown from environment variables only. Changes cannot be saved until DATABASE_URL is set.',
+    dbError: 'Database connection failed. Ensure POSTGRES_PRISMA_URL or DATABASE_URL is set in environment variables and redeploy.',
     shopDomain: ENV_DOMAIN,
     accessToken: ENV_TOKEN,
     delhiveryApiKey: '',
@@ -75,7 +75,10 @@ export async function GET(req: Request) {
 
     // If DB is not available, return env-based settings immediately
     if (isMock) {
-      return NextResponse.json(envSettings());
+      const mockReason = (prisma as any)._mockReason || 'unknown';
+      const fallback = envSettings();
+      fallback.dbError = `Database mock triggered. Reason: ${mockReason}. Please configure POSTGRES_PRISMA_URL or DATABASE_URL.`;
+      return NextResponse.json(fallback);
     }
 
     const url = new URL(req.url);
@@ -174,10 +177,10 @@ export async function GET(req: Request) {
 export async function PATCH(req: Request) {
   try {
     const isMock = (prisma as any)._isMock;
-
     if (isMock) {
+      const mockReason = (prisma as any)._mockReason || 'unknown';
       return NextResponse.json({
-        error: 'DATABASE_URL is not set in Vercel. Cannot save settings. Add DATABASE_URL to your Vercel environment variables, then redeploy.'
+        error: `Database is not connected (Reason: ${mockReason}). Cannot save settings. Ensure POSTGRES_PRISMA_URL or DATABASE_URL is set correctly in Vercel, then redeploy.`
       }, { status: 503 });
     }
 

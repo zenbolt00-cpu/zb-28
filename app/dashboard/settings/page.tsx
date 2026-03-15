@@ -519,7 +519,7 @@ export default function SettingsPage() {
             <div className="flex-1 space-y-2">
               <h3 className="text-sm font-bold text-red-400">Database Connection Required for Production</h3>
               <p className="text-xs text-muted-foreground/80 leading-relaxed max-w-2xl">
-                You are viewing the production site, but <strong>DATABASE_URL</strong> is not configured in Vercel. 
+                You are viewing the production site, but <strong>a valid Postgres database URL</strong> is not configured in Vercel. 
                 Settings shown below are read-only defaults from environment variables. 
                 <strong> You cannot save any changes until the database is connected.</strong>
               </p>
@@ -527,10 +527,9 @@ export default function SettingsPage() {
               <div className="mt-3 space-y-1.5 p-3 rounded-xl bg-background/50 border border-foreground/5">
                 <p className="text-[11px] font-bold text-foreground">How to fix this in Vercel:</p>
                 <ol className="text-[11px] text-muted-foreground list-decimal pl-4 space-y-1">
-                  <li>Go to your Vercel Project Dashboard → <strong>Storage</strong></li>
-                  <li>Click <strong>Connect Store</strong> → Create a new <strong>Postgres</strong> database</li>
-                  <li>Once created, it will automatically add <code className="text-red-400 font-mono">DATABASE_URL</code> to your environment variables.</li>
-                  <li>Redeploy your production build.</li>
+                  <li>Go to your Vercel Project Dashboard → <strong>Settings</strong> → <strong>Environment Variables</strong></li>
+                  <li>Add your Supabase URL as <code className="text-red-400 font-mono">POSTGRES_PRISMA_URL</code></li>
+                  <li>Wait for Vercel to fully redeploy the production build.</li>
                 </ol>
               </div>
 
