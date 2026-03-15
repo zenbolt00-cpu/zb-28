@@ -518,6 +518,60 @@ export default function SettingsPage() {
         </div>
       )}
 
+      {dbStatus === 'mock_failure' && (
+        <div className="flex flex-col gap-3 px-5 py-5 rounded-2xl bg-red-500/5 border border-red-500/20 relative overflow-hidden animate-in fade-in slide-in-from-top-2">
+          <div className="absolute top-0 right-0 p-3 opacity-10">
+            <AlertCircle className="w-24 h-24" />
+          </div>
+          <div className="relative z-10 flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-red-500 mt-0.5" />
+            <div className="flex-1 space-y-2">
+              <h3 className="text-sm font-bold text-red-400">Database Connection Required for Production</h3>
+              <p className="text-xs text-muted-foreground/80 leading-relaxed max-w-2xl">
+                You are viewing the production site, but <strong>DATABASE_URL</strong> is not configured in Vercel. 
+                Settings shown below are read-only defaults from environment variables. 
+                <strong> You cannot save any changes until the database is connected.</strong>
+              </p>
+              
+              <div className="mt-3 space-y-1.5 p-3 rounded-xl bg-background/50 border border-foreground/5">
+                <p className="text-[11px] font-bold text-foreground">How to fix this in Vercel:</p>
+                <ol className="text-[11px] text-muted-foreground list-decimal pl-4 space-y-1">
+                  <li>Go to your Vercel Project Dashboard → <strong>Storage</strong></li>
+                  <li>Click <strong>Connect Store</strong> → Create a new <strong>Postgres</strong> database</li>
+                  <li>Once created, it will automatically add <code className="text-red-400 font-mono">DATABASE_URL</code> to your environment variables.</li>
+                  <li>Redeploy your production build.</li>
+                </ol>
+              </div>
+
+              <div className="pt-2 flex items-center gap-3">
+                <button
+                  onClick={async () => {
+                    try {
+                      setSaveStatus('idle');
+                      const res = await fetch('/api/admin/init-db', { method: 'POST' });
+                      const data = await res.json();
+                      if (res.ok) {
+                        alert("Database initialized successfully! Reloading...");
+                        window.location.reload();
+                      } else {
+                        throw new Error(data.error || 'Failed to initialize database');
+                      }
+                    } catch (err: any) {
+                      setSaveError(err.message);
+                      setSaveStatus('error');
+                    }
+                  }}
+                  className="px-4 py-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 font-semibold text-xs rounded-lg transition-colors border border-red-500/20"
+                >
+                  <span className="flex items-center gap-2"><Zap className="w-3.5 h-3.5" /> Initialize Shop Database</span>
+                </button>
+                <span className="text-[10px] text-muted-foreground italic">Click this ONLY AFTER you have added DATABASE_URL to Vercel</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className={`${activeTab === 'integrations' ? 'grid gap-5 lg:grid-cols-2' : 'hidden'}`}>
         {/* Shopify */}
         <SectionCard

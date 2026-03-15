@@ -1,10 +1,8 @@
-import 'dotenv/config'
 import { PrismaClient } from '@prisma/client'
-import { Pool } from 'pg'
-import { PrismaPg } from '@prisma/adapter-pg'
 
 // Mock Prisma client for when database is unavailable
 const createMockPrismaClient = (reason: string) => {
+  console.warn(`[DB] Using mock Prisma client. Reason: ${reason}`);
   const handler: any = {
     get: function(target: any, prop: any) {
       if (prop === '_isMock') return true;
@@ -13,7 +11,6 @@ const createMockPrismaClient = (reason: string) => {
       if (typeof prop === 'string' && prop.startsWith('$')) {
         return () => Promise.resolve([]);
       }
-      // Return a proxy for nested properties
       return new Proxy(
         function(...args: any[]) {
           return Promise.resolve(null);
@@ -27,49 +24,46 @@ const createMockPrismaClient = (reason: string) => {
 
 const prismaClientSingleton = () => {
   const dbUrl = process.env.DATABASE_URL;
-  const isBuild = process.env.npm_lifecycle_event === 'build' || process.env.NEXT_PHASE === 'phase-production-build';
-  const isProdWithoutDb = process.env.NODE_ENV === 'production' && (!dbUrl || dbUrl.includes('placeholder'));
+  const isBuild = process.env.NEXT_PHASE === 'phase-production-build';
 
-  if (isBuild || isProdWithoutDb) {
-    return createMockPrismaClient(isBuild ? 'build' : 'prod_without_db');
+  // During build phase, always use mock to avoid DB connection requirements
+  if (isBuild) {
+    return createMockPrismaClient('build');
   }
-  
+
+  // No DATABASE_URL set at all — use mock but log clearly
+  if (!dbUrl || dbUrl.includes('placeholder') || dbUrl === '') {
+    console.error('[DB] DATABASE_URL is not set. Admin features will not persist. Set DATABASE_URL in your environment variables.');
+    return createMockPrismaClient('no_database_url');
+  }
+
   try {
-    if (dbUrl?.startsWith('file:')) {
-      const { PrismaBetterSqlite3 } = require('@prisma/adapter-better-sqlite3');
-      const adapter = new PrismaBetterSqlite3({ url: dbUrl });
-      return new PrismaClient({ adapter });
-    }
-
-    if (dbUrl) {
-      // Ensure the pool doesn't crash the process on immediate connection failure
-      const pool = new Pool({ 
-        connectionString: dbUrl,
-        connectionTimeoutMillis: 5000,
-        idleTimeoutMillis: 30000,
-      });
-      
-      pool.on('error', (err) => {
-        console.error('Unexpected error on idle client', err);
-      });
-
-      const adapter = new PrismaPg(pool as any);
-      return new PrismaClient({ adapter });
-    }
+    // Standard PrismaClient — works with PostgreSQL DATABASE_URL (Vercel Postgres, Neon, Supabase, Railway, etc.)
+    // The schema.prisma now uses provider="postgresql" with url=env("DATABASE_URL")
+    const client = new PrismaClient({
+      log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
+      datasources: {
+        db: {
+          url: dbUrl,
+        },
+      },
+    });
+    return client;
   } catch (error) {
-    console.error('Critical Prisma initialization error:', error);
+    console.error('[DB] Critical Prisma initialization error:', error);
+    return createMockPrismaClient('init_error');
   }
-
-  // Final fallback to a safe proxy if everything fails
-  return createMockPrismaClient('error_fallback');
-}
+};
 
 declare const globalThis: {
   prismaGlobal: ReturnType<typeof prismaClientSingleton>;
 } & typeof global;
 
-const prisma = globalThis.prismaGlobal ?? prismaClientSingleton()
+const prisma = globalThis.prismaGlobal ?? prismaClientSingleton();
 
-export default prisma
+export default prisma;
 
-if (process.env.NODE_ENV !== 'production') globalThis.prismaGlobal = prisma
+// Only cache the client globally in development (production uses fresh per-request)
+if (process.env.NODE_ENV !== 'production') {
+  globalThis.prismaGlobal = prisma;
+}

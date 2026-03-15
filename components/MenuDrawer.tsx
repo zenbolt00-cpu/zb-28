@@ -175,8 +175,7 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
                   className="group flex items-center justify-between py-0.5"
                 >
                   <span
-                    className="text-[15px] leading-snug tracking-[0.01em] text-foreground/60 group-hover:text-foreground transition-all duration-300"
-                    style={{ fontFamily: "'Playfair Display', Georgia, serif", fontWeight: 600 }}
+                    className="text-[17px] leading-snug tracking-[0.02em] font-heading text-foreground/70 group-hover:text-foreground transition-all duration-300 uppercase"
                   >
                     {title}
                   </span>
