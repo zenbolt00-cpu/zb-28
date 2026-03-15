@@ -15,9 +15,9 @@ export default async function BlogsPage() {
       
       <main className="flex-1 pt-32 pb-24 px-6 sm:px-12 max-w-7xl mx-auto w-full">
         {/* Header text */}
-        <div className="mb-24 space-y-6 max-w-2xl animate-in fade-in slide-in-from-bottom-8 duration-700">
-          <h1 className="font-heading text-5xl sm:text-6xl md:text-7xl uppercase tracking-tighter">
-            The Journal.
+        <div className="mb-20 space-y-4 animate-in fade-in slide-in-from-bottom-8 duration-700 font-sans">
+          <h1 className="font-sans text-4xl sm:text-5xl md:text-6xl tracking-tight font-medium">
+            The Journal
           </h1>
           <p className="text-muted-foreground text-sm sm:text-base font-light leading-relaxed max-w-lg">
             Thoughts, design philosophies, and cultural commentary from the Zica Bella archives. Dive into our latest editorials.
@@ -39,7 +39,7 @@ export default async function BlogsPage() {
                 style={{ animationDelay: `${index * 150}ms`, animationFillMode: "both" }}
               >
                 {/* Image Handle */}
-                <div className="w-full aspect-[4/5] bg-foreground/[0.02] border border-foreground/10 rounded-3xl overflow-hidden relative glass">
+                <div className="w-full aspect-[4/5] bg-foreground/[0.02] border border-foreground/5 rounded-[2rem] overflow-hidden relative glass">
                   {post.coverImage ? (
                     <img 
                       src={post.coverImage} 
@@ -48,7 +48,7 @@ export default async function BlogsPage() {
                     />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center p-8 text-center transition-transform duration-700 group-hover:scale-105">
-                      <p className="font-heading text-xl uppercase tracking-widest text-foreground/20">
+                      <p className="font-sans text-lg tracking-widest font-medium text-foreground/20">
                         Z.B. ARTICLE
                       </p>
                     </div>
@@ -56,19 +56,19 @@ export default async function BlogsPage() {
                 </div>
 
                 {/* Content */}
-                <div className="space-y-4 px-2">
+                <div className="space-y-3 px-2 font-sans">
                   <div className="flex items-center gap-3">
-                    <span className="text-[10px] uppercase tracking-widest font-semibold text-foreground/60">
+                    <span className="text-[10px] uppercase tracking-widest font-medium text-muted-foreground/60">
                       {new Date(post.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                     </span>
                   </div>
-                  <h2 className="font-rocaston text-2xl uppercase tracking-[0.1em] leading-tight group-hover:text-foreground/80 transition-colors line-clamp-2">
+                  <h2 className="font-sans text-xl sm:text-2xl tracking-tight font-medium leading-tight group-hover:text-foreground/80 transition-colors line-clamp-2">
                     {post.title}
                   </h2>
                   <p className="text-sm text-muted-foreground font-light leading-relaxed line-clamp-3">
                     {post.excerpt}
                   </p>
-                  <div className="pt-2 flex items-center gap-2 text-xs uppercase tracking-widest font-bold text-foreground opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+                  <div className="pt-2 flex items-center gap-2 text-xs uppercase tracking-wider font-semibold text-foreground opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
                     Read Article <ArrowUpRight className="w-4 h-4" />
                   </div>
                 </div>

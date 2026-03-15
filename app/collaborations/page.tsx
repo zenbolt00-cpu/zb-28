@@ -37,19 +37,19 @@ export default function CollaborationsPage() {
       <main className="flex-1 pt-32 pb-24 px-6 sm:px-12 max-w-7xl mx-auto w-full">
         {/* Header text */}
         <div className="mb-24 space-y-6 max-w-2xl">
-          <motion.h1 
+            <motion.h1 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="font-heading text-5xl sm:text-6xl md:text-7xl uppercase tracking-tighter"
+            className="font-sans text-4xl sm:text-5xl md:text-6xl tracking-tight font-medium"
           >
-            Collaborations <br/> & Events.
+            Collaborations <br/> & Events
           </motion.h1>
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
-            className="text-muted-foreground text-sm sm:text-base font-light leading-relaxed max-w-lg"
+            className="text-muted-foreground text-sm sm:text-base font-light leading-relaxed max-w-lg font-sans mt-4"
           >
             We don't just create garments; we curate culture. Explore our physical pop-ups, cross-brand capsules, and live experiences shaping the Indian streetwear landscape.
           </motion.p>
@@ -67,30 +67,30 @@ export default function CollaborationsPage() {
               className="group flex flex-col md:flex-row gap-8 md:gap-16 items-start"
             >
               {/* Media Placeholder (Apple Glass UI) */}
-              <div className="w-full md:w-1/2 aspect-[4/3] bg-foreground/[0.02] border border-foreground/10 rounded-3xl overflow-hidden relative glass">
+              <div className="w-full md:w-1/2 aspect-[4/3] bg-foreground/[0.02] border border-foreground/5 rounded-[2rem] overflow-hidden relative glass">
                 <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center transition-transform duration-700 group-hover:scale-105">
-                   <div className="w-12 h-px bg-foreground/20 mb-6" />
-                   <p className="font-heading text-2xl sm:text-3xl uppercase tracking-widest text-foreground/30">
+                   <div className="w-8 h-px bg-foreground/10 mb-6" />
+                   <p className="font-sans text-xl sm:text-2xl tracking-tighter font-medium text-foreground/30">
                      {collab.imagePlaceholder}
                    </p>
-                   <div className="w-12 h-px bg-foreground/20 mt-6" />
+                   <div className="w-8 h-px bg-foreground/10 mt-6" />
                 </div>
               </div>
 
               {/* Content */}
-              <div className="w-full md:w-1/2 flex flex-col justify-center h-full space-y-6 py-4">
+              <div className="w-full md:w-1/2 flex flex-col justify-center h-full space-y-5 py-4 font-sans">
                 <div className="space-y-2">
                   <div className="flex items-center gap-3">
-                    <span className="px-3 py-1 rounded-full border border-foreground/20 text-[10px] uppercase tracking-widest font-semibold text-foreground/60">
+                    <span className="px-3 py-1 rounded-full bg-foreground/[0.03] border border-foreground/5 text-[10px] uppercase tracking-wider font-medium text-foreground/60">
                       {collab.category}
                     </span>
                   </div>
-                  <h2 className="font-rocaston text-3xl sm:text-4xl uppercase tracking-[0.1em] leading-tight">
+                  <h2 className="font-sans text-2xl sm:text-3xl tracking-tight font-medium leading-tight">
                     {collab.title}
                   </h2>
                 </div>
                 
-                <p className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
+                <p className="text-xs tracking-widest text-muted-foreground/60 font-medium uppercase">
                   {collab.date}
                 </p>
                 
@@ -98,8 +98,8 @@ export default function CollaborationsPage() {
                   {collab.description}
                 </p>
 
-                <div className="pt-4">
-                  <button className="flex items-center gap-2 text-xs uppercase tracking-widest font-bold text-foreground hover:opacity-70 transition-opacity">
+                <div className="pt-2">
+                  <button className="flex items-center gap-2 text-xs uppercase tracking-wider font-semibold text-foreground hover:opacity-70 transition-opacity">
                     View Gallery <ArrowUpRight className="w-4 h-4" />
                   </button>
                 </div>
