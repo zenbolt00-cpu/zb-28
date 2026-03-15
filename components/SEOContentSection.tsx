@@ -10,19 +10,20 @@ export default function SEOContentSection() {
 
   return (
     <section className="mt-12 mb-20 px-4 w-full max-w-[400px] mx-auto">
-      <div className="glass-vibrancy rounded-[1.2rem] overflow-hidden border border-foreground/5 shadow-2xl relative">
+      <div className="glass-vibrancy rounded-[1rem] overflow-hidden border border-foreground/[0.03] shadow-xl relative">
         {/* Dynamic Content Container */}
         <motion.div 
-          animate={{ height: isExpanded ? "auto" : "150px" }}
+          animate={{ height: isExpanded ? "auto" : "140px" }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           className="relative overflow-hidden"
         >
-          <div className="p-4 pb-6 space-y-3 text-center">
-            <h2 className="font-heading text-[9px] uppercase tracking-[0.2em] text-foreground leading-tight">
+          <div className="p-4 pb-5 space-y-2.5 text-center">
+            <h2 className="font-sans font-light text-[8px] uppercase tracking-[0.25em] text-foreground/80 leading-tight">
               Feel the Power of Premium Streetwear with Zica Bella – A Leading Unisex Streetwear Brand
             </h2>
 
-            <div className="space-y-1.5 text-[5px] leading-[1.8] text-foreground/40 font-light font-sans text-center uppercase tracking-[0.05em]">
+            <div className="space-y-1.5 text-[4.5px] leading-[1.6] text-foreground/30 font-extralight font-sans text-center uppercase tracking-[0.06em]">
+
               <p>
                 Streetwear has evolved from underground culture into one of the most influential fashion movements in the world, and India is no exception. What once began as loose denim, graphic T-shirts, and sneakers has now transformed into a bold expression of individuality, creativity, and luxury.
               </p>
@@ -33,7 +34,7 @@ export default function SEOContentSection() {
                 Streetwear today is more than just fashion — it is a statement of personality and confidence. With carefully designed collections, Zica Bella is shaping the future of Indian streetwear by blending comfort, luxury, and bold design language.
               </p>
 
-              <h3 className="text-foreground font-semibold mt-3 text-[7px] tracking-[0.1em] mb-1 uppercase">
+              <h3 className="text-foreground/60 font-light mt-2.5 text-[6px] tracking-[0.15em] mb-1 uppercase">
                 What is Gender Neutral Streetwear Fashion?
               </h3>
               <p>
@@ -46,7 +47,7 @@ export default function SEOContentSection() {
                 If you enjoy oversized T-shirts, graphic tees, relaxed fits, and expressive fashion, Zica Bella’s unisex streetwear collection is designed for you.
               </p>
 
-              <h3 className="text-foreground font-semibold mt-3 text-[7px] tracking-[0.1em] mb-1 uppercase">
+              <h3 className="text-foreground/60 font-light mt-2.5 text-[6px] tracking-[0.15em] mb-1 uppercase">
                 A Strong Focus on Unisex Streetwear
               </h3>
               <p>
@@ -62,13 +63,13 @@ export default function SEOContentSection() {
                 At Zica Bella, we believe fashion should reflect freedom, identity, and creativity, not restrictions.
               </p>
 
-              <h3 className="text-foreground font-semibold mt-3 text-[7px] tracking-[0.1em] mb-1 uppercase">
+              <h3 className="text-foreground/60 font-light mt-2.5 text-[6px] tracking-[0.15em] mb-1 uppercase">
                 What Makes Zica Bella One of the Best Streetwear Brands in India?
               </h3>
               <p>
                 Zica Bella stands out by merging luxury streetwear aesthetics with contemporary design philosophy.
               </p>
-              <p className="font-medium text-foreground/60">
+              <p className="font-light text-foreground/40">
                 Our collections feature:
               </p>
               <ul className="pl-0 space-y-0.5 list-none">
@@ -85,7 +86,7 @@ export default function SEOContentSection() {
                 By combining high-quality materials with modern streetwear aesthetics, Zica Bella continues to redefine the future of premium streetwear clothing in India.
               </p>
 
-              <h3 className="text-foreground font-semibold mt-3 text-[7px] tracking-[0.1em] mb-1 uppercase">
+              <h3 className="text-foreground/60 font-light mt-2.5 text-[6px] tracking-[0.15em] mb-1 uppercase">
                 Explore Zica Bella’s Premium Streetwear Collection
               </h3>
               <p>
@@ -95,7 +96,7 @@ export default function SEOContentSection() {
                 Streetwear is more than clothing — it is self-expression. Every piece in our collection helps individuals showcase their unique identity.
               </p>
 
-              <h3 className="text-foreground font-semibold mt-3 text-[7px] tracking-[0.1em] mb-1 uppercase">
+              <h3 className="text-foreground/60 font-light mt-2.5 text-[6px] tracking-[0.15em] mb-1 uppercase">
                 Oversized Sweatshirts – The Core of Streetwear Fashion
               </h3>
               <p>
@@ -108,7 +109,7 @@ export default function SEOContentSection() {
                 Available in various designs, graphics, and colors, these sweatshirts are perfect for layering and can be styled throughout the year.
               </p>
 
-              <h3 className="text-foreground font-semibold mt-3 text-[7px] tracking-[0.1em] mb-1 uppercase">
+              <h3 className="text-foreground/60 font-light mt-2.5 text-[6px] tracking-[0.15em] mb-1 uppercase">
                 Designer Jackets for Bold Street Style
               </h3>
               <p>
@@ -121,7 +122,7 @@ export default function SEOContentSection() {
                 Zica Bella jackets are not just outerwear — they are statement pieces built to stand out.
               </p>
 
-              <h3 className="text-foreground font-semibold mt-3 text-[7px] tracking-[0.1em] mb-1 uppercase">
+              <h3 className="text-foreground/60 font-light mt-2.5 text-[6px] tracking-[0.15em] mb-1 uppercase">
                 Premium Unisex Hoodies – Comfort Meets Streetwear Attitude
               </h3>
               <p>
@@ -134,7 +135,7 @@ export default function SEOContentSection() {
                 Whether you prefer minimal designs or bold graphic prints, Zica Bella hoodies deliver both comfort and style.
               </p>
 
-              <h3 className="text-foreground font-semibold mt-3 text-[7px] tracking-[0.1em] mb-1 uppercase">
+              <h3 className="text-foreground/60 font-light mt-2.5 text-[6px] tracking-[0.15em] mb-1 uppercase">
                 Statement Oversized T-Shirts – Streetwear Essentials
               </h3>
               <p>
@@ -147,7 +148,7 @@ export default function SEOContentSection() {
                 Whether worn alone or layered with jackets, Zica Bella graphic T-shirts are designed to turn heads.
               </p>
 
-              <h3 className="text-foreground font-semibold mt-3 text-[7px] tracking-[0.1em] mb-1 uppercase">
+              <h3 className="text-foreground/60 font-light mt-2.5 text-[6px] tracking-[0.15em] mb-1 uppercase">
                 Designer Polo T-Shirts – Classic Style with a Streetwear Edge
               </h3>
               <p>
@@ -160,13 +161,13 @@ export default function SEOContentSection() {
                 Available in versatile designs and bold unisex colors, Zica Bella polo T-shirts combine sophistication with urban attitude.
               </p>
 
-              <h3 className="text-foreground font-semibold mt-3 text-[7px] tracking-[0.1em] mb-1 uppercase">
+              <h3 className="text-foreground/60 font-light mt-2.5 text-[6px] tracking-[0.15em] mb-1 uppercase">
                 Unisex Cargo Pants and Shorts – Function Meets Fashion
               </h3>
               <p>
                 Zica Bella’s bottomwear collection focuses on utility, comfort, and modern streetwear style.
               </p>
-              <p className="font-medium text-foreground/60">
+              <p className="font-light text-foreground/40">
                 Our range includes:
               </p>
               <ul className="pl-0 space-y-0.5 list-none">
@@ -179,7 +180,7 @@ export default function SEOContentSection() {
                 Each piece is designed for versatility, allowing you to style it for casual days, streetwear outfits, or modern fashion looks.
               </p>
 
-              <h3 className="text-foreground font-semibold mt-3 text-[7px] tracking-[0.1em] mb-1 uppercase">
+              <h3 className="text-foreground/60 font-light mt-2.5 text-[6px] tracking-[0.15em] mb-1 uppercase">
                 Latest Colour Trends in Streetwear Fashion
               </h3>
               <p>
@@ -198,7 +199,7 @@ export default function SEOContentSection() {
                 <strong>Black Hoodies</strong> – The Streetwear Foundation. Zica Bella black hoodies represent the essence of modern streetwear.
               </p>
 
-              <h3 className="text-foreground font-semibold mt-3 text-[7px] tracking-[0.1em] mb-1 uppercase">
+              <h3 className="text-foreground/60 font-light mt-2.5 text-[6px] tracking-[0.15em] mb-1 uppercase">
                 Streetwear Clothing for Every Season by Zica Bella
               </h3>
               <p>
@@ -214,13 +215,13 @@ export default function SEOContentSection() {
                 <strong>Autumn Collection</strong> – Transitional Street Style. Earthy tones and layered designs.
               </p>
 
-              <h3 className="text-foreground font-semibold mt-3 text-[7px] tracking-[0.1em] mb-1 uppercase">
+              <h3 className="text-foreground/60 font-light mt-2.5 text-[6px] tracking-[0.15em] mb-1 uppercase">
                 Why Zica Bella is Becoming a Leading Streetwear Brand in India
               </h3>
               <p>
                 Zica Bella represents a new wave of premium streetwear fashion in India.
               </p>
-              <p className="font-medium text-foreground/60">
+              <p className="font-light text-foreground/40">
                 Our collections stand out because of:
               </p>
               <ul className="pl-0 space-y-0.5 list-none">
@@ -230,28 +231,29 @@ export default function SEOContentSection() {
                 <li><strong>Trendsetting Streetwear:</strong> Setting new trends in urban culture.</li>
               </ul>
 
-              <h3 className="text-foreground font-semibold mt-3 text-[7px] tracking-[0.1em] mb-1 uppercase">
+              <h3 className="text-foreground/60 font-light mt-2.5 text-[6px] tracking-[0.15em] mb-1 uppercase">
                 Final Thoughts: Zica Bella and the Future of Indian Streetwear
               </h3>
               <p>
                 Zica Bella is redefining modern streetwear in India by combining premium quality, bold design, and unisex fashion philosophy. From oversized graphic T-shirts to premium hoodies and statement streetwear pieces.
               </p>
 
-              <div className="pt-3 border-t border-foreground/5 space-y-1.5">
-                <h3 className="text-foreground font-bold text-[8px] tracking-[0.3em] uppercase">
+              <div className="pt-2.5 border-t border-foreground/[0.03] space-y-1">
+                <h3 className="text-foreground/70 font-light text-[7px] tracking-[0.35em] uppercase">
                   FAQs
                 </h3>
-                <div className="space-y-1.5">
+                <div className="space-y-1">
                   <div>
-                    <p className="text-foreground font-medium uppercase tracking-[0.05em]">Is Zica Bella an Indian brand?</p>
+                    <p className="text-foreground/60 font-light uppercase tracking-[0.05em]">Is Zica Bella an Indian brand?</p>
                     <p>Yes, Zica Bella is an emerging Indian streetwear brand focused on premium unisex fashion.</p>
                   </div>
                   <div>
-                    <p className="text-foreground font-medium uppercase tracking-[0.05em]">Comparison to other brands?</p>
+                    <p className="text-foreground/60 font-light uppercase tracking-[0.05em]">Comparison to other brands?</p>
                     <p>Zica Bella stands out through premium fabrics, bold designs, and oversized silhouettes.</p>
                   </div>
                 </div>
               </div>
+
 
             </div>
           </div>
@@ -273,36 +275,37 @@ export default function SEOContentSection() {
         {/* Toggle Button */}
         <button 
           onClick={() => setIsExpanded(!isExpanded)}
-          className="w-full py-2 flex items-center justify-center gap-1.5 border-t border-foreground/5 hover:bg-foreground/[0.02] transition-colors group"
+          className="w-full py-1.5 flex items-center justify-center gap-1 border-t border-foreground/[0.03] hover:bg-foreground/[0.01] transition-colors group"
         >
-          <span className="text-[6px] font-bold uppercase tracking-[0.4em] text-foreground/30 group-hover:text-foreground transition-colors">
+          <span className="text-[5.5px] font-extralight uppercase tracking-[0.5em] text-foreground/20 group-hover:text-foreground/50 transition-colors">
             {isExpanded ? "Read Less" : "Read More"}
           </span>
           {isExpanded ? (
-            <ChevronUp className="w-2 h-2 text-foreground/30 group-hover:text-foreground transition-colors" />
+            <ChevronUp className="w-1.5 h-1.5 text-foreground/10 group-hover:text-foreground/30 transition-colors" />
           ) : (
-            <ChevronDown className="w-2 h-2 text-foreground/30 group-hover:text-foreground transition-colors" />
+            <ChevronDown className="w-1.5 h-1.5 text-foreground/10 group-hover:text-foreground/30 transition-colors" />
           )}
         </button>
       </div>
 
       {/* Popular Searches */}
-      <div className="mt-6 px-4 space-y-3">
-        <h4 className="text-[7px] font-bold uppercase tracking-[0.5em] text-foreground/70 text-center">
+      <div className="mt-5 px-4 space-y-2">
+        <h4 className="text-[6.5px] font-light uppercase tracking-[0.6em] text-foreground/40 text-center">
           Popular searches
         </h4>
-        <div className="flex flex-wrap justify-center gap-x-5 gap-y-1.5">
-          <Link href="/collections" className="text-[6px] uppercase tracking-[0.3em] text-foreground/20 hover:text-foreground transition-colors font-medium">
+        <div className="flex flex-wrap justify-center gap-x-4 gap-y-1">
+          <Link href="/collections" className="text-[5.5px] uppercase tracking-[0.4em] text-foreground/10 hover:text-foreground/40 transition-colors font-extralight">
             Shop by category
           </Link>
-          <Link href="/collections" className="text-[6px] uppercase tracking-[0.3em] text-foreground/20 hover:text-foreground transition-colors font-medium">
+          <Link href="/collections" className="text-[5.5px] uppercase tracking-[0.4em] text-foreground/10 hover:text-foreground/40 transition-colors font-extralight">
             Shop by style
           </Link>
-          <Link href="/collections" className="text-[6px] uppercase tracking-[0.3em] text-foreground/20 hover:text-foreground transition-colors font-medium">
+          <Link href="/collections" className="text-[5.5px] uppercase tracking-[0.4em] text-foreground/10 hover:text-foreground/40 transition-colors font-extralight">
             Shop by color
           </Link>
         </div>
       </div>
+
 
     </section>
   );
