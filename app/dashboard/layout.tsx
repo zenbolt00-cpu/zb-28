@@ -14,6 +14,7 @@ import {
   Bell,
   Users,
   ShoppingBag,
+  Newspaper,
 } from "lucide-react";
 
 import { useRealtimeSync } from "@/lib/hooks/useRealtime";
@@ -31,6 +32,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: "Collections", href: "/dashboard/collections", icon: Package },
     { name: "Inventory", href: "/dashboard/inventory", icon: Package },
     { name: "Community", href: "/dashboard/featured-users", icon: Users },
+    { name: "Blogs", href: "/dashboard/blogs", icon: Newspaper },
     { name: "Returns", href: "/dashboard/returns", icon: Undo2 },
     { name: "Exchanges", href: "/dashboard/exchanges", icon: ArrowLeftRight },
     { name: "Scanner", href: "/dashboard/scanner", icon: ScanLine },

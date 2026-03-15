@@ -242,3 +242,16 @@ model Admin {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model BlogPost {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  excerpt     String?
+  content     String   // MD or HTML content
+  coverImage  String?
+  published   Boolean  @default(false)
+  author      String   @default("Zica Bella")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

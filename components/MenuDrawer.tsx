@@ -29,9 +29,11 @@ const FALLBACK_COLLECTIONS: ShopifyCollection[] = [
 
 // These are ALWAYS shown in the bottom nav — not from Shopify
 const PRIMARY_NAV = [
-  { title: "Community",      url: "/community",   icon: Users },
-  { title: "Collaborations", url: "/collections", icon: Handshake },
+  { title: "Story",          url: "/story",       icon: Info },
+  { title: "Collaborations", url: "/collaborations", icon: Handshake },
   { title: "Blogs",          url: "/blogs",       icon: BookOpen },
+  { title: "FAQ",            url: "/faq",         icon: Info },
+  { title: "Community",      url: "/community",   icon: Users },
 ];
 
 const SHOP_TERMS = ["T-shirt", "Jeans", "Pants", "Trousers", "Jorts", "Shirts"];
