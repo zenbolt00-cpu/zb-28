@@ -13,9 +13,10 @@ export async function POST() {
     const isMock = (prisma as any)._isMock;
 
     if (isMock) {
+      const mockReason = (prisma as any)._mockReason || 'unknown';
       return NextResponse.json({
-        error: 'Database is not connected. Set DATABASE_URL in Vercel environment variables first.',
-        hint: 'Go to Vercel Dashboard → your project → Settings → Environment Variables → add DATABASE_URL'
+        error: `Database is not connected (Reason: ${mockReason}). Ensure POSTGRES_PRISMA_URL is set in Vercel.`,
+        hint: 'If you just added the variables, ensure you clicked "Redeploy" in the Vercel Deployments tab.'
       }, { status: 503 });
     }
 

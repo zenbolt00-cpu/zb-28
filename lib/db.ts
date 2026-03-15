@@ -1,4 +1,6 @@
 import { PrismaClient } from '@prisma/client'
+import { Pool } from 'pg'
+import { PrismaPg } from '@prisma/adapter-pg'
 
 // Mock Prisma client for when database is unavailable
 const createMockPrismaClient = (reason: string) => {
@@ -38,17 +40,13 @@ const prismaClientSingleton = () => {
   }
 
   try {
-    // Standard PrismaClient — works with PostgreSQL DATABASE_URL (Vercel Postgres, Neon, Supabase, Railway, etc.)
-    // The schema.prisma now uses provider="postgresql" with url=env("DATABASE_URL")
-    const client = new PrismaClient({
-      log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
-      // @ts-expect-error - prisma client types might not yet reflect postgresql during early build phases
-      datasources: {
-        db: {
-          url: dbUrl,
-        },
-      },
-    });
+      const pool = new Pool({ connectionString: dbUrl }) as any
+      const adapter = new PrismaPg(pool)
+
+      const client = new PrismaClient({
+        adapter,
+        log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
+      });
     return client;
   } catch (error) {
     console.error('[DB] Critical Prisma initialization error:', error);

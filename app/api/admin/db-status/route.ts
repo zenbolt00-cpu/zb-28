@@ -5,12 +5,13 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const dbUrl = process.env.DATABASE_URL;
+    const dbUrl = process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL;
     const isBuild = process.env.npm_lifecycle_event === 'build' || process.env.NEXT_PHASE === 'phase-production-build';
     const isProdWithoutDb = process.env.NODE_ENV === 'production' && (!dbUrl || dbUrl.includes('placeholder'));
     
     // Check if prisma is a real client or a mock
     const isMock = (prisma as any)._isMock || false;
+    const mockReason = (prisma as any)._mockReason || null;
     
     // Try a simple query to verify connection
     let connectionAlive = false;
@@ -27,6 +28,7 @@ export async function GET() {
     return NextResponse.json({
       status: connectionAlive ? 'connected' : 'disconnected',
       isMock,
+      mockReason,
       isBuild,
       isProdWithoutDb,
       shopCount,
