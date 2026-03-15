@@ -143,34 +143,40 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* ═══ FEATURED MEDIA ═══ */}
-        {(featuredMedia || featuredMediaImage || heroVideo) && (
-          <section className="mb-2 relative w-full aspect-[4/5] rounded-[2rem] overflow-hidden bg-muted border border-foreground/[0.03]">
-            {featuredMedia || heroVideo ? (
+        {/* ═══ FEATURED MEDIA / BLUEPRINT ═══ */}
+        {s?.showBlueprint && (
+          <section className="mb-2 relative w-full aspect-[4/5] rounded-[2rem] overflow-hidden bg-muted border border-foreground/[0.03] group shadow-xl">
+            {featuredMedia ? (
               <video 
-                src={featuredMedia || heroVideo} 
+                src={featuredMedia} 
                 autoPlay 
                 loop 
                 muted 
                 playsInline 
-                className="w-full h-full object-cover" 
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" 
               />
-            ) : featuredMediaImage ? (
+            ) : (
               <NextImage
-                src={featuredMediaImage}
-                alt="Featured Highlight"
+                src={featuredMediaImage || "/section-image1.PNG"}
+                alt={blueprintTitle}
                 fill
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
                 priority
               />
-            ) : null}
-            
-            {s?.showBlueprint && (
-              <div className="absolute inset-x-0 bottom-0 p-8 text-center z-10">
-                <h3 className="font-heading text-[10px] uppercase tracking-[0.3em] text-foreground mb-1.5">{blueprintSub}</h3>
-                <p className="text-[8px] font-extralight uppercase tracking-[0.2em] text-foreground/40">{blueprintTitle}</p>
-              </div>
             )}
+            
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+            
+            <div className="absolute inset-x-0 bottom-0 p-8 text-center z-10">
+              <div className="inline-block px-4 py-1.5 glass-vibrancy rounded-full border border-white/10 mb-4 backdrop-blur-md">
+                <span className="text-[7px] text-white/90 uppercase tracking-[0.4em] font-medium font-sans">
+                  {blueprintSub}
+                </span>
+              </div>
+              <h3 className="font-heading text-3xl uppercase tracking-widest text-white leading-tight drop-shadow-lg">
+                {blueprintTitle}
+              </h3>
+            </div>
           </section>
         )}
 

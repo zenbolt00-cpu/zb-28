@@ -801,13 +801,13 @@ export default function SettingsPage() {
               placeholder="e.g. The blueprint of Zica Bella"
             />
             <InputField
-              label="Featured Section Video (Sequence 4)"
+              label="Blueprint Section Video (Above 3D Balls)"
               value={settings.featuredMedia}
               onChange={set('featuredMedia')}
               placeholder="Add a unique video link for this section"
             />
             <InputField
-              label="Featured Section Image (Sequence 4)"
+              label="Blueprint Section Image (Above 3D Balls)"
               value={settings.featuredMediaImage}
               onChange={set('featuredMediaImage')}
               placeholder="Add a unique image link for this section"
