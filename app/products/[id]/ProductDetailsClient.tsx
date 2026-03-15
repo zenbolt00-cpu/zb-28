@@ -301,15 +301,16 @@ export default function ProductDetailsClient({
                     </button>
                   )}
                 </div>
-                <div className="flex overflow-x-auto gap-1.5 pb-0.5 hide-scrollbar snap-x">
+                {/* Equal-size 6-column grid — matches QuickAddModal */}
+                <div className="grid grid-cols-6 gap-1.5 px-0.5">
                   {sizes.map((size) => (
                     <button
                       key={size}
                       onClick={() => setSelectedSize(size)}
-                      className={`px-5 py-2 rounded-[0.5rem] text-[8px] font-bold uppercase tracking-widest transition-all snap-start border ${
+                      className={`h-9 w-full flex items-center justify-center rounded-lg text-[8px] font-medium uppercase tracking-widest transition-all border ${
                         selectedSize === size
-                          ? "bg-foreground text-background border-transparent shadow-sm scale-[1.02]"
-                          : "bg-foreground/[0.03] border-foreground/5 text-foreground/25 hover:bg-foreground/[0.06]"
+                          ? "bg-foreground text-background border-transparent shadow-sm"
+                          : "bg-foreground/[0.03] border-foreground/[0.07] text-foreground/40 hover:border-foreground/20 hover:text-foreground/70"
                       }`}
                     >
                       {size}

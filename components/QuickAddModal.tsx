@@ -5,6 +5,7 @@ import Image from "next/image";
 import { X, ShoppingBag, Check } from "lucide-react";
 import { useCart } from "@/lib/cart-context";
 import { ShopifyProduct } from "@/lib/shopify-admin";
+import { createPortal } from "react-dom";
 
 interface Props {
   product: ShopifyProduct;
@@ -15,6 +16,10 @@ export default function QuickAddModal({ product, onClose }: Props) {
   const { add } = useCart();
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [added, setAdded] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  // Mount guard — ensures createPortal only runs client-side
+  useEffect(() => { setMounted(true); }, []);
 
   const sizes = product.variants
     ?.map((v) => ({ size: v.option1 ?? "One Size", variantId: String(v.id) }))
@@ -29,25 +34,26 @@ export default function QuickAddModal({ product, onClose }: Props) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sizes.length]);
 
-  // Close on backdrop click
-  const handleBackdrop = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) onClose();
-  };
-
-  // Hide bottom toolbar when modal is open, restore on close
+  // Hide bottom toolbar when modal is open
   useEffect(() => {
-    window.dispatchEvent(new CustomEvent('quickadd:open'));
+    window.dispatchEvent(new CustomEvent("quickadd:open"));
     return () => {
-      window.dispatchEvent(new CustomEvent('quickadd:close'));
+      window.dispatchEvent(new CustomEvent("quickadd:close"));
     };
   }, []);
 
   // Close on Escape
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
+
+  // Prevent body scroll while modal is open
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = ""; };
+  }, []);
 
   const handleAdd = () => {
     if (sizes.length > 1 && !selectedSize) return;
@@ -65,20 +71,32 @@ export default function QuickAddModal({ product, onClose }: Props) {
     setTimeout(() => { setAdded(false); onClose(); }, 900);
   };
 
-  return (
+  const handleBackdrop = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) onClose();
+  };
+
+  if (!mounted) return null;
+
+  const modal = (
     <div
-      className="fixed inset-0 z-[200] flex items-end justify-center"
-      style={{ background: "rgba(0,0,0,0.40)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)" }}
+      className="fixed inset-0 flex items-end justify-center"
+      style={{
+        zIndex: 9999,
+        background: "rgba(0,0,0,0.45)",
+        backdropFilter: "blur(10px)",
+        WebkitBackdropFilter: "blur(10px)",
+      }}
       onClick={handleBackdrop}
     >
       <div
-        className="w-full max-w-md rounded-t-[1.5rem] overflow-hidden flex flex-col font-sans"
+        className="w-full max-w-md rounded-t-[1.75rem] overflow-hidden flex flex-col font-sans"
         style={{
-          background: "hsla(var(--glass-bg), 0.75)",
-          backdropFilter: "blur(40px) saturate(180%)",
-          WebkitBackdropFilter: "blur(40px) saturate(180%)",
-          border: "1px solid hsla(var(--glass-border), 0.08)",
-          boxShadow: "0 -16px 60px -12px rgba(0,0,0,0.15)",
+          background: "hsla(var(--glass-bg), 0.80)",
+          backdropFilter: "blur(48px) saturate(200%)",
+          WebkitBackdropFilter: "blur(48px) saturate(200%)",
+          border: "1px solid hsla(var(--glass-border), 0.10)",
+          borderBottom: "none",
+          boxShadow: "0 -24px 80px -12px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06)",
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -96,11 +114,14 @@ export default function QuickAddModal({ product, onClose }: Props) {
             <p className="text-[9px] font-extralight uppercase tracking-[0.22em] text-foreground/80 line-clamp-2 leading-relaxed">
               {product.title}
             </p>
-            <p className="text-[9px] font-inter font-medium text-foreground/50 tracking-widest mt-0.5">
+            <p className="text-[9px] font-medium text-foreground/50 tracking-widest mt-0.5">
               ₹{parseFloat(price).toLocaleString("en-IN")}
             </p>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-full text-foreground/40 hover:text-foreground transition-colors flex-shrink-0">
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-full text-foreground/30 hover:text-foreground transition-colors flex-shrink-0"
+          >
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -108,8 +129,10 @@ export default function QuickAddModal({ product, onClose }: Props) {
         {/* Size Selection */}
         {sizes.length > 1 && (
           <div className="px-5 mb-4">
-            <p className="text-[7px] font-light uppercase tracking-[0.45em] text-foreground/35 mb-3">Select Size</p>
-            {/* Force 6 equal-width columns — all sizes in one row */}
+            <p className="text-[7px] font-light uppercase tracking-[0.45em] text-foreground/35 mb-3">
+              Select Size
+            </p>
+            {/* 6 equal-width columns */}
             <div className="grid grid-cols-6 gap-1.5">
               {sizes.map(({ size }) => (
                 <button
@@ -129,7 +152,7 @@ export default function QuickAddModal({ product, onClose }: Props) {
         )}
 
         {/* Add Button */}
-        <div className="px-5 pb-8">
+        <div className="px-5 pb-10">
           <button
             onClick={handleAdd}
             disabled={sizes.length > 1 && !selectedSize}
@@ -151,4 +174,6 @@ export default function QuickAddModal({ product, onClose }: Props) {
       </div>
     </div>
   );
+
+  return createPortal(modal, document.body);
 }
