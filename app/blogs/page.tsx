@@ -1,6 +1,4 @@
 import prisma from "@/lib/db";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 
@@ -13,8 +11,7 @@ export default async function BlogsPage() {
   });
 
   return (
-    <div className="min-h-screen bg-background text-foreground selection:bg-foreground selection:text-background flex flex-col">
-      <Header />
+    <div className="min-h-screen bg-transparent text-foreground selection:bg-foreground selection:text-background flex flex-col">
       
       <main className="flex-1 pt-32 pb-24 px-6 sm:px-12 max-w-7xl mx-auto w-full">
         {/* Header text */}
@@ -80,8 +77,6 @@ export default async function BlogsPage() {
           </div>
         )}
       </main>
-
-      <Footer />
     </div>
   );
 }

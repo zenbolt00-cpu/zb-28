@@ -3,8 +3,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus } from "lucide-react";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 
 const faqs = [
   {
@@ -77,8 +75,7 @@ export default function FAQPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground selection:bg-foreground selection:text-background flex flex-col">
-      <Header />
+    <div className="min-h-screen bg-transparent text-foreground selection:bg-foreground selection:text-background flex flex-col">
       
       <main className="flex-1 flex flex-col items-center pt-32 pb-24 px-6 sm:px-12">
         <div className="w-full max-w-3xl">
@@ -165,8 +162,6 @@ export default function FAQPage() {
           </div>
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 }

@@ -1,8 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import { ArrowUpRight } from "lucide-react";
 
 const collaborations = [
@@ -34,8 +32,7 @@ const collaborations = [
 
 export default function CollaborationsPage() {
   return (
-    <div className="min-h-screen bg-background text-foreground selection:bg-foreground selection:text-background flex flex-col">
-      <Header />
+    <div className="min-h-screen bg-transparent text-foreground selection:bg-foreground selection:text-background flex flex-col">
       
       <main className="flex-1 pt-32 pb-24 px-6 sm:px-12 max-w-7xl mx-auto w-full">
         {/* Header text */}
@@ -111,8 +108,6 @@ export default function CollaborationsPage() {
           ))}
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 }

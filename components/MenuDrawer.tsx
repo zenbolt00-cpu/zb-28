@@ -29,7 +29,6 @@ const FALLBACK_COLLECTIONS: ShopifyCollection[] = [
 
 // These are ALWAYS shown in the bottom nav — not from Shopify
 const PRIMARY_NAV = [
-  { title: "Story",          url: "/story",       icon: Info },
   { title: "Collaborations", url: "/collaborations", icon: Handshake },
   { title: "Blogs",          url: "/blogs",       icon: BookOpen },
   { title: "FAQ",            url: "/faq",         icon: Info },
@@ -209,7 +208,7 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
                 <span className="text-[6px] tracking-widest uppercase text-foreground/18 group-hover:text-foreground/45" style={{ fontFamily: "ui-monospace, monospace" }}>Orders</span>
               </Link>
               <div className="w-[0.5px] h-7 bg-foreground/[0.06]" />
-              <Link href="/our-story" onClick={onClose} className="group flex flex-col items-center gap-0.5 flex-1 py-2 rounded-xl hover:bg-foreground/[0.04] transition-all">
+              <Link href="/story" onClick={onClose} className="group flex flex-col items-center gap-0.5 flex-1 py-2 rounded-xl hover:bg-foreground/[0.04] transition-all">
                 <Info className="w-3.5 h-3.5 text-foreground/20 group-hover:text-foreground/55 transition-colors" />
                 <span className="text-[6px] tracking-widest uppercase text-foreground/18 group-hover:text-foreground/45" style={{ fontFamily: "ui-monospace, monospace" }}>Story</span>
               </Link>

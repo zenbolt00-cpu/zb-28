@@ -1,8 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 
 const fadeIn = {
   hidden: { opacity: 0, y: 40 },
@@ -19,8 +17,7 @@ const staggerContainer = {
 
 export default function StoryPage() {
   return (
-    <div className="min-h-screen bg-background text-foreground selection:bg-foreground selection:text-background flex flex-col overflow-x-hidden">
-      <Header />
+    <div className="min-h-screen bg-transparent text-foreground selection:bg-foreground selection:text-background flex flex-col overflow-x-hidden">
       
       <main className="flex-1">
         {/* Hero Section */}
@@ -132,8 +129,6 @@ export default function StoryPage() {
           </motion.a>
         </section>
       </main>
-
-      <Footer />
     </div>
   );
 }

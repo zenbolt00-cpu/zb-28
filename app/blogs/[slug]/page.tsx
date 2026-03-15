@@ -1,7 +1,5 @@
 import { notFound } from "next/navigation";
 import prisma from "@/lib/db";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
@@ -59,8 +57,7 @@ export default async function BlogPostPage({ params }: BlogPostProps) {
   `;
 
   return (
-    <div className="min-h-screen bg-background text-foreground selection:bg-foreground selection:text-background flex flex-col">
-      <Header />
+    <div className="min-h-screen bg-transparent text-foreground selection:bg-foreground selection:text-background flex flex-col">
       
       <main className="flex-1 pt-32 pb-32">
         <article className="max-w-3xl mx-auto px-6 sm:px-12 w-full">
@@ -115,8 +112,6 @@ export default async function BlogPostPage({ params }: BlogPostProps) {
           </div>
         </article>
       </main>
-
-      <Footer />
     </div>
   );
 }
