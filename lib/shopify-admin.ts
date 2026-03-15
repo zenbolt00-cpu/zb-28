@@ -756,20 +756,54 @@ export async function fetchPolicies(): Promise<{ title: string; body: string; ur
 }
 
 /**
- * Search products by keyword.
+ * Search products by keyword — queries title, product_type, vendor, and tags in parallel.
+ * Deduplicates results by product ID for a true full-text search experience.
  */
-export async function searchProducts(query: string, limit = 24): Promise<ShopifyProduct[]> {
+export async function searchProducts(query: string, limit = 48): Promise<ShopifyProduct[]> {
+  if (!query?.trim()) return [];
+  const q = query.trim();
+
   try {
-    const data = await shopifyFetch<{ products: ShopifyProduct[] }>('products.json', {
-      limit: String(limit),
-      title: query,
-    });
-    return data.products || [];
+    // Run 4 parallel searches across different fields
+    const [byTitle, byType, byVendor, byTag] = await Promise.allSettled([
+      shopifyFetch<{ products: ShopifyProduct[] }>('products.json', { limit: String(limit), title: q }),
+      shopifyFetch<{ products: ShopifyProduct[] }>('products.json', { limit: String(limit), product_type: q }),
+      shopifyFetch<{ products: ShopifyProduct[] }>('products.json', { limit: String(limit), vendor: q }),
+      shopifyFetch<{ products: ShopifyProduct[] }>('products.json', { limit: String(limit), tag: q }),
+    ]);
+
+    // Merge all results, deduplicate by product ID
+    const seen = new Set<string | number>();
+    const merged: ShopifyProduct[] = [];
+
+    for (const result of [byTitle, byType, byVendor, byTag]) {
+      if (result.status === 'fulfilled') {
+        for (const product of result.value.products || []) {
+          if (!seen.has(product.id)) {
+            seen.add(product.id);
+            merged.push(product);
+          }
+        }
+      }
+    }
+
+    // Also do a client-side partial-match filter on title for broader substring matching
+    const lq = q.toLowerCase();
+    const extra = merged.filter(p =>
+      p.title?.toLowerCase().includes(lq) ||
+      (p as any).product_type?.toLowerCase().includes(lq) ||
+      (p as any).vendor?.toLowerCase().includes(lq) ||
+      (p as any).tags?.toLowerCase().includes(lq)
+    );
+
+    // Return the extra filtered subset if it has hits, otherwise return all merged
+    return extra.length > 0 ? extra : merged;
   } catch (e) {
     console.error('searchProducts error:', e);
     return [];
   }
 }
+
 
 /**
  * Fetch a collection and its products by handle.

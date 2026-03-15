@@ -1,73 +1,81 @@
 import { searchProducts, fetchCollections } from "@/lib/shopify-admin";
-import { Search } from "lucide-react";
+import { Search, ArrowRight } from "lucide-react";
 import { ShopifyProduct } from "@/lib/shopify-admin";
 import ProductCard from "@/components/ProductCard";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
+
+const TRENDING = ["T-shirt", "Jeans", "Pants", "Trousers", "Jorts", "Shirts", "Acid Tees", "Leather"];
 
 export default async function SearchPage({
   searchParams,
 }: {
   searchParams: { q?: string; sort?: string; min?: string; max?: string };
 }) {
-  const query = searchParams.q?.trim() || "";
+  const query = (searchParams.q || "").trim();
   const sortBy = searchParams.sort || "relevance";
   const minPrice = parseFloat(searchParams.min || "0");
   const maxPrice = parseFloat(searchParams.max || "999999");
 
-  let products: ShopifyProduct[] = [];
-  if (query) {
-    try {
-      const raw = await searchProducts(query, 48);
-      products = raw.filter((p) => {
-        const price = parseFloat(p.variants?.[0]?.price || "0");
-        return price >= minPrice && price <= maxPrice;
-      });
+  // Fetch products and collections in parallel
+  const [productsRaw, collections] = await Promise.all([
+    query ? searchProducts(query, 48).catch(() => [] as ShopifyProduct[]) : Promise.resolve([] as ShopifyProduct[]),
+    fetchCollections().catch(() => [] as any[]),
+  ]);
 
-      if (sortBy === "price-asc") {
-        products.sort((a, b) => parseFloat(a.variants?.[0]?.price || "0") - parseFloat(b.variants?.[0]?.price || "0"));
-      } else if (sortBy === "price-desc") {
-        products.sort((a, b) => parseFloat(b.variants?.[0]?.price || "0") - parseFloat(a.variants?.[0]?.price || "0"));
-      }
-    } catch (e) {
-      console.error("Search failed:", e);
-      products = [];
-    }
+  // Apply price filter
+  let products = productsRaw.filter((p) => {
+    const price = parseFloat(p.variants?.[0]?.price || "0");
+    return price >= minPrice && price <= maxPrice;
+  });
+
+  // Sort
+  if (sortBy === "price-asc") {
+    products.sort((a, b) => parseFloat(a.variants?.[0]?.price || "0") - parseFloat(b.variants?.[0]?.price || "0"));
+  } else if (sortBy === "price-desc") {
+    products.sort((a, b) => parseFloat(b.variants?.[0]?.price || "0") - parseFloat(a.variants?.[0]?.price || "0"));
   }
-
-  const collections = await fetchCollections().catch(() => []);
 
   return (
     <div className="min-h-screen">
+      <div className="relative z-10 max-w-md mx-auto px-3 pb-32 pt-header">
 
-      <div className="relative z-10 max-w-md mx-auto px-2 pb-32 pt-header">
-
-        {/* Search Bar */}
-        <form method="GET" action="/search" className="mb-6">
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/40 pointer-events-none" />
+        {/* ── Search Bar ── */}
+        <form method="GET" action="/search" className="mb-4">
+          <div
+            className="relative flex items-center rounded-2xl overflow-hidden"
+            style={{
+              background: "hsla(var(--glass-bg), 0.55)",
+              backdropFilter: "blur(24px) saturate(180%)",
+              WebkitBackdropFilter: "blur(24px) saturate(180%)",
+              border: "1px solid hsla(var(--glass-border), 0.10)",
+              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05)",
+            }}
+          >
+            <Search className="absolute left-4 w-4 h-4 text-foreground/30 pointer-events-none" />
             <input
               name="q"
               defaultValue={query}
               placeholder="Search Zica Bella…"
               autoFocus={!query}
-              className="w-full pl-11 pr-4 py-3.5 rounded-2xl text-sm text-foreground placeholder-foreground/30 focus:outline-none transition-all"
-              style={{
-                background: "hsla(var(--glass-bg), 0.55)",
-                backdropFilter: "blur(20px)",
-                WebkitBackdropFilter: "blur(20px)",
-                border: "1px solid hsla(var(--glass-border), 0.1)",
-              }}
+              autoComplete="off"
+              className="w-full pl-11 pr-4 py-4 bg-transparent text-sm text-foreground placeholder-foreground/25 focus:outline-none"
             />
+            {query && (
+              <Link href="/search" className="absolute right-3 px-2 py-1 text-[8px] uppercase tracking-widest text-foreground/30 hover:text-foreground/60 transition-colors">
+                Clear
+              </Link>
+            )}
           </div>
 
-          {/* Filters row */}
-          {query && (
+          {/* Sort filters — only when there are results */}
+          {query && products.length > 0 && (
             <div className="flex gap-2 mt-3 flex-wrap">
               {[
                 { label: "Relevance", value: "relevance" },
-                { label: "Price ↑", value: "price-asc" },
-                { label: "Price ↓", value: "price-desc" },
+                { label: "Price ↑",   value: "price-asc" },
+                { label: "Price ↓",   value: "price-desc" },
               ].map((opt) => (
                 <button
                   key={opt.value}
@@ -77,7 +85,7 @@ export default async function SearchPage({
                   className={`px-3 py-1.5 rounded-full text-[9px] uppercase tracking-widest transition-all ${
                     sortBy === opt.value
                       ? "bg-foreground text-background"
-                      : "text-foreground/50 border border-foreground/10 hover:border-foreground/20"
+                      : "text-foreground/45 border border-foreground/10 hover:border-foreground/20"
                   }`}
                   style={sortBy !== opt.value ? { background: "hsla(var(--glass-bg), 0.4)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" } : {}}
                 >
@@ -88,51 +96,88 @@ export default async function SearchPage({
           )}
         </form>
 
-        {/* Results header */}
+        {/* ── Results header ── */}
         {query && (
-          <div className="flex justify-between items-center mb-5">
-            <div>
-              <h1 className="font-heading text-[11px] text-foreground/80 uppercase tracking-widest">
-                "{query}"
-              </h1>
-              <p className="text-[8px] text-muted-foreground/50 mt-0.5 font-inter font-medium uppercase tracking-widest">
-                {products.length} {products.length === 1 ? "result" : "results"}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Empty state */}
-        {!query && (
-          <div className="text-center pt-20 pb-8">
-            <Search className="w-12 h-12 text-foreground/10 mx-auto mb-4" />
-            <p className="font-heading text-[10px] uppercase tracking-widest text-foreground/30">
-              Find Your Style
-            </p>
-            <p className="text-[8px] font-extralight text-muted-foreground/30 mt-2 tracking-widest uppercase">
-              Search by product name or type
+          <div className="flex justify-between items-baseline mb-4">
+            <h1 className="text-[11px] font-medium text-foreground/60 uppercase tracking-widest">
+              &ldquo;{query}&rdquo;
+            </h1>
+            <p className="text-[9px] text-foreground/30 uppercase tracking-widest">
+              {products.length} {products.length === 1 ? "result" : "results"}
             </p>
           </div>
         )}
 
-        {/* No results */}
-        {query && products.length === 0 && (
-          <div className="text-center pt-12">
-            <p className="font-heading text-[10px] uppercase tracking-widest text-foreground/30">No results found</p>
-            <p className="text-[8px] font-extralight text-muted-foreground/30 mt-2 uppercase tracking-widest">
-              Try a different search term
-            </p>
-          </div>
-        )}
-
-        {/* Product Grid */}
+        {/* ── Product Grid ── */}
         {products.length > 0 && (
-          <div className="grid grid-cols-2 gap-x-1 gap-y-4">
+          <div className="grid grid-cols-2 gap-x-1.5 gap-y-5 mb-10">
             {products.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
         )}
+
+        {/* ── No results ── */}
+        {query && products.length === 0 && (
+          <div className="text-center py-20 flex flex-col items-center gap-4">
+            <div className="w-14 h-14 rounded-full border border-foreground/[0.06] flex items-center justify-center">
+              <Search className="w-5 h-5 text-foreground/20" />
+            </div>
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.3em] text-foreground/40">No results for &ldquo;{query}&rdquo;</p>
+              <p className="text-[9px] text-foreground/20 mt-1.5 uppercase tracking-widest">Try a different term or browse below</p>
+            </div>
+          </div>
+        )}
+
+        {/* ── Empty state — show trending + collections ── */}
+        {!query && (
+          <>
+            {/* Trending */}
+            <div className="mb-8">
+              <p className="text-[8px] font-medium tracking-[0.45em] uppercase text-foreground/25 mb-3">Trending</p>
+              <div className="flex flex-wrap gap-2">
+                {TRENDING.map((term) => (
+                  <Link
+                    key={term}
+                    href={`/search?q=${encodeURIComponent(term)}`}
+                    className="px-3 py-1.5 rounded-full text-[9px] uppercase tracking-widest text-foreground/50 hover:text-foreground/90 transition-colors"
+                    style={{
+                      background: "hsla(var(--glass-bg), 0.35)",
+                      backdropFilter: "blur(12px)",
+                      WebkitBackdropFilter: "blur(12px)",
+                      border: "1px solid hsla(var(--glass-border), 0.08)",
+                    }}
+                  >
+                    {term}
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            {/* Collections */}
+            {collections.length > 0 && (
+              <div>
+                <p className="text-[8px] font-medium tracking-[0.45em] uppercase text-foreground/25 mb-3">Collections</p>
+                <div className="flex flex-col gap-0">
+                  {collections.slice(0, 10).map((c: any) => (
+                    <Link
+                      key={c.id}
+                      href={`/collections/${c.handle}`}
+                      className="group flex items-center justify-between py-3 border-b border-foreground/[0.04] last:border-0"
+                    >
+                      <span className="text-[13px] font-light uppercase tracking-[0.06em] text-foreground/50 group-hover:text-foreground/90 transition-colors">
+                        {c.title}
+                      </span>
+                      <ArrowRight className="w-3.5 h-3.5 text-foreground/15 opacity-0 group-hover:opacity-100 group-hover:text-foreground/40 transition-all" />
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
       </div>
     </div>
   );

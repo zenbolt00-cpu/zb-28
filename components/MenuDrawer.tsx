@@ -120,8 +120,8 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
                           className="group py-1"
                         >
                           <span
-                            className="text-[11px] leading-tight text-foreground/30 group-hover:text-foreground/80 transition-colors duration-250 uppercase"
-                            style={{ fontFamily: "system-ui, -apple-system, sans-serif", fontWeight: 300, letterSpacing: "0.04em" }}
+                            className="text-[11px] leading-tight text-foreground/55 group-hover:text-foreground/95 transition-colors duration-200 uppercase"
+                            style={{ fontFamily: "system-ui, -apple-system, sans-serif", fontWeight: 400, letterSpacing: "0.05em" }}
                           >
                             {c.title}
                           </span>
@@ -145,8 +145,8 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
                   {SHOP_TERMS.map((term) => (
                     <Link key={term} href={`/search?q=${term}`} onClick={onClose} className="group">
                       <span
-                        className="text-[10px] text-foreground/25 group-hover:text-foreground/65 transition-colors"
-                        style={{ fontFamily: "system-ui, -apple-system, sans-serif", fontWeight: 200 }}
+                        className="text-[10px] text-foreground/45 group-hover:text-foreground/85 transition-colors"
+                        style={{ fontFamily: "system-ui, -apple-system, sans-serif", fontWeight: 300 }}
                       >
                         {term}
                       </span>
@@ -167,21 +167,21 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
               >
                 Discover
               </p>
-              {PRIMARY_NAV.map(({ title, url, icon: Icon }, idx) => (
+              {PRIMARY_NAV.map(({ title, url }, idx) => (
                 <Link
                   key={title}
                   href={url}
                   onClick={onClose}
-                  className="group flex items-baseline gap-2 py-0.5"
+                  className="group flex items-center justify-between py-0.5"
                 >
                   <span
-                    className="text-[19px] leading-snug tracking-[-0.02em] text-foreground/18 group-hover:text-foreground/75 transition-all duration-350"
-                    style={{ fontFamily: "'Playfair Display', Georgia, 'Times New Roman', serif", fontWeight: 300 }}
+                    className="text-[15px] leading-snug tracking-[0.01em] text-foreground/60 group-hover:text-foreground transition-all duration-300"
+                    style={{ fontFamily: "'Playfair Display', Georgia, serif", fontWeight: 600 }}
                   >
                     {title}
                   </span>
                   <span
-                    className="text-[7px] opacity-0 group-hover:opacity-100 text-foreground/25 transition-opacity duration-400 uppercase tracking-widest"
+                    className="text-[7px] opacity-0 group-hover:opacity-60 text-foreground/40 transition-opacity duration-300 uppercase tracking-widest"
                     style={{ fontFamily: "ui-monospace, monospace" }}
                   >
                     {String(idx + 1).padStart(2, "0")}
