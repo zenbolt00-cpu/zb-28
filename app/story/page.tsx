@@ -36,7 +36,7 @@ export default function StoryPage() {
             <motion.p variants={fadeIn} className="text-xs sm:text-sm tracking-[0.4em] uppercase text-muted-foreground/60 mb-6 font-semibold">
               The Genesis
             </motion.p>
-            <motion.h1 variants={fadeIn} className="font-heading text-6xl sm:text-7xl md:text-8xl xl:text-9xl uppercase tracking-tighter leading-none mb-8">
+            <motion.h1 variants={fadeIn} className="font-heading text-5xl sm:text-6xl md:text-8xl xl:text-9xl uppercase tracking-tighter leading-none mb-8">
               Redefining <br/> <span className="text-foreground/40 italic">The Code.</span>
             </motion.h1>
             <motion.p variants={fadeIn} className="text-sm sm:text-lg text-muted-foreground max-w-2xl mx-auto font-light leading-relaxed mt-6">
@@ -55,7 +55,7 @@ export default function StoryPage() {
               variants={staggerContainer}
               className="space-y-8"
             >
-              <motion.h2 variants={fadeIn} className="font-rocaston text-3xl sm:text-5xl tracking-[0.2em] uppercase leading-tight">
+              <motion.h2 variants={fadeIn} className="font-rocaston text-2xl sm:text-4xl md:text-5xl tracking-[0.2em] uppercase leading-tight">
                 Two Visionaries.<br/> One Rebellion.
               </motion.h2>
               <motion.div variants={fadeIn} className="w-12 h-px bg-foreground/20" />
@@ -78,7 +78,7 @@ export default function StoryPage() {
               <div className="absolute inset-0 bg-foreground/[0.03] backdrop-blur-2xl border border-foreground/10 rounded-3xl overflow-hidden flex flex-col items-center justify-center p-8 text-center glass">
                  <div className="w-16 h-px bg-foreground/20 mb-8" />
                  <p className="font-rocaston tracking-[0.3em] uppercase text-xs text-foreground/40 mb-2">Original Archive</p>
-                 <h3 className="font-heading text-5xl uppercase text-foreground/20">Z.B.</h3>
+                 <h3 className="font-heading text-4xl sm:text-5xl uppercase text-foreground/20">Z.B.</h3>
                  <div className="w-16 h-px bg-foreground/20 mt-8" />
               </div>
             </motion.div>
@@ -96,7 +96,7 @@ export default function StoryPage() {
               className="space-y-12"
             >
               <motion.span variants={fadeIn} className="text-xs tracking-[0.4em] uppercase font-semibold text-background/50">Our Ethos</motion.span>
-              <motion.h2 variants={fadeIn} className="font-heading text-5xl md:text-7xl uppercase tracking-widest leading-snug">
+              <motion.h2 variants={fadeIn} className="font-heading text-4xl sm:text-5xl md:text-7xl uppercase tracking-widest leading-snug">
                 Zero Compromise.<br/> Maximum Impact.
               </motion.h2>
               <motion.p variants={fadeIn} className="text-background/70 leading-relaxed font-light text-sm md:text-lg max-w-2xl mx-auto mt-6">
@@ -113,7 +113,7 @@ export default function StoryPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 1 }}
-            className="font-rocaston text-3xl md:text-5xl tracking-[0.2em] uppercase mb-12"
+            className="font-rocaston text-2xl sm:text-3xl md:text-5xl tracking-[0.2em] uppercase mb-12"
           >
             Join The Movement.
           </motion.p>

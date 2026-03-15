@@ -158,25 +158,12 @@ export default async function Home() {
             ) : (
               <NextImage
                 src={featuredMediaImage || "/section-image1.PNG"}
-                alt={blueprintTitle}
+                alt="Blueprint Media"
                 fill
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
                 priority
               />
             )}
-            
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
-            
-            <div className="absolute inset-x-0 bottom-0 p-8 text-center z-10">
-              <div className="inline-block px-4 py-1.5 glass-vibrancy rounded-full border border-white/10 mb-4 backdrop-blur-md">
-                <span className="text-[7px] text-white/90 uppercase tracking-[0.4em] font-medium font-sans">
-                  {blueprintSub}
-                </span>
-              </div>
-              <h3 className="font-heading text-3xl uppercase tracking-widest text-white leading-tight drop-shadow-lg">
-                {blueprintTitle}
-              </h3>
-            </div>
           </section>
         )}
 
