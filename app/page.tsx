@@ -10,6 +10,7 @@ import NeuralProductMesh from "@/components/NeuralProductMesh";
 import SpotlightSection from "@/components/SpotlightSection";
 import FeaturedUsersSection from "@/components/FeaturedUsersSection";
 import HeroVideo from "@/components/HeroVideo";
+import SEOContentSection from "@/components/SEOContentSection";
 
 export const dynamic = "force-dynamic";
 
@@ -211,6 +212,9 @@ export default async function Home() {
             />
           </section>
         )}
+
+        {/* ═══ SEO CONTENT SECTION ═══ */}
+        <SEOContentSection />
 
       </div>
     </>
