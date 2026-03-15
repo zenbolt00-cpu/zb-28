@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
 import prisma from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
@@ -14,7 +16,7 @@ export async function GET() {
         where: {
             OR: [
                 { email: session.user.email || "" },
-                { id: session.user.id || "" }
+                { id: (session.user as any).id || "" }
             ]
         }
     });

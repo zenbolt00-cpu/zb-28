@@ -23,7 +23,7 @@ const createMockPrismaClient = (reason: string) => {
 };
 
 const prismaClientSingleton = () => {
-  const dbUrl = process.env.DATABASE_URL;
+  const dbUrl = process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL;
   const isBuild = process.env.NEXT_PHASE === 'phase-production-build';
 
   // During build phase, always use mock to avoid DB connection requirements
@@ -42,6 +42,7 @@ const prismaClientSingleton = () => {
     // The schema.prisma now uses provider="postgresql" with url=env("DATABASE_URL")
     const client = new PrismaClient({
       log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
+      // @ts-expect-error - prisma client types might not yet reflect postgresql during early build phases
       datasources: {
         db: {
           url: dbUrl,
