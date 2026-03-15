@@ -42,7 +42,7 @@
    ============================================ */
 @layer base {
   :root {
-    --background: 0 0% 99%;
+    --background: 0 0% 100%;
     --foreground: 240 10% 5%;
 
     --card: 0 0% 100%;
@@ -78,7 +78,7 @@
   }
 
   .dark {
-    --background: 240 10% 4%;
+    --background: 0 0% 0%;
     --foreground: 0 0% 97%;
 
     --card: 240 10% 5%;
@@ -138,18 +138,13 @@
     position: relative;
   }
 
-  /* Light body gradient */
+  /* solid backgrounds */
   body {
-    background: radial-gradient(ellipse at 20% 0%, rgba(200, 200, 255, 0.12) 0%, transparent 50%),
-                radial-gradient(ellipse at 80% 10%, rgba(255, 180, 200, 0.08) 0%, transparent 50%),
-                hsl(var(--background));
+    background-color: hsl(var(--background));
   }
   
-  /* Dark body gradient */
   .dark body {
-    background: radial-gradient(ellipse at 20% 0%, rgba(40, 40, 80, 0.6) 0%, transparent 50%),
-                radial-gradient(ellipse at 80% 10%, rgba(60, 20, 40, 0.4) 0%, transparent 50%),
-                hsl(var(--background));
+    background-color: hsl(var(--background));
   }
 }
 
@@ -219,53 +214,6 @@
   color: white;
 }
 
-/* ============================================
-   APPLE AMBIENT ORB ANIMATIONS
-   ============================================ */
-@keyframes orb-float-1 {
-  0%   { transform: scale(1)    translate(0px,  0px) rotate(0deg);   }
-  33%  { transform: scale(1.08) translate(25px,-40px) rotate(8deg);  }
-  66%  { transform: scale(0.94) translate(-18px, 18px) rotate(-4deg); }
-  100% { transform: scale(1)    translate(0px,  0px) rotate(0deg);   }
-}
-
-@keyframes orb-float-2 {
-  0%   { transform: scale(1)    translate(0px,  0px) rotate(0deg);    }
-  33%  { transform: scale(1.15) translate(-35px, 25px) rotate(-12deg); }
-  66%  { transform: scale(0.85) translate(25px, -25px) rotate(8deg);  }
-  100% { transform: scale(1)    translate(0px,  0px) rotate(0deg);    }
-}
-
-@keyframes orb-float-3 {
-  0%   { transform: scale(1)    translate(0px,  0px) rotate(0deg);   }
-  33%  { transform: scale(0.88) translate(35px, 35px) rotate(16deg); }
-  66%  { transform: scale(1.12) translate(-25px,-35px) rotate(-8deg); }
-  100% { transform: scale(1)    translate(0px,  0px) rotate(0deg);   }
-}
-
-.glow-orb-1 {
-  animation: orb-float-1 14s ease-in-out infinite;
-  background: radial-gradient(circle, rgba(130, 110, 255, 0.35) 0%, transparent 70%);
-}
-.dark .glow-orb-1 {
-  background: radial-gradient(circle, rgba(100, 80, 220, 0.5) 0%, transparent 70%);
-}
-
-.glow-orb-2 {
-  animation: orb-float-2 18s ease-in-out infinite;
-  background: radial-gradient(circle, rgba(255, 90, 180, 0.28) 0%, transparent 70%);
-}
-.dark .glow-orb-2 {
-  background: radial-gradient(circle, rgba(200, 60, 140, 0.45) 0%, transparent 70%);
-}
-
-.glow-orb-3 {
-  animation: orb-float-3 20s ease-in-out infinite;
-  background: radial-gradient(circle, rgba(40, 200, 255, 0.3) 0%, transparent 70%);
-}
-.dark .glow-orb-3 {
-  background: radial-gradient(circle, rgba(20, 160, 220, 0.45) 0%, transparent 70%);
-}
 
 /* ============================================
    SCROLLBAR HIDE

@@ -58,6 +58,9 @@ interface SettingsData {
   spotlightTitle: string;
   spotlightSubtitle: string;
   kineticMeshTitle: string;
+  enabledCollectionsHeader: string;
+  enabledCollectionsPage: string;
+  enabledCollectionsMenu: string;
 }
 
 const WEBHOOK_TOPICS = [
@@ -184,6 +187,18 @@ function ToggleField({
   );
 }
 
+const safeParseArray = (val: any) => {
+  if (!val) return [];
+  if (Array.isArray(val)) return val;
+  try {
+    const parsed = JSON.parse(val);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    console.error('[Settings] JSON Parse error:', e);
+    return [];
+  }
+};
+
 export default function SettingsPage() {
   const [settings, setSettings] = useState<SettingsData>({
     id: '',
@@ -236,6 +251,9 @@ export default function SettingsPage() {
     spotlightTitle: 'AUTHENTIC STREETWEAR',
     spotlightSubtitle: 'Luxury Indian streetwear for modern men. Redefining bold everyday style.',
     kineticMeshTitle: 'ARCHIVE EDITION',
+    enabledCollectionsHeader: '[]',
+    enabledCollectionsPage: '[]',
+    enabledCollectionsMenu: '[]',
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -246,7 +264,9 @@ export default function SettingsPage() {
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [availableMenus, setAvailableMenus] = useState<{ id: string; title: string; handle: string }[]>([]);
   const [allProducts, setAllProducts] = useState<any[]>([]);
+  const [allCollections, setAllCollections] = useState<any[]>([]);
   const [fetchingProducts, setFetchingProducts] = useState(false);
+  const [fetchingCollections, setFetchingCollections] = useState(false);
   const [activeTab, setActiveTab] = useState<'integrations' | 'storefront'>('integrations');
 
   useEffect(() => {
@@ -312,6 +332,9 @@ export default function SettingsPage() {
           spotlightTitle: data.spotlightTitle || 'AUTHENTIC STREETWEAR',
           spotlightSubtitle: data.spotlightSubtitle || 'Luxury Indian streetwear for modern men. Redefining bold everyday style.',
           kineticMeshTitle: data.kineticMeshTitle || 'ARCHIVE EDITION',
+          enabledCollectionsHeader: data.enabledCollectionsHeader || '[]',
+          enabledCollectionsPage: data.enabledCollectionsPage || '[]',
+          enabledCollectionsMenu: data.enabledCollectionsMenu || '[]',
         });
         setDbStatus(data.dbStatus || 'connected');
         setLoading(false);
@@ -340,6 +363,15 @@ export default function SettingsPage() {
       })
       .catch(console.error)
       .finally(() => setFetchingProducts(false));
+    // Fetch all collections for selector
+    setFetchingCollections(true);
+    fetch('/api/shopify/collections')
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data)) setAllCollections(data);
+      })
+      .catch(console.error)
+      .finally(() => setFetchingCollections(false));
   }, []);
 
   // Manual Save logic only to ensure stability in production without race conditions
@@ -500,7 +532,6 @@ export default function SettingsPage() {
             value={settings.shopDomain}
             onChange={set('shopDomain')}
             placeholder="your-store.myshopify.com"
-            disabled={true}
           />
           <InputField
             label="Shopify Admin API Token"
@@ -508,7 +539,6 @@ export default function SettingsPage() {
             onChange={set('accessToken')}
             placeholder="shpat_..."
             secret
-            disabled={true}
           />
           <a
             href={`https://${settings.shopDomain}/admin/apps`}
@@ -900,6 +930,100 @@ export default function SettingsPage() {
             </div>
           </div>
         </SectionCard>
+
+        {/* Navigation & Collection Visibility */}
+        <div className="lg:col-span-2">
+          <SectionCard
+            icon={Layout}
+            title="Navigation & Collection Visibility"
+            description="Select which collections appear in the Header and Menu Drawer"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Header Collections */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between border-b border-foreground/5 pb-2">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-foreground">Header Collections</h4>
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground italic">
+                    {safeParseArray(settings.enabledCollectionsHeader).length} Enabled
+                  </p>
+                </div>
+                <div className="max-h-[300px] overflow-y-auto pr-2 custom-scrollbar space-y-1">
+                  {fetchingCollections ? (
+                    <div className="py-20 flex flex-col items-center justify-center text-muted-foreground/30">
+                      <RefreshCw className="w-5 h-5 animate-spin mb-2" />
+                      <p className="text-[10px] uppercase tracking-widest text-inherit">Fetching Collections...</p>
+                    </div>
+                  ) : (
+                    allCollections.map((c) => {
+                      const enabled = safeParseArray(settings.enabledCollectionsHeader).includes(c.handle);
+                      return (
+                        <button
+                          key={`header-${c.id}`}
+                          onClick={() => {
+                            const current = safeParseArray(settings.enabledCollectionsHeader);
+                            const next = enabled ? current.filter((h: string) => h !== c.handle) : [...current, c.handle];
+                            set('enabledCollectionsHeader')(JSON.stringify(next));
+                          }}
+                          className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl transition-all border ${
+                            enabled 
+                              ? 'bg-foreground/5 border-foreground/10 text-foreground' 
+                              : 'bg-transparent border-transparent text-muted-foreground hover:bg-foreground/5'
+                          }`}
+                        >
+                          <span className="text-[11px] font-medium tracking-wide">{c.title}</span>
+                          {enabled && <CheckCircle className="w-3.5 h-3.5 text-foreground" />}
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+
+              {/* Menu Collections */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between border-b border-foreground/5 pb-2">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-foreground">Menu Drawer Collections</h4>
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground italic">
+                    {safeParseArray(settings.enabledCollectionsMenu).length} Enabled
+                  </p>
+                </div>
+                <div className="max-h-[300px] overflow-y-auto pr-2 custom-scrollbar space-y-1">
+                  {fetchingCollections ? (
+                    <div className="py-20 flex flex-col items-center justify-center text-muted-foreground/30">
+                      <RefreshCw className="w-5 h-5 animate-spin mb-2" />
+                      <p className="text-[10px] uppercase tracking-widest text-inherit">Fetching Collections...</p>
+                    </div>
+                  ) : (
+                    allCollections.map((c) => {
+                      const enabled = safeParseArray(settings.enabledCollectionsMenu).includes(c.handle);
+                      return (
+                        <button
+                          key={`menu-${c.id}`}
+                          onClick={() => {
+                            const current = safeParseArray(settings.enabledCollectionsMenu);
+                            const next = enabled ? current.filter((h: string) => h !== c.handle) : [...current, c.handle];
+                            set('enabledCollectionsMenu')(JSON.stringify(next));
+                          }}
+                          className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl transition-all border ${
+                            enabled 
+                              ? 'bg-foreground/5 border-foreground/10 text-foreground' 
+                              : 'bg-transparent border-transparent text-muted-foreground hover:bg-foreground/5'
+                          }`}
+                        >
+                          <span className="text-[11px] font-medium tracking-wide">{c.title}</span>
+                          {enabled && <CheckCircle className="w-3.5 h-3.5 text-foreground" />}
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-6 text-center italic">
+              * Collections enabled here will appear in their respective navigation islands.
+            </p>
+          </SectionCard>
+        </div>
 
         {/* Social Management - Moved to bottom of storefront */}
         <div className="lg:col-span-2">

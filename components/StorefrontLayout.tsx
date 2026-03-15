@@ -32,13 +32,6 @@ export default function StorefrontLayout({ children, footer }: StorefrontLayoutP
 
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-foreground/10 transition-colors duration-500">
-      {/* ── Ambient Orbs ── */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0" aria-hidden>
-        <div className="absolute -top-[15%] -left-[10%] w-[80vw] h-[80vw] rounded-full glow-orb-1 opacity-20 dark:opacity-35" />
-        <div className="absolute top-[5%] -right-[8%] w-[60vw] h-[60vw] rounded-full glow-orb-2 opacity-14 dark:opacity-25" />
-        <div className="absolute -bottom-[12%] left-[8%] w-[70vw] h-[70vw] rounded-full glow-orb-3 opacity-10 dark:opacity-18" />
-      </div>
-
       <StorefrontHeader collections={collections} />
       
       {/* ── Main Content ── */}

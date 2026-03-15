@@ -10,7 +10,10 @@ import {
   ExternalLink,
   MessageSquare,
   Star,
-  RefreshCw
+  RefreshCw,
+  Plus,
+  Save,
+  Trash
 } from "lucide-react";
 import Image from "next/image";
 
@@ -31,6 +34,14 @@ export default function FeaturedUsersModeration() {
   const [submissions, setSubmissions] = useState<FeaturedUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newSubmission, setNewSubmission] = useState({
+    name: '',
+    email: '',
+    imageUrl: '',
+    styleDescription: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchSubmissions = async () => {
     setLoading(true);
@@ -96,6 +107,32 @@ export default function FeaturedUsersModeration() {
     }
   };
 
+  const handleCreateSubmission = async () => {
+    if (!newSubmission.name || !newSubmission.email || !newSubmission.imageUrl) {
+      alert("Please fill in all required fields (Name, Email, Image URL).");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const res = await fetch("/api/admin/featured-users", {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newSubmission),
+      });
+
+      if (!res.ok) throw new Error("Failed to create submission");
+
+      setNewSubmission({ name: '', email: '', imageUrl: '', styleDescription: '' });
+      setShowCreateModal(false);
+      fetchSubmissions();
+    } catch (err: any) {
+      alert(`Error: ${err.message}`);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const featuredTopCount = submissions.filter(s => s.isTopFeatured).length;
 
   if (loading && submissions.length === 0) {
@@ -121,6 +158,13 @@ export default function FeaturedUsersModeration() {
         </div>
         
         <div className="flex items-center gap-4">
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-foreground text-background rounded-xl text-xs font-bold uppercase tracking-widest hover:opacity-90 transition-all shadow-lg active:scale-95"
+          >
+            <Plus className="w-4 h-4" />
+            Create Submission
+          </button>
           <a 
             href="/community" 
             target="_blank" 
@@ -248,6 +292,140 @@ export default function FeaturedUsersModeration() {
         <div className="py-20 flex flex-col items-center justify-center text-muted-foreground/30 border-2 border-dashed border-foreground/5 rounded-3xl">
           <Users className="w-12 h-12 mb-4 opacity-10" />
           <p className="text-sm font-medium">No community submissions to moderate yet.</p>
+        </div>
+      )}
+
+      {/* Create Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="glass-card w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border border-foreground/10 animate-in zoom-in-95 duration-200">
+            <div className="px-6 py-5 border-b border-foreground/5 flex items-center justify-between">
+              <h2 className="text-lg font-bold flex items-center gap-2">
+                <Plus className="w-5 h-5" />
+                New Community Submission
+              </h2>
+              <button 
+                onClick={() => setShowCreateModal(false)}
+                className="p-1.5 rounded-xl hover:bg-foreground/5 text-muted-foreground hover:text-foreground transition-all"
+              >
+                <XCircle className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Name</label>
+                <input
+                  type="text"
+                  placeholder="Reviewer Name"
+                  value={newSubmission.name}
+                  onChange={e => setNewSubmission(prev => ({ ...prev, name: e.target.value }))}
+                  className="w-full bg-foreground/5 border border-foreground/10 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/30 transition-all"
+                />
+              </div>
+              
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Email</label>
+                <input
+                  type="email"
+                  placeholder="Email address"
+                  value={newSubmission.email}
+                  onChange={e => setNewSubmission(prev => ({ ...prev, email: e.target.value }))}
+                  className="w-full bg-foreground/5 border border-foreground/10 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/30 transition-all"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Image</label>
+                
+                {/* File Upload Area */}
+                {!newSubmission.imageUrl ? (
+                  <label className="flex flex-col items-center justify-center gap-2 w-full h-32 border-2 border-dashed border-foreground/10 rounded-2xl cursor-pointer hover:border-foreground/20 hover:bg-foreground/[0.02] transition-all group">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="sr-only"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        setIsSubmitting(true);
+                        try {
+                          const fd = new FormData();
+                          fd.append('file', file);
+                          const res = await fetch('/api/admin/upload-image', { method: 'POST', body: fd });
+                          const data = await res.json();
+                          if (data.url) {
+                            setNewSubmission(prev => ({ ...prev, imageUrl: data.url }));
+                          } else {
+                            alert(data.error || 'Upload failed');
+                          }
+                        } catch (err) {
+                          alert('Upload failed. Please try again.');
+                        } finally {
+                          setIsSubmitting(false);
+                        }
+                      }}
+                    />
+                    {isSubmitting ? (
+                      <RefreshCw className="w-5 h-5 text-foreground/30 animate-spin" />
+                    ) : (
+                      <>
+                        <Plus className="w-5 h-5 text-foreground/20 group-hover:text-foreground/40 transition-colors" />
+                        <span className="text-[10px] text-foreground/30 group-hover:text-foreground/50 transition-colors uppercase tracking-widest">Click to upload image</span>
+                        <span className="text-[9px] text-foreground/15">JPG, PNG, WebP up to 10MB</span>
+                      </>
+                    )}
+                  </label>
+                ) : (
+                  <div className="relative rounded-2xl overflow-hidden aspect-[3/2] bg-foreground/5 border border-foreground/10">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={newSubmission.imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => setNewSubmission(prev => ({ ...prev, imageUrl: '' }))}
+                      className="absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full bg-black/60 text-white hover:bg-red-500 transition-all"
+                    >
+                      <XCircle className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+
+                {/* OR URL fallback */}
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 h-[0.5px] bg-foreground/[0.06]" />
+                  <span className="text-[9px] text-foreground/20 uppercase tracking-widest">or paste URL</span>
+                  <div className="flex-1 h-[0.5px] bg-foreground/[0.06]" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="https://..."
+                  value={newSubmission.imageUrl.startsWith('data:') ? '' : newSubmission.imageUrl}
+                  onChange={e => setNewSubmission(prev => ({ ...prev, imageUrl: e.target.value }))}
+                  className="w-full bg-foreground/5 border border-foreground/10 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/30 transition-all"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Style Description</label>
+                <textarea
+                  rows={3}
+                  placeholder="Style description or review comment..."
+                  value={newSubmission.styleDescription}
+                  onChange={e => setNewSubmission(prev => ({ ...prev, styleDescription: e.target.value }))}
+                  className="w-full bg-foreground/5 border border-foreground/10 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/30 transition-all resize-none"
+                />
+              </div>
+
+              <button
+                onClick={handleCreateSubmission}
+                disabled={isSubmitting}
+                className="w-full flex items-center justify-center gap-2 py-4 bg-emerald-500 text-white rounded-2xl font-bold uppercase tracking-widest hover:opacity-90 transition-all shadow-xl shadow-emerald-500/10 disabled:opacity-50 active:scale-[0.98]"
+              >
+                {isSubmitting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                {isSubmitting ? 'Creating...' : 'Create Submission'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

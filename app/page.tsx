@@ -9,6 +9,7 @@ import { ShopifyProduct } from "@/lib/shopify-admin";
 import NeuralProductMesh from "@/components/NeuralProductMesh";
 import SpotlightSection from "@/components/SpotlightSection";
 import FeaturedUsersSection from "@/components/FeaturedUsersSection";
+import HeroVideo from "@/components/HeroVideo";
 
 export const dynamic = "force-dynamic";
 
@@ -40,7 +41,7 @@ export default async function Home() {
   const heroSubtitle   = s?.heroSubtitle    || "Explore the latest drops tailored for the relentless.";
   const heroButtonText = s?.heroButtonText  || "Discover";
   const heroImage      = s?.heroImage       || "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=2070&auto=format&fit=crop";
-  const heroVideo      = s?.heroVideo;
+  const heroVideo      = "/zb-video-heroo.mp4";
   const latestTitle    = s?.latestCurationTitle    || "Latest Curation";
   const latestSubtitle = s?.latestCurationSubtitle || "Season Drop";
   const archiveTitle   = s?.archiveTitle    || "The Archive";
@@ -67,9 +68,7 @@ export default async function Home() {
         {/* ═══ HERO ═══ */}
         <section className="relative w-full h-[98svh] sm:aspect-[4/5] sm:h-auto rounded-[1.2rem] overflow-hidden -mt-4 sm:mt-2 mb-3 group shadow-xl bg-muted z-10">
           {heroVideo ? (
-            <video src={heroVideo} autoPlay loop muted playsInline
-              className="absolute inset-0 w-full h-full object-cover transition-all duration-1000"
-            />
+            <HeroVideo src={heroVideo} />
           ) : (
             <NextImage src={heroImage} alt="Hero" fill priority
               className="object-cover brightness-90 group-hover:brightness-100 transition-all duration-1000"

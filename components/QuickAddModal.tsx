@@ -34,11 +34,19 @@ export default function QuickAddModal({ product, onClose }: Props) {
     if (e.target === e.currentTarget) onClose();
   };
 
+  // Hide bottom toolbar when modal is open, restore on close
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('quickadd:open'));
+    return () => {
+      window.dispatchEvent(new CustomEvent('quickadd:close'));
+    };
+  }, []);
+
   // Close on Escape
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
   }, [onClose]);
 
   const handleAdd = () => {
@@ -49,6 +57,7 @@ export default function QuickAddModal({ product, onClose }: Props) {
       variantId: variant?.variantId ?? String(product.variants?.[0]?.id),
       title: product.title,
       size: selectedSize,
+      handle: product.handle,
       price,
       image,
     });
@@ -63,13 +72,13 @@ export default function QuickAddModal({ product, onClose }: Props) {
       onClick={handleBackdrop}
     >
       <div
-        className="w-full max-w-md rounded-t-[2.2rem] overflow-hidden flex flex-col"
+        className="w-full max-w-md rounded-t-[1.5rem] overflow-hidden flex flex-col font-sans"
         style={{
-          background: "hsla(var(--glass-bg), 0.96)",
-          backdropFilter: "blur(40px) saturate(200%)",
-          WebkitBackdropFilter: "blur(40px) saturate(200%)",
-          border: "1px solid hsla(var(--glass-border), 0.14)",
-          boxShadow: "0 -16px 60px -12px hsla(var(--glass-shadow), 0.25)",
+          background: "hsla(var(--glass-bg), 0.75)",
+          backdropFilter: "blur(40px) saturate(180%)",
+          WebkitBackdropFilter: "blur(40px) saturate(180%)",
+          border: "1px solid hsla(var(--glass-border), 0.08)",
+          boxShadow: "0 -16px 60px -12px rgba(0,0,0,0.15)",
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -99,16 +108,17 @@ export default function QuickAddModal({ product, onClose }: Props) {
         {/* Size Selection */}
         {sizes.length > 1 && (
           <div className="px-5 mb-4">
-            <p className="text-[7px] font-extralight uppercase tracking-[0.45em] text-foreground/35 mb-2">Select Size</p>
-            <div className="flex flex-wrap gap-2">
+            <p className="text-[7px] font-light uppercase tracking-[0.45em] text-foreground/35 mb-3">Select Size</p>
+            {/* Force 6 equal-width columns — all sizes in one row */}
+            <div className="grid grid-cols-6 gap-1.5">
               {sizes.map(({ size }) => (
                 <button
                   key={size}
                   onClick={() => setSelectedSize(size)}
-                  className={`px-4 py-2 rounded-[0.95rem] text-[10px] font-semibold uppercase tracking-widest transition-all ${
+                  className={`h-9 w-full flex items-center justify-center rounded-lg text-[8px] font-light uppercase tracking-wider transition-all ${
                     selectedSize === size
-                      ? "bg-foreground text-background shadow-md"
-                      : "bg-white/5 border border-white/10 text-foreground/50 hover:bg-white/10"
+                      ? "bg-foreground text-background"
+                      : "border border-foreground/[0.08] text-foreground/40 hover:border-foreground/20 hover:text-foreground/70"
                   }`}
                 >
                   {size}
@@ -119,11 +129,11 @@ export default function QuickAddModal({ product, onClose }: Props) {
         )}
 
         {/* Add Button */}
-        <div className="px-5 pb-32">
+        <div className="px-5 pb-8">
           <button
             onClick={handleAdd}
             disabled={sizes.length > 1 && !selectedSize}
-            className={`w-full py-3 rounded-2xl text-[9px] font-extralight uppercase tracking-[0.35em] transition-all duration-300 active:scale-[0.98] flex items-center justify-center gap-2 ${
+            className={`w-full py-3.5 rounded-2xl text-[9px] font-light uppercase tracking-[0.4em] transition-all duration-300 active:scale-[0.98] flex items-center justify-center gap-2 ${
               added
                 ? "bg-green-500 text-white"
                 : sizes.length > 1 && !selectedSize
@@ -134,7 +144,7 @@ export default function QuickAddModal({ product, onClose }: Props) {
             {added ? (
               <><Check className="w-3.5 h-3.5" /> Added</>
             ) : (
-              <><ShoppingBag className="w-3.5 h-3.5" /> Add to Cart</>
+              <><ShoppingBag className="w-3.5 h-3.5" /> Add to Bag</>
             )}
           </button>
         </div>

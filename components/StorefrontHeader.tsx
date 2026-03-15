@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import NextImage from "next/image";
-import { Bookmark, ShoppingBag, Plus } from "lucide-react";
+import { Bookmark, ShoppingBag, Menu, X } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 import { useCart } from "@/lib/cart-context";
 import MenuDrawer from "./MenuDrawer";
@@ -43,7 +43,7 @@ export default function StorefrontHeader({ collections: initialCollections = [] 
             className="h-10 w-10 flex items-center justify-center rounded-full glass-vibrancy active:scale-90 transition-all shadow-xl group border border-foreground/[0.08]"
             aria-label="Menu"
           >
-            <Plus className="w-4 h-4 text-foreground/70 group-hover:rotate-90 transition-transform duration-300" />
+            <Menu className="w-4 h-4 text-foreground/70 transition-transform duration-300" />
           </button>
           
           <Link 
@@ -61,6 +61,7 @@ export default function StorefrontHeader({ collections: initialCollections = [] 
             <span className="font-rocaston text-[11px] tracking-[0.05em] text-foreground mt-0.5 uppercase whitespace-nowrap">ZICA BELLA</span>
           </Link>
         </div>
+
 
         {/* Right: Actions Island */}
         <div 

@@ -15,7 +15,10 @@ export async function GET() {
     const mainHandle = shop.mainMenuHandle;
     const secondaryHandle = shop.secondaryMenuHandle;
     
+    console.log(`[Menu API] Fetching menus for shop: ${shop.domain}, Main: ${mainHandle}, Secondary: ${secondaryHandle}`);
+    
     const allMenus = await fetchMenus();
+    console.log(`[Menu API] Total menus found in Shopify: ${allMenus.length}`);
     
     // Get enabled menu handles
     const enabledMenuHandles = shop.enabledCollectionsMenu ? JSON.parse(shop.enabledCollectionsMenu) : [];

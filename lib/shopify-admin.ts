@@ -24,23 +24,37 @@ export async function getShopConfig() {
   }
   
   let accessToken = shop?.accessToken;
-  // If the token in DB is empty or a placeholder, fallback to the real env var
-  const isPlaceholder = !accessToken || 
+  const dbDomain = shop?.domain;
+
+  // Check if DB token is a placeholder
+  const isDbTokenPlaceholder = !accessToken || 
     ['test_token', 'shpat_placeholder', 'shpat_required', 'shpat_env_token'].includes(accessToken) || 
     accessToken === '';
     
-  if (isPlaceholder) {
-    accessToken = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN || '';
-  }
+  // Prioritize DB domain if it exists and isn't just a generic placeholder from local tests
+  const isDefaultDomain = !dbDomain || dbDomain === '8tiahf-bk.myshopify.com';
   
-  // Enforce the specific domain as a hard fallback if not in DB or ENV
+  const finalDomain = !isDefaultDomain
+    ? dbDomain
+    : (process.env.SHOPIFY_STORE_DOMAIN || process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || dbDomain || 'zica-bella.myshopify.com');
+
+  // Prioritize DB token if it's not a placeholder
+  const finalToken = !isDbTokenPlaceholder 
+    ? accessToken 
+    : (process.env.SHOPIFY_ADMIN_ACCESS_TOKEN || '');
+  
   const config = {
-    domain: shop?.domain || process.env.SHOPIFY_STORE_DOMAIN || '8tiahf-bk.myshopify.com',
-    accessToken,
+    domain: finalDomain,
+    accessToken: finalToken,
   };
 
   if (accessToken && shop) {
     (global as any)._cachedShopConfig = config;
+  }
+
+  // Debug log for production sync issues
+  if (isDbTokenPlaceholder || !config.domain) {
+    console.log(`[Shopify Admin Config] Domain: ${config.domain}, Token: ${accessToken ? '***' : 'MISSING'}`);
   }
 
   return config;

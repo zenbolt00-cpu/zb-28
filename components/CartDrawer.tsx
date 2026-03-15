@@ -67,12 +67,12 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed top-0 right-0 bottom-0 z-[120] w-[90%] max-w-sm flex flex-col border-l border-foreground/[0.06]"
+              className="fixed top-3 right-3 bottom-3 z-[120] w-[90%] max-w-sm flex flex-col rounded-[1.5rem] overflow-hidden font-sans"
               style={{
-                background: "hsla(var(--glass-bg), 0.88)",
-                backdropFilter: "blur(40px) saturate(180%)",
-                WebkitBackdropFilter: "blur(40px) saturate(180%)",
-                boxShadow: "-20px 0 60px -12px rgba(0,0,0,0.25)",
+                background: "hsla(var(--glass-bg), 0.72)",
+                backdropFilter: "blur(48px) saturate(220%)",
+                WebkitBackdropFilter: "blur(48px) saturate(220%)",
+                boxShadow: "inset 0 0 0 1px hsla(var(--glass-border), 0.12), -20px 0 80px -12px rgba(0,0,0,0.25)",
               }}
             >
               {/* Header */}

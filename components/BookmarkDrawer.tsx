@@ -50,8 +50,8 @@ export default function BookmarkDrawer({ isOpen, onClose }: BookmarkDrawerProps)
               mass: 1,
               restDelta: 0.001
             }}
-            className="fixed top-0 left-0 right-0 z-[120] max-h-[85vh] flex flex-col rounded-b-[2.5rem] overflow-hidden border-b border-foreground/[0.06]"
-            style={{ background: "hsla(var(--glass-bg), 0.88)", backdropFilter: "blur(40px) saturate(180%)", WebkitBackdropFilter: "blur(40px) saturate(180%)", boxShadow: "0 20px 60px -12px rgba(0,0,0,0.25)" }}
+            className="fixed top-0 left-0 right-0 z-[120] max-h-[85vh] flex flex-col rounded-b-[1.5rem] overflow-hidden border-b border-foreground/[0.06] font-sans"
+            style={{ background: "hsla(var(--glass-bg), 0.75)", backdropFilter: "blur(40px) saturate(180%)", WebkitBackdropFilter: "blur(40px) saturate(180%)", boxShadow: "0 20px 60px -12px rgba(0,0,0,0.15)" }}
           >
             {/* Header */}
             <div className="flex justify-between items-center p-6 border-b border-foreground/5">

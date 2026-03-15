@@ -48,8 +48,8 @@ export async function GET(req: Request) {
     return NextResponse.json({
       id: shop.id,
       dbStatus: isMock ? 'mock_failure' : 'connected',
-      shopDomain: envDomain || shopData.domain,
-      accessToken: process.env.SHOPIFY_ADMIN_ACCESS_TOKEN || shopData.accessToken || '',
+      shopDomain: shopData.domain || envDomain || '',
+      accessToken: shopData.accessToken || process.env.SHOPIFY_ADMIN_ACCESS_TOKEN || '',
       delhiveryApiKey: shopData.delhiveryApiKey || '',
       razorpayKeyId: shopData.razorpayKeyId || '',
       razorpayKeySecret: shopData.razorpayKeySecret || '',
@@ -97,6 +97,9 @@ export async function GET(req: Request) {
       spotlightTitle: shopData.spotlightTitle || 'AUTHENTIC STREETWEAR',
       spotlightSubtitle: shopData.spotlightSubtitle || 'Luxury Indian streetwear for modern men. Redefining bold everyday style.',
       kineticMeshTitle: shopData.kineticMeshTitle || 'ARCHIVE EDITION',
+      enabledCollectionsHeader: shopData.enabledCollectionsHeader || '[]',
+      enabledCollectionsPage: shopData.enabledCollectionsPage || '[]',
+      enabledCollectionsMenu: shopData.enabledCollectionsMenu || '[]',
     });
   } catch (e) {
     console.error('[Settings API GET Error]:', e);
@@ -149,6 +152,7 @@ export async function PATCH(req: Request) {
 
     const data: any = {};
     const allowedKeys = [
+      'domain', 'accessToken',
       'delhiveryApiKey', 'razorpayKeyId', 'razorpayKeySecret',
       'shiprocketEmail', 'shiprocketToken', 'webhookSecret',
       'heroImage', 'heroVideo', 'heroTitle', 'heroSubtitle', 'heroButtonText',
@@ -160,7 +164,8 @@ export async function PATCH(req: Request) {
       'featuredMedia', 'featuredMediaImage', 'collectionsMedia', 'kineticMeshProducts',
       'footerVideo', 'mainMenuHandle', 'secondaryMenuHandle', 'showTreeText',
       'showCommunity', 'communityTitle', 'communitySubtitle', 'spotlightTitle',
-      'spotlightSubtitle', 'kineticMeshTitle'
+      'spotlightSubtitle', 'kineticMeshTitle', 'enabledCollectionsHeader',
+      'enabledCollectionsPage', 'enabledCollectionsMenu'
     ] as const;
 
     const booleanKeys = [
@@ -177,6 +182,11 @@ export async function PATCH(req: Request) {
           data[key] = updates[key];
         }
       }
+    }
+
+    // Explicitly handle domain if sent as shopDomain
+    if (bodyDomain && !data.domain) {
+      data.domain = bodyDomain;
     }
 
     // FAIL EXPLICITLY if database is in mock mode (production safety)
