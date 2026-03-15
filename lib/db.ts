@@ -40,8 +40,12 @@ const prismaClientSingleton = () => {
   }
 
   try {
+      // pg driver's strict SSL parser overrides 'rejectUnauthorized: false' if the connection string contains '?sslmode=require'
+      // To enforce our custom SSL configurations, we must strip the query parameters from the URL
+      const cleanUrl = dbUrl.split('?')[0];
+
       const pool = new Pool({ 
-        connectionString: dbUrl,
+        connectionString: cleanUrl,
         ssl: process.env.NODE_ENV === 'production' 
           ? { rejectUnauthorized: false } 
           : undefined
