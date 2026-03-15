@@ -37,14 +37,15 @@ export default function CollectionCarousel({ collections }: { collections: Colle
 
   return (
     <div className="relative w-full overflow-hidden py-10 touch-none">
-      <div className="relative h-[85vw] max-h-[460px] w-full flex items-center justify-center">
+      <div className="relative h-[85vw] max-h-[460px] w-full flex items-center justify-center overflow-visible">
         {/* The Drag Container */}
         <motion.div
           drag="x"
           dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={0.2}
           onDragEnd={onDragEnd}
-          className="relative w-full h-full flex items-center justify-center"
-          style={{ x, perspective: "1200px", transformStyle: "preserve-3d" }}
+          className="relative w-full h-full flex items-center justify-center cursor-grab active:cursor-grabbing"
+          style={{ perspective: "1200px", transformStyle: "preserve-3d" }}
         >
           {collections.map((col, i) => {
             // Virtual indices for circular behavior
@@ -57,7 +58,7 @@ export default function CollectionCarousel({ collections }: { collections: Colle
                 key={col.id}
                 collection={col}
                 diff={diff}
-                isActive={Math.abs(diff) < 0.1} // Use threshold for float-like index math if needed
+                isActive={Math.abs(diff) < 0.1}
                 fallback={FALLBACKS[i % FALLBACKS.length]}
               />
             );
@@ -100,29 +101,36 @@ function CollectionCard({
         damping: 32,
         mass: 1
       }}
-      className="absolute w-[65vw] max-w-[280px] aspect-[3/4] rounded-[2rem] overflow-hidden shadow-xl origin-center"
+      className="absolute w-[65vw] max-w-[280px] aspect-[3/4] rounded-[2rem] overflow-hidden shadow-xl origin-center will-change-transform"
       style={{
         zIndex: 10 - Math.round(Math.abs(diff)),
-        pointerEvents: isActive ? "auto" : "none",
+        pointerEvents: isActive ? "auto" : "none", // Prevent inactive cards from stealing touch
         backfaceVisibility: "hidden",
         WebkitBackdropFilter: "blur(10px)",
       }}
     >
-      <Link href={`/collections/${collection.handle}`} className="block w-full h-full relative">
+      <Link 
+        href={`/collections/${collection.handle}`} 
+        className="block w-full h-full relative"
+        draggable={false}
+        onClick={(e) => {
+          if (!isActive) e.preventDefault(); // Don't navigate if clicking a side card
+        }}
+      >
         <Image
           src={collection.image?.src || fallback}
           alt={collection.title}
           fill
           sizes="(max-width: 768px) 80vw, 320px"
-          className="object-cover"
+          className="object-cover pointer-events-none"
           priority={isActive}
         />
         
         {/* Dynamic Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent opacity-80" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent opacity-80 pointer-events-none" />
         
         {/* Title Overlay */}
-        <div className="absolute inset-x-0 bottom-0 p-8 text-center">
+        <div className="absolute inset-x-0 bottom-0 p-8 text-center pointer-events-none">
           <motion.p 
             animate={{ 
               y: isActive ? 0 : 10,
