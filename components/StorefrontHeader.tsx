@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import NextImage from "next/image";
-import { Bookmark, ShoppingBag, Menu, X } from "lucide-react";
+import { Bookmark, ShoppingBag, Plus, X } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 import { useCart } from "@/lib/cart-context";
 import MenuDrawer from "./MenuDrawer";
@@ -43,7 +43,7 @@ export default function StorefrontHeader({ collections: initialCollections = [] 
             className="h-10 w-10 flex items-center justify-center rounded-full glass-vibrancy active:scale-90 transition-all shadow-xl group border border-foreground/[0.08]"
             aria-label="Menu"
           >
-            <Menu className="w-4 h-4 text-foreground/70 transition-transform duration-300" />
+            <Plus strokeWidth={1} className="w-5 h-5 text-foreground/70 transition-transform duration-300" />
           </button>
           
           <Link 
