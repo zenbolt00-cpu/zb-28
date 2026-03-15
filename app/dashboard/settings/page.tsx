@@ -262,7 +262,6 @@ export default function SettingsPage() {
   const [dbStatus, setDbStatus] = useState<'connected' | 'mock_failure' | 'loading'>('loading');
   const [resyncing, setResyncing] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
-  const [availableMenus, setAvailableMenus] = useState<{ id: string; title: string; handle: string }[]>([]);
   const [allProducts, setAllProducts] = useState<any[]>([]);
   const [allCollections, setAllCollections] = useState<any[]>([]);
   const [fetchingProducts, setFetchingProducts] = useState(false);
@@ -345,14 +344,6 @@ export default function SettingsPage() {
         setLoading(false);
         setIsInitialLoad(false);
       });
-
-    // Fetch available Shopify menus for dropdown
-    fetch('/api/shopify/menus')
-      .then(r => r.json())
-      .then(data => {
-        if (data.menus) setAvailableMenus(data.menus);
-      })
-      .catch(console.error);
 
     // Fetch all products for selector
     setFetchingProducts(true);
@@ -604,45 +595,7 @@ export default function SettingsPage() {
           </a>
         </SectionCard>
 
-        {/* Global Navigation - New Section */}
-        <SectionCard
-          icon={Layout}
-          title="Global Navigation"
-          description="Select which Shopify menus to use for the app header"
-        >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wider">Primary Menu</label>
-              <select
-                value={settings.mainMenuHandle}
-                onChange={(e) => set('mainMenuHandle')(e.target.value)}
-                className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-2.5 text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-foreground/20"
-              >
-                <option value="">Select a menu...</option>
-                {availableMenus.map(menu => (
-                  <option key={menu.id} value={menu.handle}>{menu.title} ({menu.handle})</option>
-                ))}
-              </select>
-            </div>
-            
-            <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wider">Secondary Menu (Optional)</label>
-              <select
-                value={settings.secondaryMenuHandle}
-                onChange={(e) => set('secondaryMenuHandle')(e.target.value)}
-                className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-2.5 text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-foreground/20"
-              >
-                <option value="">None</option>
-                {availableMenus.map(menu => (
-                  <option key={menu.id} value={menu.handle}>{menu.title} ({menu.handle})</option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <p className="text-xs text-muted-foreground mt-2">
-            Select the menus you have created in Shopify Admin &gt; Online Store &gt; Navigation. If you select two menus, they will both appear in the menu drawer.
-          </p>
-        </SectionCard>
+
 
         {/* Delhivery */}
         <SectionCard
