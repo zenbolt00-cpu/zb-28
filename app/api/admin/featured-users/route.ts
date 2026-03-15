@@ -3,6 +3,8 @@ import prisma from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
+export const revalidate = 0;
+
 export async function GET() {
   try {
     const users = await prisma.featuredUser.findMany({
@@ -11,7 +13,15 @@ export async function GET() {
       },
       orderBy: { createdAt: 'desc' },
     });
-    return NextResponse.json({ users });
+    
+    // Disable caching explicitly for Vercel
+    return NextResponse.json({ users }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      }
+    });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

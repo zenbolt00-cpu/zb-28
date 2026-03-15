@@ -46,7 +46,7 @@ export default function FeaturedUsersModeration() {
   const fetchSubmissions = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/featured-users");
+      const res = await fetch("/api/admin/featured-users", { cache: 'no-store' });
       if (!res.ok) throw new Error("Failed to fetch submissions");
       const data = await res.json();
       if (data.users) setSubmissions(data.users);

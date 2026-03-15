@@ -29,7 +29,7 @@ export default function FeaturedUsersSection({
       setLoading(false);
       return;
     }
-    fetch("/api/featured-users?isTopFeatured=true")
+    fetch("/api/featured-users?isTopFeatured=true", { cache: 'no-store' })
       .then(res => res.json())
       .then(data => {
         if (data.users) setUsers(data.users);
