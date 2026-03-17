@@ -2,12 +2,9 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 // Must match the HMAC function in the login API
-function makeSessionToken(password: string): string {
-  // We inline a simple HMAC here since we cannot import Node crypto in Edge Runtime
-  // Instead we use a deterministic token stored in env
-  // The cookie value == sha256_hmac(NEXTAUTH_SECRET, adminPassword)
-  // Since we can't run crypto in edge, we compare against ADMIN_SESSION_TOKEN set at startup
-  return process.env.ADMIN_SESSION_TOKEN || 'not-configured';
+function makeSessionToken(): string {
+  // Edge runtime version
+  return process.env.ADMIN_SESSION_TOKEN || 'MISSING_SECRET_KEY_REJECT_ALL';
 }
 
 export function middleware(request: NextRequest) {

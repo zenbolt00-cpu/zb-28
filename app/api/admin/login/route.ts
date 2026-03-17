@@ -122,20 +122,27 @@ export async function POST(request: Request) {
     // Successful login — clear rate limiter
     clearAttempts(ip);
 
-    // Store a signed session token (NOT the raw password) in the cookie
-    const sessionToken = makeSessionToken(cleanPassword);
+    // Use the static ADMIN_SESSION_TOKEN for consistency with the Edge middleware
+    const sessionToken = process.env.ADMIN_SESSION_TOKEN;
+    
+    if (!sessionToken) {
+      console.error('❌ CRITICAL: ADMIN_SESSION_TOKEN is not set in environment variables');
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
+    }
+
     const cookieStore = await cookies();
     cookieStore.set('admin_session', sessionToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: true,
       sameSite: 'strict',
       maxAge: 60 * 60 * 24 * 7, // 1 week
       path: '/',
     });
 
+    console.log(`✅ Admin login successful for: ${cleanUsername}`);
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('❌ Login error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
