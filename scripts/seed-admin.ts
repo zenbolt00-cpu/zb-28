@@ -10,33 +10,37 @@ async function main() {
     throw new Error('DATABASE_URL is not set');
   }
 
-  const pool = new Pool({ connectionString: dbUrl });
+  const pool = new Pool({ 
+    connectionString: dbUrl,
+    ssl: { rejectUnauthorized: false }
+  });
   const adapter = new PrismaPg(pool as any);
   const prisma = new PrismaClient({ adapter });
 
-  const username = 'admin';
-  const password = 'zicabella2026';
+  try {
+    const username = 'admin';
+    const password = 'ZICABELLA@2026';
 
-  console.log(`Seeding admin user: ${username}...`);
+    console.log(`Seeding admin user: ${username}...`);
 
-  await prisma.admin.upsert({
-    where: { username },
-    update: { password },
-    create: {
-      username,
-      password,
-    },
-  });
+    await prisma.admin.upsert({
+      where: { username },
+      update: { password },
+      create: {
+        username,
+        password,
+      },
+    });
 
-  console.log('Admin user seeded successfully.');
-  await prisma.$disconnect();
+    console.log('Admin user seeded successfully.');
+  } finally {
+    await prisma.$disconnect();
+    await pool.end();
+  }
 }
 
 main()
   .catch((e) => {
-    console.error(e);
+    console.error('Seeding failed:', e);
     process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
   });
