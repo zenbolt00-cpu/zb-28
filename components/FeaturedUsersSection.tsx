@@ -15,11 +15,13 @@ interface FeaturedUser {
 export default function FeaturedUsersSection({ 
   showCommunity = true, 
   title = "FEATURED LOOKS", 
-  subtitle = "COMMUNITY" 
+  subtitle = "COMMUNITY",
+  allFeatured = false
 }: { 
   showCommunity?: boolean;
   title?: string;
   subtitle?: string;
+  allFeatured?: boolean;
 }) {
   const [users, setUsers] = useState<FeaturedUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,27 +31,44 @@ export default function FeaturedUsersSection({
       setLoading(false);
       return;
     }
-    fetch("/api/featured-users?isTopFeatured=true", { cache: 'no-store' })
+    const url = allFeatured ? "/api/featured-users" : "/api/featured-users?isTopFeatured=true";
+    fetch(url, { cache: 'no-store' })
       .then(res => res.json())
       .then(data => {
         if (data.users) setUsers(data.users);
       })
       .finally(() => setLoading(false));
-  }, [showCommunity]);
+  }, [showCommunity, allFeatured]);
 
   if (!showCommunity) return null;
-  if (loading) return null;
-  if (users.length === 0) return null;
+  if (loading) {
+    return (
+      <section className="mt-24 mb-40 px-4 h-[400px] flex items-center justify-center">
+        <div className="w-10 h-10 rounded-full border-2 border-foreground/10 border-t-foreground/40 animate-spin" />
+      </section>
+    );
+  }
+  if (users.length === 0) {
+    if (process.env.NODE_ENV === 'development') {
+      return (
+        <section className="mt-24 mb-40 px-4 text-center opacity-20">
+          <p className="text-[10px] uppercase tracking-widest">Featured Looks Standby</p>
+          <p className="text-[8px] mt-1">Add approved looks in Admin Dashboard</p>
+        </section>
+      );
+    }
+    return null;
+  }
 
   return (
-    <section className="mt-24 mb-40 px-4 overflow-hidden">
-      <div className="text-center mb-12">
-        <h2 className="font-heading text-[10px] tracking-[0.5em] text-muted-foreground/30 mb-2 uppercase">{subtitle}</h2>
-        <p className="font-heading text-[28px] tracking-tight text-foreground uppercase opacity-90">{title}</p>
+    <section className="mt-4 mb-4 px-4 overflow-hidden">
+      <div className="text-center mb-10">
+        <h2 className="font-heading text-[8.5px] tracking-[0.45em] text-muted-foreground/30 mb-3 uppercase" style={{ fontFamily: "'HeadingPro', sans-serif" }}>{subtitle}</h2>
+        <p className="font-heading text-[22px] tracking-[0.05em] text-foreground uppercase opacity-85" style={{ fontFamily: "'HeadingPro', sans-serif" }}>{title}</p>
       </div>
 
       <div className="relative group">
-        <div className="flex gap-5 overflow-x-auto pb-12 hide-scrollbar snap-x px-4 -mx-4">
+        <div className="flex gap-5 overflow-x-auto pb-8 hide-scrollbar snap-x px-4 -mx-4">
           {users.map((user) => {
             const avgRating = user.reviews.length > 0 
               ? user.reviews.reduce((acc: any, r: any) => acc + r.rating, 0) / user.reviews.length 

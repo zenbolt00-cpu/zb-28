@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft, Loader2 } from "lucide-react";
 import { useCart } from "@/lib/cart-context";
 import StorefrontNav from "@/components/StorefrontNav";
-import StorefrontHeader from "@/components/StorefrontHeader";
 import { motion, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
 
@@ -43,9 +42,7 @@ export default function CartPage() {
         <div className="absolute -top-[20%] right-[-5%] w-[60vw] h-[60vw] rounded-full glow-orb-2 opacity-8 dark:opacity-15" />
       </div>
 
-      <StorefrontHeader />
-
-      <div className="relative z-10 max-w-md mx-auto px-3 pt-header pb-40">
+      <div className="relative z-10 max-w-md mx-auto px-3 pt-20 pb-40">
 
         {/* Page Title */}
         <div className="mb-6">
@@ -67,12 +64,7 @@ export default function CartPage() {
             <p className="font-heading text-[10px] uppercase tracking-widest text-foreground/30 mb-2">
               Your Cart is Empty
             </p>
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 mt-4 text-[8px] uppercase tracking-widest text-foreground/40 hover:text-foreground transition-colors"
-            >
-              <ArrowLeft className="w-3 h-3" /> Continue Shopping
-            </Link>
+            {/* Link removed - Global navigation handles this */}
           </div>
         )}
 

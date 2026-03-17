@@ -3,7 +3,8 @@
 import { usePathname } from "next/navigation";
 import StorefrontHeader from "./StorefrontHeader";
 import StorefrontNav from "./StorefrontNav";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
+import PageLoader from "./PageLoader";
 
 interface StorefrontLayoutProps {
   children: React.ReactNode;
@@ -31,16 +32,19 @@ export default function StorefrontLayout({ children, footer }: StorefrontLayoutP
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground selection:bg-foreground/10 transition-colors duration-500">
+    <div className="min-h-screen max-w-full overflow-x-hidden bg-background text-foreground selection:bg-foreground/10 transition-colors duration-500">
+      <Suspense fallback={null}>
+        <PageLoader />
+      </Suspense>
       <StorefrontHeader collections={collections} />
       
       {/* ── Main Content ── */}
-      <div className="relative z-10">
+      <div className="relative z-10 w-full overflow-x-hidden">
         {children}
       </div>
 
       {/* ── Footer (passed from server) ── */}
-      {pathname !== "/login" && footer}
+      {pathname !== "/login" && pathname !== "/chat" && footer}
 
       {/* ── Shared Bottom Nav ── */}
       <StorefrontNav />

@@ -130,62 +130,67 @@ export default function BlogsAdminPage() {
 
   return (
     <div className="p-8 max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Blog Management</h1>
-          <p className="text-sm text-muted-foreground mt-1">Create and manage content for the Zica Bella Journal.</p>
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-2">
+         <div className="space-y-1">
+          <div className="px-2 py-0.5 bg-foreground/[0.03] rounded-md text-[8px] font-black text-foreground/40 dark:text-white/30 uppercase tracking-[0.2em] w-fit mb-1">journal archives</div>
+          <h1 className="text-xl font-black text-foreground uppercase tracking-tight mb-0.5 lowercase leading-none">
+            Blog Management
+          </h1>
+          <p className="text-[10px] text-foreground/40 dark:text-white/20 font-bold uppercase tracking-widest mt-1">
+            Curate the Zica Bella narrative spectrum.
+          </p>
         </div>
-        <button
+         <button
           onClick={() => handleOpenModal()}
-          className="bg-foreground text-background px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 hover:bg-foreground/90 transition-all"
+          className="bg-foreground text-background px-6 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest flex items-center gap-2 transition-all hover:opacity-90 active:scale-95 shadow-lg shadow-foreground/5"
         >
-          <Plus className="w-4 h-4" /> New Post
+          <Plus className="w-3 h-3" /> New Transmission
         </button>
       </div>
 
-      <div className="glass rounded-3xl border border-foreground/10 overflow-hidden">
+       <div className="bg-white/50 dark:bg-white/[0.02] border border-foreground/[0.05] rounded-xl overflow-hidden shadow-sm">
         {posts.length === 0 ? (
-          <div className="p-12 text-center text-muted-foreground">
-            <p>No blog posts found. Create your first one!</p>
+          <div className="p-12 text-center">
+            <p className="text-[10px] font-black uppercase tracking-widest text-foreground/10">No transmissions detected.</p>
           </div>
         ) : (
-          <table className="w-full text-left text-sm">
-            <thead className="bg-foreground/5 text-xs uppercase tracking-wider text-muted-foreground">
+           <table className="w-full text-left text-[11px] whitespace-nowrap">
+            <thead className="bg-foreground/[0.01] border-b border-foreground/[0.02] text-[8px] font-black uppercase tracking-[0.2em] text-foreground/20 dark:text-white/20">
               <tr>
-                <th className="px-6 py-4 font-medium">Title</th>
-                <th className="px-6 py-4 font-medium">Status</th>
-                <th className="px-6 py-4 font-medium">Date</th>
-                <th className="px-6 py-4 font-medium text-right">Actions</th>
+                <th className="px-4 py-2">Archive Title</th>
+                <th className="px-4 py-2">Status</th>
+                <th className="px-4 py-2">Temporal Stamp</th>
+                <th className="px-4 py-2 text-right">Operations</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-foreground/5">
-              {posts.map(post => (
-                <tr key={post.id} className="hover:bg-foreground/5 transition-colors">
-                  <td className="px-6 py-4">
-                    <p className="font-semibold text-foreground truncate max-w-[300px]">{post.title}</p>
-                    <p className="text-xs text-muted-foreground truncate max-w-[300px]">/{post.slug}</p>
+            <tbody className="divide-y divide-foreground/[0.02]">
+               {posts.map(post => (
+                <tr key={post.id} className="hover:bg-foreground/[0.01] transition-colors group">
+                  <td className="px-4 py-2.5">
+                    <p className="font-black text-foreground uppercase tracking-tight lowercase truncate max-w-[300px] leading-tight-none">{post.title}</p>
+                    <p className="text-[7.5px] font-black text-foreground/20 dark:text-white/10 uppercase tracking-widest truncate max-w-[300px] mt-1">/{post.slug}</p>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-2.5">
                     {post.published ? (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-500 uppercase tracking-widest">
-                        <Check className="w-3 h-3" /> Published
+                      <span className="inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded text-[7px] font-black bg-emerald-500/5 text-emerald-500 border border-emerald-500/10 uppercase tracking-widest">
+                        LIVE
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-500 uppercase tracking-widest">
-                        <EyeOff className="w-3 h-3" /> Draft
+                      <span className="inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded text-[7px] font-black bg-foreground/[0.03] text-foreground/30 border border-foreground/10 uppercase tracking-widest">
+                        ARCHIVE
                       </span>
                     )}
                   </td>
-                  <td className="px-6 py-4 text-muted-foreground">
-                    {new Date(post.createdAt).toLocaleDateString()}
+                  <td className="px-4 py-2.5 text-[9px] font-black text-foreground/20 dark:text-white/10 uppercase tracking-widest">
+                    {new Date(post.createdAt).toLocaleDateString("en-IN", { day: 'numeric', month: 'short', year: 'numeric' })}
                   </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button onClick={() => handleOpenModal(post)} className="p-2 text-muted-foreground hover:text-foreground hover:bg-foreground/10 rounded-lg transition-colors">
-                        <Edit2 className="w-4 h-4" />
+                   <td className="px-4 py-2.5 text-right">
+                    <div className="flex items-center justify-end gap-1 opacity-20 group-hover:opacity-100 transition-opacity">
+                      <button onClick={() => handleOpenModal(post)} className="p-2 text-foreground/40 hover:text-foreground hover:bg-foreground/[0.05] rounded-lg transition-colors">
+                        <Edit2 className="w-3 h-3" />
                       </button>
-                      <button onClick={() => handleDelete(post.id)} className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors">
-                        <Trash2 className="w-4 h-4" />
+                      <button onClick={() => handleDelete(post.id)} className="p-2 text-rose-500/40 hover:text-rose-500 hover:bg-rose-500/5 rounded-lg transition-colors">
+                        <Trash2 className="w-3 h-3" />
                       </button>
                     </div>
                   </td>
@@ -198,110 +203,106 @@ export default function BlogsAdminPage() {
 
       {/* Editor Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm">
-          <div className="bg-background w-full max-w-4xl max-h-[90vh] rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-foreground/10">
-            <div className="px-6 py-4 border-b border-foreground/10 flex items-center justify-between bg-foreground/5">
-              <h2 className="text-lg font-bold">{editingPost ? 'Edit Post' : 'New Post'}</h2>
-              <button onClick={() => setModalOpen(false)} className="p-2 hover:bg-foreground/10 rounded-full transition-colors">
-                <X className="w-5 h-5" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/40 backdrop-blur-xl">
+          <div className="bg-white/90 dark:bg-black/90 backdrop-blur-3xl w-full max-w-4xl max-h-[90vh] rounded-[1.5rem] shadow-2xl overflow-hidden flex flex-col border border-foreground/[0.05]">
+            <div className="px-6 py-4 border-b border-foreground/[0.05] flex items-center justify-between">
+              <h2 className="text-[11px] font-black uppercase tracking-[0.3em] text-foreground/20">{editingPost ? 'Update Transmission' : 'New Transmission'}</h2>
+              <button onClick={() => setModalOpen(false)} className="p-2 hover:bg-foreground/[0.05] rounded-full transition-colors text-foreground/20 hover:text-foreground">
+                <X className="w-4 h-4" />
               </button>
             </div>
             
             <div className="p-6 overflow-y-auto flex-1 space-y-6">
               <div className="grid gap-6 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Title</label>
+                  <label className="text-[8px] font-black text-muted-foreground/15 uppercase tracking-[0.2em]">Transmission Header</label>
                   <input
                     type="text"
                     value={formData.title}
                     onChange={handleTitleChange}
-                    className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20"
+                    className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-lg px-4 py-3 text-[13px] font-black text-foreground placeholder:text-muted-foreground/10 uppercase tracking-tight lowercase focus:outline-none focus:ring-1 focus:ring-foreground/10 transition-all"
                     placeholder="Enter blog title"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Slug (URL)</label>
+                  <label className="text-[8px] font-black text-muted-foreground/15 uppercase tracking-[0.2em]">Resource Identifier (Slug)</label>
                   <input
                     type="text"
                     value={formData.slug}
                     onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                    className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20"
+                    className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-lg px-4 py-3 text-[13px] font-black text-foreground/40 focus:outline-none focus:ring-1 focus:ring-foreground/10 transition-all"
                   />
                 </div>
               </div>
 
               <div className="grid gap-6 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Cover Image URL</label>
+                  <label className="text-[8px] font-black text-muted-foreground/15 uppercase tracking-[0.2em]">Visual Reference (URL)</label>
                   <input
                     type="text"
                     value={formData.coverImage}
                     onChange={(e) => setFormData({ ...formData, coverImage: e.target.value })}
-                    className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20"
+                    className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-lg px-4 py-3 text-[11px] font-black text-foreground placeholder:text-muted-foreground/10 focus:outline-none focus:ring-1 focus:ring-foreground/10 transition-all"
                     placeholder="https://..."
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Author</label>
+                  <label className="text-[8px] font-black text-muted-foreground/15 uppercase tracking-[0.2em]">Origin Curator</label>
                   <input
                     type="text"
                     value={formData.author}
                     onChange={(e) => setFormData({ ...formData, author: e.target.value })}
-                    className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20"
+                    className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-lg px-4 py-3 text-[11px] font-black text-foreground focus:outline-none focus:ring-1 focus:ring-foreground/10 transition-all"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Excerpt / Subtitle</label>
+                <label className="text-[8px] font-black text-muted-foreground/15 uppercase tracking-[0.2em]">Brief Synopsis</label>
                 <input
                   type="text"
                   value={formData.excerpt}
                   onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
-                  className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20"
+                  className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-lg px-4 py-3 text-[11px] font-black text-foreground placeholder:text-muted-foreground/10 focus:outline-none focus:ring-1 focus:ring-foreground/10 transition-all"
                   placeholder="Short description for the blog list..."
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="text-xs font-semibold flex items-center justify-between text-muted-foreground uppercase tracking-wider">
-                  <span>Content (Markdown/HTML)</span>
-                </label>
+                <label className="text-[8px] font-black text-muted-foreground/15 uppercase tracking-[0.2em]">Content Narrative (Markdown)</label>
                 <textarea
                   value={formData.content}
                   onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                  rows={12}
-                  className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-foreground/20 resize-y"
-                  placeholder="Write your blog post here..."
+                  rows={10}
+                  className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-lg px-4 py-4 text-[13px] font-black text-foreground/60 placeholder:text-muted-foreground/10 focus:outline-none focus:ring-1 focus:ring-foreground/10 transition-all resize-none"
+                  placeholder="Initialize narrative transmission..."
                 />
-              </div>
 
-              <div className="flex items-center gap-3 p-4 bg-foreground/5 rounded-xl border border-foreground/10">
+              <div className="flex items-center gap-3 p-4 bg-foreground/[0.02] rounded-lg border border-foreground/[0.03]">
                 <input
                   type="checkbox"
                   id="published"
                   checked={formData.published}
                   onChange={(e) => setFormData({ ...formData, published: e.target.checked })}
-                  className="w-5 h-5 rounded border-foreground/20 text-foreground focus:ring-foreground"
+                  className="w-4 h-4 rounded border-foreground/20 text-foreground focus:ring-foreground bg-transparent"
                 />
-                <label htmlFor="published" className="text-sm font-medium select-none cursor-pointer">
-                  Publish this post immediately
+                <label htmlFor="published" className="text-[10px] font-black uppercase tracking-widest select-none cursor-pointer text-foreground/40">
+                  Broadcast transmission immediately
                 </label>
               </div>
             </div>
 
-            <div className="px-6 py-5 border-t border-foreground/10 flex justify-end gap-3 bg-foreground/5">
+            <div className="px-6 py-5 border-t border-foreground/[0.05] flex justify-end gap-2">
               <button 
                 onClick={() => setModalOpen(false)}
-                className="px-5 py-2.5 rounded-xl text-sm font-semibold text-foreground bg-background border border-foreground/10 hover:bg-foreground/5 transition-colors"
+                className="px-5 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest text-foreground/40 hover:text-foreground transition-all"
               >
-                Cancel
+                Abort
               </button>
               <button 
                 onClick={handleSave}
-                className="px-5 py-2.5 rounded-xl text-sm font-semibold bg-foreground text-background hover:bg-foreground/90 transition-colors"
+                className="px-6 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-[0.2em] bg-foreground text-background hover:opacity-90 transition-all shadow-xl"
               >
-                Save Post
+                Sync Post
               </button>
             </div>
           </div>

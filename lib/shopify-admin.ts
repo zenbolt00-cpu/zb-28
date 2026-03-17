@@ -383,6 +383,13 @@ export async function fetchCollections(limit = 250): Promise<ShopifyCollection[]
   return [...data.custom_collections, ...data2.smart_collections];
 }
 
+export async function fetchProductsByCollectionId(collectionId: string | number, limit = 250): Promise<ShopifyProduct[]> {
+  const data = await shopifyFetch<{ products: ShopifyProduct[] }>(`collections/${collectionId}/products.json`, {
+    limit: String(limit),
+  });
+  return data.products;
+}
+
 /**
  * Fetches only the collections that are enabled in the admin dashboard for a specific location.
  */
@@ -614,6 +621,20 @@ export async function updateProduct(
     { product: { id: parseInt(productId, 10), ...updates } }
   );
   return data.product;
+}
+
+/**
+ * Update a Shopify Variant (e.g., SKU, price, barcode).
+ */
+export async function updateVariant(
+  variantId: string,
+  updates: { sku?: string; barcode?: string; price?: string; compare_at_price?: string | null }
+): Promise<any> {
+  const data = await shopifyPatch<{ variant: any }>(
+    `variants/${variantId}.json`,
+    { variant: { id: parseInt(variantId, 10), ...updates } }
+  );
+  return data.variant;
 }
 
 /**

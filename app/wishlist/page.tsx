@@ -28,7 +28,7 @@ export default function WishlistPage() {
 
   return (
     <>
-      <div className="relative z-10 max-w-md mx-auto px-4 pt-32 min-h-[80vh]">
+      <div className="relative z-10 max-w-md mx-auto px-4 pt-20 min-h-[80vh]">
         {/* Page Header */}
         <div className="mb-12 text-center">
           <p className="text-[8px] font-bold uppercase tracking-[0.5em] text-primary/60 mb-3">Saved Pieces</p>
@@ -105,12 +105,7 @@ export default function WishlistPage() {
           </div>
         )}
 
-        <div className="mt-20">
-          <Link href="/" className="flex items-center justify-center gap-2 text-[8px] uppercase tracking-widest text-foreground/30 hover:text-foreground transition-colors group">
-            <ArrowLeft className="w-3 h-3 group-hover:-translate-x-1 transition-transform" />
-            Continue Shopping
-          </Link>
-        </div>
+        {/* Continue Shopping removed - StorefrontNav handles it */}
       </div>
     </>
   );

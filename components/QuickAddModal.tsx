@@ -134,42 +134,63 @@ export default function QuickAddModal({ product, onClose }: Props) {
             </p>
             {/* 6 equal-width columns */}
             <div className="grid grid-cols-6 gap-1.5">
-              {sizes.map(({ size }) => (
-                <button
-                  key={size}
-                  onClick={() => setSelectedSize(size)}
-                  className={`h-9 w-full flex items-center justify-center rounded-lg text-[8px] font-light uppercase tracking-wider transition-all ${
-                    selectedSize === size
-                      ? "bg-foreground text-background"
-                      : "border border-foreground/[0.08] text-foreground/40 hover:border-foreground/20 hover:text-foreground/70"
-                  }`}
-                >
-                  {size}
-                </button>
-              ))}
+              {sizes.map(({ size, variantId }) => {
+                const variant = product.variants?.find(v => String(v.id) === variantId);
+                const isOutOfStock = (variant?.inventory_quantity || 0) <= 0;
+                
+                return (
+                  <button
+                    key={size}
+                    onClick={() => setSelectedSize(size)}
+                    className={`h-9 w-full flex items-center justify-center rounded-lg text-[8px] font-light uppercase tracking-wider transition-all relative overflow-hidden ${
+                      selectedSize === size
+                        ? "bg-foreground text-background"
+                        : isOutOfStock
+                        ? "bg-foreground/[0.01] border border-foreground/[0.04] text-foreground/15 cursor-not-allowed"
+                        : "border border-foreground/[0.08] text-foreground/40 hover:border-foreground/20 hover:text-foreground/70"
+                    }`}
+                  >
+                    {size}
+                    {isOutOfStock && (
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div className="w-[120%] h-[1px] bg-foreground/10 rotate-[35deg] transform-gpu" />
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
 
         {/* Add Button */}
         <div className="px-5 pb-10">
-          <button
-            onClick={handleAdd}
-            disabled={sizes.length > 1 && !selectedSize}
-            className={`w-full py-3.5 rounded-2xl text-[9px] font-light uppercase tracking-[0.4em] transition-all duration-300 active:scale-[0.98] flex items-center justify-center gap-2 ${
-              added
-                ? "bg-green-500 text-white"
-                : sizes.length > 1 && !selectedSize
-                  ? "bg-foreground/10 text-foreground/30 cursor-not-allowed"
-                  : "bg-foreground text-background hover:opacity-90"
-            }`}
-          >
-            {added ? (
-              <><Check className="w-3.5 h-3.5" /> Added</>
-            ) : (
-              <><ShoppingBag className="w-3.5 h-3.5" /> Add to Bag</>
-            )}
-          </button>
+          {(() => {
+            const variant = product.variants?.find(v => v.option1 === (selectedSize || sizes[0]?.size)) || product.variants?.[0];
+            const isVariantSoldOut = (variant?.inventory_quantity || 0) <= 0;
+            
+            return (
+              <button
+                onClick={handleAdd}
+                disabled={added || isVariantSoldOut || (sizes.length > 1 && !selectedSize)}
+                className={`w-full py-3.5 rounded-2xl text-[9px] font-light uppercase tracking-[0.4em] transition-all duration-300 active:scale-[0.98] flex items-center justify-center gap-2 ${
+                  added
+                    ? "bg-green-500 text-white"
+                    : (sizes.length > 1 && !selectedSize) || isVariantSoldOut
+                      ? "bg-foreground/10 text-foreground/30 cursor-not-allowed"
+                      : "bg-foreground text-background hover:opacity-90"
+                }`}
+              >
+                {added ? (
+                  <><Check className="w-3.5 h-3.5" /> Added</>
+                ) : isVariantSoldOut ? (
+                  "Sold Out"
+                ) : (
+                  <><ShoppingBag className="w-3.5 h-3.5" /> Add to Bag</>
+                )}
+              </button>
+            );
+          })()}
         </div>
       </div>
     </div>

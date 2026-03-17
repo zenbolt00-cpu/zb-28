@@ -3,15 +3,18 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import NextImage from "next/image";
-import { Bookmark, ShoppingBag, Plus, X } from "lucide-react";
+import { Bookmark, ShoppingBag, Plus, X, ChevronLeft } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 import { useCart } from "@/lib/cart-context";
 import MenuDrawer from "./MenuDrawer";
 import CartDrawer from "./CartDrawer";
 import BookmarkDrawer from "./BookmarkDrawer";
 import { useBookmarks } from "@/lib/bookmark-context";
+import { useRouter, usePathname } from "next/navigation";
 
 export default function StorefrontHeader({ collections: initialCollections = [] }: { collections?: any[] }) {
+  const router = useRouter();
+  const pathname = usePathname();
   const { count } = useCart();
   const { bookmarks, isOpen: isBookmarkOpen, setIsOpen: setIsBookmarkOpen } = useBookmarks();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -33,33 +36,55 @@ export default function StorefrontHeader({ collections: initialCollections = [] 
     }
   }, [initialCollections]);
 
+  const isHome = pathname === "/";
+  const getPageTitle = () => {
+    if (isHome) return "ZICA BELLA";
+    const segments = pathname.split("/").filter(Boolean);
+    if (segments.length === 0) return "Zica Bella";
+    let title = segments[segments.length - 1];
+    // Convert slugs like "products-name" to "Products Name"
+    title = title.split("-").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
+    return title;
+  };
+
   return (
     <>
-      <header className="fixed top-0 left-0 w-full z-50 px-4 py-4 flex justify-between items-center pointer-events-none">
+      <header className="fixed top-0 left-0 w-full z-50 px-4 pt-[calc(0.75rem+env(safe-area-inset-top))] pb-2 flex justify-between items-center pointer-events-none">
         {/* Left: Menu/Logo Island */}
         <div className="flex items-center gap-2 pointer-events-auto">
-          <button 
-            onClick={() => setIsMenuOpen(true)}
-            className="h-10 w-10 flex items-center justify-center rounded-full glass-vibrancy active:scale-90 transition-all shadow-xl group border border-foreground/[0.08]"
-            aria-label="Menu"
-          >
-            <Plus strokeWidth={1} className="w-5 h-5 text-foreground/70 transition-transform duration-300" />
-          </button>
+          {isHome ? (
+            <button 
+              onClick={() => setIsMenuOpen(true)}
+              className="h-10 w-10 flex items-center justify-center rounded-full glass-vibrancy active:scale-90 transition-all shadow-xl group border border-foreground/[0.08]"
+              aria-label="Menu"
+            >
+              <Plus strokeWidth={1} className="w-5 h-5 text-foreground/70 transition-transform duration-300" />
+            </button>
+          ) : (
+            <button 
+              onClick={() => router.back()}
+              className="h-10 w-10 flex items-center justify-center rounded-full glass-vibrancy active:scale-90 transition-all shadow-xl group border border-foreground/[0.08]"
+              aria-label="Back"
+            >
+              <ChevronLeft strokeWidth={1.5} className="w-5 h-5 text-foreground/70 transition-transform duration-300" />
+            </button>
+          )}
           
-          <Link 
-            href="/" 
-            className="h-10 flex items-center gap-2 px-5 rounded-full glass-vibrancy active:scale-95 transition-transform shadow-xl border border-foreground/[0.08]"
-          >
-            <div className="relative w-5 h-5 flex-shrink-0">
-              <NextImage
-                src="/zica-bella-logo_8.png"
-                alt="Zica Bella"
-                fill
-                className="object-contain"
-              />
-            </div>
-            <span className="font-rocaston text-[11px] tracking-[0.05em] text-foreground mt-0.5 uppercase whitespace-nowrap">ZICA BELLA</span>
-          </Link>
+          <div className="h-10 flex items-center gap-2 px-5 rounded-full glass-vibrancy shadow-xl border border-foreground/[0.08] min-w-0">
+            {isHome && (
+              <div className="relative w-5 h-5 flex-shrink-0">
+                <NextImage
+                  src="/zica-bella-logo_8.png"
+                  alt="Zica Bella"
+                  fill
+                  className="object-contain"
+                />
+              </div>
+            )}
+            <span className="font-rocaston text-[11px] font-bold tracking-[0.08em] text-foreground mt-0.5 uppercase truncate max-w-[140px] block">
+              {getPageTitle()}
+            </span>
+          </div>
         </div>
 
 
@@ -68,6 +93,7 @@ export default function StorefrontHeader({ collections: initialCollections = [] 
           className="flex items-center gap-1 h-10 p-1 px-1.5 rounded-full glass-vibrancy pointer-events-auto border border-foreground/[0.08] shadow-xl"
         >
           <ThemeToggle />
+
           <button 
             onClick={() => setIsBookmarkOpen(true)}
             aria-label="Bookmarks"

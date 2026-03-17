@@ -34,7 +34,7 @@ export default function CollaborationsPage() {
   return (
     <div className="min-h-screen bg-transparent text-foreground selection:bg-foreground selection:text-background flex flex-col">
       
-      <main className="flex-1 pt-32 pb-24 px-6 sm:px-12 max-w-7xl mx-auto w-full">
+      <main className="flex-1 pt-28 pb-24 px-6 sm:px-12 max-w-7xl mx-auto w-full">
         {/* Header text */}
         <div className="mb-24 space-y-6 max-w-2xl">
             <motion.h1 

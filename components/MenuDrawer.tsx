@@ -4,6 +4,7 @@ import { X, User, Package, Info, Users, BookOpen, Handshake } from "lucide-react
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 
 interface MenuDrawerProps {
   isOpen: boolean;
@@ -18,6 +19,7 @@ interface ShopifyCollection {
 
 // Static fallback collections — always shown even if API auth fails
 const FALLBACK_COLLECTIONS: ShopifyCollection[] = [
+  { id: "accessories",  title: "Accessories",  handle: "accessories" },
   { id: "acid-tees",    title: "Acid Tees",    handle: "acid-tees" },
   { id: "leather-room", title: "Leather Room", handle: "leather-room" },
   { id: "rogue-winter", title: "Rogue Winter", handle: "rogue-winter" },
@@ -40,6 +42,8 @@ const SHOP_TERMS = ["T-shirt", "Jeans", "Pants", "Trousers", "Jorts", "Shirts"];
 export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
   const [collections, setCollections] = useState<ShopifyCollection[]>(FALLBACK_COLLECTIONS);
   const [loading, setLoading] = useState(true);
+  const { data: session } = useSession();
+  const profileImage = session?.user?.image || (session as any)?.customer?.image;
 
   useEffect(() => {
     if (isOpen) {
@@ -198,9 +202,17 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
                 border: "1px solid hsla(var(--glass-border), 0.07)",
               }}
             >
-              <Link href="/login" onClick={onClose} className="group flex flex-col items-center gap-0.5 flex-1 py-2 rounded-xl hover:bg-foreground/[0.04] transition-all">
-                <User className="w-3.5 h-3.5 text-foreground/20 group-hover:text-foreground/55 transition-colors" />
-                <span className="text-[6px] tracking-widest uppercase text-foreground/18 group-hover:text-foreground/45" style={{ fontFamily: "ui-monospace, monospace" }}>Profile</span>
+              <Link href={session ? "/profile" : "/login"} onClick={onClose} className="group flex flex-col items-center gap-0.5 flex-1 py-1.5 rounded-2xl hover:bg-foreground/[0.04] transition-all">
+                {profileImage ? (
+                  <div className="w-[20px] h-[20px] rounded-full overflow-hidden border border-foreground/10 group-hover:border-foreground/30 transition-all shadow-sm">
+                    <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
+                  </div>
+                ) : (
+                  <div className="w-[20px] h-[20px] rounded-full border border-foreground/5 flex items-center justify-center bg-foreground/[0.02]">
+                    <User className="w-3.5 h-3.5 text-foreground/20 group-hover:text-foreground/55 transition-colors" />
+                  </div>
+                )}
+                <span className="text-[6.5px] font-black tracking-[0.2em] uppercase text-foreground/25 group-hover:text-foreground/50 transition-colors mt-0.5" style={{ fontFamily: "ui-monospace, monospace" }}>Profile</span>
               </Link>
               <div className="w-[0.5px] h-7 bg-foreground/[0.06]" />
               <Link href="/orders" onClick={onClose} className="group flex flex-col items-center gap-0.5 flex-1 py-2 rounded-xl hover:bg-foreground/[0.04] transition-all">

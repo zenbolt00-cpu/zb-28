@@ -8,13 +8,14 @@ import {
   RefreshCw,
   ChevronDown,
   ChevronUp,
-  CheckCircle2,
   ExternalLink,
   Search,
   Plus,
   X,
-  Edit2
+  Edit2,
+  Check
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface LineItem {
   id: number;
@@ -77,18 +78,18 @@ type StatusFilter = "any" | "unfulfilled" | "fulfilled" | "refunded";
 function StatusBadge({ status, type }: { status: string | null; type: "payment" | "fulfillment" | "delivery" }) {
   const label = status || (type === "fulfillment" ? "unfulfilled" : type === "delivery" ? "pending" : "pending");
   const colors: Record<string, string> = {
-    paid: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
-    refunded: "bg-red-500/10 text-red-500 border-red-500/20",
-    partially_refunded: "bg-red-400/10 text-red-400 border-red-400/20",
-    fulfilled: "bg-blue-500/10 text-blue-500 border-blue-500/20",
-    delivered: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
-    partial: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
-    unfulfilled: "bg-background/10 text-muted-foreground border-foreground/10",
-    pending: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
-    authorized: "bg-purple-500/10 text-purple-500 border-purple-500/20",
+    paid: "bg-green-500/10 text-green-600 dark:text-green-400",
+    refunded: "bg-red-500/10 text-red-600 dark:text-red-400",
+    partially_refunded: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
+    fulfilled: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
+    delivered: "bg-green-500/10 text-green-600 dark:text-green-400",
+    partial: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
+    unfulfilled: "bg-foreground/[0.05] text-foreground/50",
+    pending: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
+    authorized: "bg-purple-500/10 text-purple-600 dark:text-purple-400",
   };
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border ${colors[label] || "bg-foreground/5 text-muted-foreground border-foreground/10"}`}>
+    <span className={`inline-flex px-2 py-0.5 rounded-sm text-[9px] font-medium uppercase tracking-widest ${colors[label] || "bg-foreground/[0.05] text-foreground/50"}`}>
       {label}
     </span>
   );
@@ -105,7 +106,7 @@ export default function OrdersPage() {
   const [search, setSearch] = useState("");
   const [toast, setToast] = useState<string | null>(null);
 
-  // New Modals State
+  // Modals State
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingOrder, setEditingOrder] = useState<ShopifyOrder | null>(null);
@@ -122,7 +123,6 @@ export default function OrdersPage() {
   const [selectedProductId, setSelectedProductId] = useState<string>("");
   const [isProductsLoading, setIsProductsLoading] = useState(false);
 
-  // Fetch products when modal opens
   useEffect(() => {
     if (isCreateModalOpen && products.length === 0) {
       const loadProducts = async () => {
@@ -184,11 +184,9 @@ export default function OrdersPage() {
           o.id === order.id ? { ...o, fulfillment_status: "fulfilled" } : o
         )
       );
-      showToast(`Order ${order.name} marked as fulfilled!`);
+      showToast(`Order ${order.name} fulfilled`);
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "Fulfillment failed";
-      showToast(`Error: ${message}`);
+      showToast(`Error: ${err instanceof Error ? err.message : "Fulfillment failed"}`);
     } finally {
       setFulfilling(null);
     }
@@ -208,11 +206,9 @@ export default function OrdersPage() {
           o.id === order.id ? { ...o, deliveryStatus: "delivered" } : o
         )
       );
-      showToast(`Order ${order.name} marked as delivered!`);
+      showToast(`Order ${order.name} delivered`);
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "Delivery update failed";
-      showToast(`Error: ${message}`);
+      showToast(`Error: ${err instanceof Error ? err.message : "Delivery update failed"}`);
     } finally {
       setDelivering(null);
     }
@@ -232,12 +228,10 @@ export default function OrdersPage() {
       if (!res.ok) throw new Error(data.error || "Update failed");
       
       setOrders(prev => prev.map(o => o.id === editingOrder.id ? { ...o, note: editForm.note, email: editForm.email } : o));
-      showToast("Order updated successfully!");
+      showToast("Order updated");
       setIsEditModalOpen(false);
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "Update failed";
-      showToast(`Error: ${message}`);
+      showToast(`Error: ${err instanceof Error ? err.message : "Update failed"}`);
     } finally {
       setActionLoading(false);
     }
@@ -246,7 +240,7 @@ export default function OrdersPage() {
   const handleCreateOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!createForm.variantId) {
-      showToast("Error: Please select a product variant");
+      showToast("Select a product variant");
       return;
     }
     
@@ -268,14 +262,12 @@ export default function OrdersPage() {
       if (!res.ok) throw new Error(data.error || "Create failed");
       
       setOrders(prev => [data.order, ...prev]);
-      showToast("Order created successfully!");
+      showToast("Order created");
       setIsCreateModalOpen(false);
       setCreateForm({ email: "", firstName: "", lastName: "", variantId: "", quantity: 1, address1: "", city: "", zip: "", country: "" });
       setSelectedProductId("");
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "Create failed";
-      showToast(`Error: ${message}`);
+      showToast(`Error: ${err instanceof Error ? err.message : "Create failed"}`);
     } finally {
         setActionLoading(false);
     }
@@ -297,58 +289,74 @@ export default function OrdersPage() {
   });
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {toast && (
-        <div className="fixed top-6 right-6 z-50 glass-card rounded-xl px-5 py-3 text-sm text-foreground border border-foreground/10 flex items-center gap-2 shadow-xl animate-in fade-in slide-in-from-top-4">
-          <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-          {toast}
-        </div>
-      )}
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="space-y-6 pb-20 relative z-10"
+    >
+      <AnimatePresence>
+        {toast && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20, x: '-50%' }}
+            animate={{ opacity: 1, y: 0, x: '-50%' }}
+            exit={{ opacity: 0, y: -20, x: '-50%' }}
+            className="fixed top-8 left-1/2 z-50 bg-background border border-foreground/[0.05] rounded-md px-4 py-2 text-[10px] font-medium text-foreground shadow-sm flex items-center gap-2 uppercase tracking-wide"
+          >
+            <Check className="w-3 h-3 text-green-500" />
+            {toast}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground mb-1 transition-colors">Orders</h1>
-          <p className="text-muted-foreground text-sm">
-            Live orders synced from Shopify — {orders.length} total.
+       {/* Header */}
+       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 relative z-10">
+        <div className="space-y-1">
+          <h1 className="text-xl font-semibold text-foreground tracking-tight">
+            Orders
+          </h1>
+          <p className="text-[11px] text-foreground/50 tracking-wide max-w-xl">
+            Manage fulfillment, payments, and order details.
           </p>
         </div>
-        <div className="flex gap-3">
+        
+         <div className="flex flex-col sm:flex-row gap-3">
           <button
             onClick={() => setIsCreateModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-foreground text-background hover:opacity-90 rounded-xl text-sm font-semibold transition-all w-fit shadow-lg shadow-foreground/5"
+            className="flex items-center gap-2 px-4 py-2 bg-background border border-foreground/[0.05] text-foreground rounded-md text-[10px] font-medium uppercase tracking-[0.15em] hover:bg-foreground/[0.02] transition-colors"
           >
-            <Plus className="w-4 h-4" />
-            Create
+            <Plus className="w-3 h-3" />
+            New Order
           </button>
           <button
             onClick={fetchOrders}
             disabled={loading}
-            className="flex items-center gap-2 px-4 py-2 glass glass-hover border border-foreground/5 rounded-xl text-sm font-medium text-foreground disabled:opacity-50 w-fit"
+            className="flex items-center gap-2 px-4 py-2 bg-foreground text-background rounded-md text-[10px] font-medium uppercase tracking-[0.15em] hover:opacity-90 disabled:opacity-50 transition-opacity"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+            <RefreshCw className={`w-3 h-3 ${loading ? "animate-spin" : ""}`} />
             Refresh
           </button>
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-3">
+      {/* Filters & Search */}
+       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-foreground/40" />
           <input
-            className="w-full bg-foreground/5 border border-foreground/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-foreground placeholder-muted-foreground/40 focus:outline-none focus:border-foreground/20 transition-all"
-            placeholder="Search by order #, customer name, or email…"
+            className="w-full bg-background border border-foreground/[0.05] rounded-md pl-9 pr-4 py-2 text-[11px] font-medium text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-foreground/20 transition-colors uppercase tracking-widest"
+            placeholder="Search orders..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <div className="flex gap-2 flex-wrap">
+         <div className="flex items-center bg-background border border-foreground/[0.05] rounded-md p-1">
           {(["any", "unfulfilled", "fulfilled", "refunded"] as StatusFilter[]).map((s) => (
             <button
               key={s}
               onClick={() => setStatusFilter(s)}
-              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all shadow-sm capitalize ${
-                statusFilter === s ? "bg-foreground text-background" : "glass glass-hover text-muted-foreground border border-foreground/5"
+              className={`px-3 py-1.5 rounded-[4px] text-[9px] font-medium uppercase tracking-[0.15em] transition-colors ${
+                statusFilter === s ? "bg-foreground text-background" : "text-foreground/50 hover:bg-foreground/[0.03]"
               }`}
             >
               {s === "any" ? "All" : s}
@@ -358,40 +366,40 @@ export default function OrdersPage() {
       </div>
 
       {error && (
-        <div className="glass-card rounded-2xl p-4 border border-red-500/20 text-red-500 text-sm">
-          {error}
+        <div className="bg-red-500/10 border border-red-500/20 rounded-md p-3 text-[10px] font-medium uppercase tracking-widest text-red-600 dark:text-red-400 mb-6">
+          Error: {error}
         </div>
       )}
 
-      <div className="glass-card rounded-2xl overflow-hidden shadow-xl shadow-foreground/[0.02]">
+      {/* Orders Table */}
+       <div className="bg-background border border-foreground/[0.05] rounded-xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm whitespace-nowrap">
-            <thead className="bg-foreground/5 border-b border-foreground/10 uppercase tracking-widest text-[10px] text-muted-foreground font-bold">
+          <table className="w-full text-left whitespace-nowrap">
+            <thead className="bg-foreground/[0.01] border-b border-foreground/[0.05]">
               <tr>
-                <th className="px-5 py-4 w-8"></th>
-                <th className="px-5 py-4 text-center">Order</th>
-                <th className="px-5 py-4">Customer</th>
-                <th className="px-5 py-4">Payment</th>
-                <th className="px-5 py-4">Fulfillment</th>
-                <th className="px-5 py-4">Delivery</th>
-                <th className="px-5 py-4">Total</th>
-                <th className="px-5 py-4">Date</th>
-                <th className="px-5 py-4">Actions</th>
+                <th className="px-5 py-3 w-8"></th>
+                <th className="px-5 py-3 text-[9px] font-semibold text-foreground/50 uppercase tracking-widest">Order</th>
+                <th className="px-5 py-3 text-[9px] font-semibold text-foreground/50 uppercase tracking-widest">Customer</th>
+                <th className="px-5 py-3 text-[9px] font-semibold text-foreground/50 uppercase tracking-widest">Payment</th>
+                <th className="px-5 py-3 text-[9px] font-semibold text-foreground/50 uppercase tracking-widest">Fulfillment</th>
+                <th className="px-5 py-3 text-[9px] font-semibold text-foreground/50 uppercase tracking-widest">Delivery</th>
+                <th className="px-5 py-3 text-[9px] font-semibold text-foreground/50 uppercase tracking-widest text-right">Total</th>
+                <th className="px-5 py-3 text-[9px] font-semibold text-foreground/50 uppercase tracking-widest text-center">Date</th>
+                <th className="px-5 py-3 text-[9px] font-semibold text-foreground/50 uppercase tracking-widest text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-foreground/5">
-              {loading ? (
-                <tr>
-                  <td colSpan={9} className="px-6 py-12 text-center text-muted-foreground">
-                    <Loader2 className="w-6 h-6 mx-auto animate-spin mb-2" />
-                    Loading orders...
+            <tbody className="divide-y divide-foreground/[0.05]">
+              {loading && orders.length === 0 ? (
+                 <tr>
+                  <td colSpan={9} className="px-5 py-12 text-center text-foreground/40">
+                    <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2" />
+                    <p className="text-[10px] font-medium uppercase tracking-widest">Loading...</p>
                   </td>
                 </tr>
               ) : displayedOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-6 py-12 text-center text-muted-foreground">
-                    <ShoppingCart className="w-8 h-8 mx-auto mb-3 opacity-20" />
-                    No orders match your filters.
+                  <td colSpan={9} className="px-5 py-12 text-center text-foreground/40">
+                    <p className="text-[10px] font-medium uppercase tracking-widest">No orders found</p>
                   </td>
                 </tr>
               ) : (
@@ -399,92 +407,66 @@ export default function OrdersPage() {
                   const rawName = order.customer
                     ? `${order.customer.first_name || ""} ${order.customer.last_name || ""}`.trim()
                     : "";
-                  const customerName = rawName || (order.customer ? "Name Redacted" : "Anonymous");
+                  const customerName = rawName || (order.customer ? "Guest" : "Unknown");
                   const isExpanded = expanded === order.id;
                   const isFulfilling = fulfilling === order.id;
                   const isDelivering = delivering === order.id;
-                  const canFulfill =
-                    !order.fulfillment_status || order.fulfillment_status === "unfulfilled";
-                  const canDeliver =
-                    order.fulfillment_status === "fulfilled" && order.deliveryStatus !== "delivered";
+                  const canFulfill = !order.fulfillment_status || order.fulfillment_status === "unfulfilled";
+                  const canDeliver = order.fulfillment_status === "fulfilled" && order.deliveryStatus !== "delivered";
 
                   return (
                     <React.Fragment key={order.id}>
                       <tr
-                        className="hover:bg-foreground/[0.03] transition-colors cursor-pointer group"
+                        className={`transition-colors cursor-pointer ${isExpanded ? 'bg-foreground/[0.01]' : 'hover:bg-foreground/[0.02]'}`}
                         onClick={() => setExpanded(isExpanded ? null : order.id)}
                       >
-                        <td className="px-5 py-4 text-muted-foreground">
-                          {isExpanded ? (
-                            <ChevronUp className="w-4 h-4" />
-                          ) : (
-                            <ChevronDown className="w-4 h-4" />
-                          )}
+                         <td className="px-5 py-3 text-foreground/40">
+                          {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                         </td>
-                        <td className="px-5 py-4 font-mono text-xs font-bold text-foreground">
-                          <Link
-                            href={`/dashboard/orders/${order.id}`}
-                            className="hover:text-blue-500 transition-colors"
-                            onClick={(e) => e.stopPropagation()}
-                          >
+                        <td className="px-5 py-3">
+                          <Link href={`/dashboard/orders/${order.id}`} className="text-[12px] font-semibold text-foreground hover:text-foreground/70 transition-colors" onClick={(e) => e.stopPropagation()}>
                             {order.name}
                           </Link>
                         </td>
-                        <td className="px-5 py-4 text-foreground/80">
-                          <div className={`font-medium ${rawName ? "" : "text-muted-foreground italic"}`}>{customerName}</div>
-                          {order.customer?.email && (
-                            <div className="text-[10px] text-muted-foreground/60">{order.customer.email}</div>
-                          )}
+                        <td className="px-5 py-3">
+                          <div className={`text-[11px] font-medium ${rawName ? "text-foreground" : "text-foreground/50 italic"}`}>{customerName}</div>
+                          {order.customer?.email && <div className="text-[9px] text-foreground/50 mt-0.5">{order.customer.email}</div>}
                         </td>
-                        <td className="px-5 py-4">
+                        <td className="px-5 py-3">
                           <StatusBadge status={order.financial_status} type="payment" />
                         </td>
-                        <td className="px-5 py-4">
+                        <td className="px-5 py-3">
                           <StatusBadge status={order.fulfillment_status} type="fulfillment" />
                         </td>
-                        <td className="px-5 py-4">
+                        <td className="px-5 py-3">
                           <StatusBadge status={order.deliveryStatus || 'pending'} type="delivery" />
                         </td>
-                        <td className="px-5 py-4 text-foreground font-semibold">
+                        <td className="px-5 py-3 text-[12px] font-medium text-foreground text-right">
                           ₹{parseFloat(order.total_price).toLocaleString("en-IN")}
                         </td>
-                        <td className="px-5 py-4 text-muted-foreground text-xs font-medium">
-                          {new Date(order.created_at).toLocaleDateString("en-IN", {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                          })}
+                        <td className="px-5 py-3 text-[10px] text-foreground/50 uppercase tracking-widest text-center">
+                          {new Date(order.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                         </td>
-                        <td className="px-5 py-4" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex items-center gap-2">
-                            {canFulfill && (
-                              <button
-                                onClick={() => handleFulfill(order)}
-                                disabled={isFulfilling}
-                                className="flex items-center gap-1.5 px-3 py-1.5 bg-foreground text-background rounded-lg text-xs font-bold uppercase tracking-wider hover:opacity-90 disabled:opacity-50 transition-all shadow-sm"
-                              >
-                                {isFulfilling ? (
-                                  <Loader2 className="w-3 h-3 animate-spin" />
-                                ) : (
-                                  <CheckCircle2 className="w-3.5 h-3.5" />
-                                )}
-                                Fulfill
-                              </button>
-                            )}
-                            {canDeliver && (
-                              <button
-                                onClick={(e) => { e.stopPropagation(); handleDeliver(order); }}
-                                disabled={isDelivering}
-                                className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-emerald-500 hover:text-white disabled:opacity-50 transition-all shadow-sm"
-                              >
-                                {isDelivering ? (
-                                  <Loader2 className="w-3 h-3 animate-spin" />
-                                ) : (
-                                  <CheckCircle2 className="w-3.5 h-3.5" />
-                                )}
-                                Deliver
-                              </button>
-                            )}
+                        <td className="px-5 py-3 text-right" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center justify-end gap-1.5">
+                             {canFulfill && (
+                               <button
+                                 onClick={() => handleFulfill(order)}
+                                 disabled={isFulfilling}
+                                 className="px-2 py-1 bg-foreground text-background rounded-sm text-[9px] font-medium uppercase tracking-widest hover:opacity-90 transition-opacity disabled:opacity-50"
+                               >
+                                 {isFulfilling ? "..." : "Fulfill"}
+                               </button>
+                             )}
+                             {canDeliver && (
+                               <button
+                                 onClick={(e) => { e.stopPropagation(); handleDeliver(order); }}
+                                 disabled={isDelivering}
+                                 className="px-2 py-1 bg-background border border-foreground/[0.05] text-foreground rounded-sm text-[9px] font-medium uppercase tracking-widest hover:bg-foreground/[0.02] transition-colors disabled:opacity-50"
+                               >
+                                 {isDelivering ? "..." : "Deliver"}
+                               </button>
+                             )}
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -492,107 +474,84 @@ export default function OrdersPage() {
                                 setEditForm({ note: order.note || "", email: order.customer?.email || "" });
                                 setIsEditModalOpen(true);
                               }}
-                              className="p-1.5 glass glass-hover border border-foreground/5 rounded-lg transition-all"
-                              title="Edit Order"
+                              className="p-1.5 text-foreground/40 hover:text-foreground transition-colors"
                             >
-                              <Edit2 className="w-3.5 h-3.5 text-muted-foreground" />
+                              <Edit2 className="w-3.5 h-3.5" />
                             </button>
                             <a
                               href={`https://${SHOPIFY_DOMAIN}/admin/orders/${order.id}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="p-1.5 glass glass-hover border border-foreground/5 rounded-lg transition-all"
-                              title="Open in Shopify Admin"
+                              className="p-1.5 text-foreground/40 hover:text-foreground transition-colors"
                             >
-                              <ExternalLink className="w-3.5 h-3.5 text-muted-foreground" />
+                              <ExternalLink className="w-3.5 h-3.5" />
                             </a>
                           </div>
                         </td>
                       </tr>
 
-                      {/* Expanded Row */}
-                      {isExpanded && (
-                        <tr className="bg-foreground/[0.02]">
-                          <td colSpan={9} className="px-8 py-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                              {/* Line Items */}
-                              <div>
-                                <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-4">
-                                  Items ({order.line_items.length})
-                                </h4>
-                                <div className="space-y-3">
-                                  {order.line_items.map((item) => (
-                                    <div
-                                      key={item.id}
-                                      className="flex justify-between items-center text-sm border-b border-foreground/5 pb-2"
-                                    >
-                                      <div>
-                                        <span className="text-foreground font-semibold">
-                                          {item.name || item.title}
-                                        </span>
-                                        {item.variant_title && (
-                                          <span className="text-xs text-muted-foreground ml-2 font-medium">
-                                            ({item.variant_title})
-                                          </span>
-                                        )}
-                                        {item.sku && (
-                                          <span className="text-[10px] font-mono text-muted-foreground/60 ml-2">
-                                            {item.sku}
-                                          </span>
-                                        )}
-                                      </div>
-                                      <div className="text-foreground/70 ml-4 shrink-0 font-bold">
-                                        {item.quantity} × ₹
-                                        {parseFloat(item.price).toLocaleString("en-IN")}
-                                      </div>
+                      <AnimatePresence>
+                        {isExpanded && (
+                          <motion.tr 
+                             initial={{ opacity: 0, height: 0 }}
+                             animate={{ opacity: 1, height: 'auto' }}
+                             exit={{ opacity: 0, height: 0 }}
+                             className="bg-foreground/[0.01] border-b border-foreground/[0.05] overflow-hidden"
+                          >
+                            <td colSpan={9} className="p-0">
+                               <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+                                  {/* Line Items */}
+                                  <div>
+                                    <h4 className="text-[9px] font-semibold uppercase tracking-widest text-foreground/50 mb-3 border-b border-foreground/[0.05] pb-2">
+                                      Items ({order.line_items.length})
+                                    </h4>
+                                    <div className="space-y-3">
+                                      {order.line_items.map((item) => (
+                                        <div key={item.id} className="flex justify-between items-start text-sm">
+                                          <div className="max-w-[70%]">
+                                            <p className="text-[11px] font-medium text-foreground break-words">{item.name || item.title}</p>
+                                            {item.sku && <p className="text-[9px] font-mono text-foreground/40 mt-0.5">SKU: {item.sku}</p>}
+                                          </div>
+                                          <div className="text-[11px] font-medium text-foreground text-right">
+                                            {item.quantity} × ₹{parseFloat(item.price).toLocaleString("en-IN")}
+                                          </div>
+                                        </div>
+                                      ))}
                                     </div>
-                                  ))}
-                                </div>
-                              </div>
+                                  </div>
 
-                              {/* Shipping Address */}
-                              {order.shipping_address && (
-                                <div>
-                                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-4">
-                                    Shipping Destination
-                                  </h4>
-                                  <address className="not-italic text-sm text-foreground/80 space-y-1">
-                                    <div className="font-bold text-foreground">
-                                      {order.shipping_address.first_name}{" "}
-                                      {order.shipping_address.last_name}
-                                    </div>
-                                    {order.shipping_address.company && (
-                                      <div className="text-xs">{order.shipping_address.company}</div>
-                                    )}
-                                    <div>{order.shipping_address.address1}</div>
-                                    {order.shipping_address.address2 && (
-                                      <div>{order.shipping_address.address2}</div>
-                                    )}
-                                    <div>
-                                      {order.shipping_address.city},{" "}
-                                      {order.shipping_address.province}{" "}
-                                      {order.shipping_address.zip}
-                                    </div>
-                                    <div>{order.shipping_address.country}</div>
-                                    {order.shipping_address.phone && (
-                                      <div className="text-xs text-muted-foreground mt-2 border-t border-foreground/5 pt-2">
-                                        <span className="font-bold uppercase tracking-tighter text-[10px] mr-2">Contact:</span>
-                                        {order.shipping_address.phone}
+                                  {/* Details */}
+                                  <div className="space-y-6">
+                                    {order.shipping_address && (
+                                      <div>
+                                        <h4 className="text-[9px] font-semibold uppercase tracking-widest text-foreground/50 mb-3 border-b border-foreground/[0.05] pb-2">
+                                          Shipping Address
+                                        </h4>
+                                        <div className="text-[11px] text-foreground/80 space-y-0.5">
+                                          <p className="font-medium text-foreground">{order.shipping_address.first_name} {order.shipping_address.last_name}</p>
+                                          {order.shipping_address.company && <p>{order.shipping_address.company}</p>}
+                                          <p>{order.shipping_address.address1}</p>
+                                          {order.shipping_address.address2 && <p>{order.shipping_address.address2}</p>}
+                                          <p>{order.shipping_address.city}, {order.shipping_address.province} {order.shipping_address.zip}</p>
+                                          <p className="text-[9px] uppercase tracking-widest text-foreground/50 mt-1">{order.shipping_address.country}</p>
+                                          {order.shipping_address.phone && <p className="mt-2 font-mono text-[9px]">{order.shipping_address.phone}</p>}
+                                        </div>
                                       </div>
                                     )}
-                                  </address>
-                                </div>
-                              )}
-                            </div>
-                            {order.note && (
-                              <div className="mt-6 p-4 rounded-xl bg-foreground/5 border border-foreground/10 text-sm text-foreground/70">
-                                <span className="text-muted-foreground font-bold text-[10px] uppercase tracking-wider block mb-1">Customer Note:</span>
-                                {order.note}
-                              </div>
-                            )}
-                          </td>
-                        </tr>
-                      )}
+                                    {order.note && (
+                                       <div>
+                                        <h4 className="text-[9px] font-semibold uppercase tracking-widest text-foreground/50 mb-3 border-b border-foreground/[0.05] pb-2">
+                                          Order Note
+                                        </h4>
+                                        <p className="text-[11px] text-foreground/80 bg-background border border-foreground/[0.05] p-3 rounded-md">{order.note}</p>
+                                       </div>
+                                    )}
+                                  </div>
+                               </div>
+                            </td>
+                          </motion.tr>
+                        )}
+                      </AnimatePresence>
                     </React.Fragment>
                   );
                 })
@@ -604,38 +563,39 @@ export default function OrdersPage() {
 
       {/* Edit Modal */}
       {isEditModalOpen && editingOrder && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="glass-card w-full max-w-md rounded-2xl p-8 border border-foreground/10 shadow-2xl animate-in zoom-in-95 duration-200">
-            <div className="flex justify-between items-center mb-8">
-              <h2 className="text-xl font-rocaston tracking-widest text-foreground">EDIT ORDER</h2>
-              <button onClick={() => setIsEditModalOpen(false)} className="text-muted-foreground hover:text-foreground transition-all">
-                <X className="w-5 h-5" />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+           <div className="absolute inset-0 z-0" onClick={() => setIsEditModalOpen(false)}></div>
+          <div className="bg-background w-full max-w-sm rounded-xl p-6 border border-foreground/[0.05] shadow-lg relative z-10">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-[12px] font-semibold text-foreground tracking-widest uppercase">Edit Order</h2>
+              <button onClick={() => setIsEditModalOpen(false)} className="text-foreground/40 hover:text-foreground">
+                <X className="w-4 h-4" />
               </button>
             </div>
-            <form onSubmit={handleUpdateOrder} className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Customer Email</label>
+            <form onSubmit={handleUpdateOrder} className="space-y-4">
+               <div>
+                <label className="block text-[9px] font-semibold uppercase tracking-widest text-foreground/50 mb-1.5">Email</label>
                 <input
                   type="email"
                   value={editForm.email}
                   onChange={(e) => setEditForm(prev => ({ ...prev, email: e.target.value }))}
-                  className="w-full glass bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-foreground/20 transition-all font-mono"
+                  className="w-full bg-foreground/[0.02] border border-foreground/[0.05] focus:border-foreground/20 rounded-md px-3 py-2 text-[11px] font-medium text-foreground outline-none"
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Order Note</label>
+              <div>
+                <label className="block text-[9px] font-semibold uppercase tracking-widest text-foreground/50 mb-1.5">Note</label>
                 <textarea
                   value={editForm.note}
                   onChange={(e) => setEditForm(prev => ({ ...prev, note: e.target.value }))}
-                  className="w-full glass bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-foreground/20 transition-all min-h-[120px]"
+                  className="w-full bg-foreground/[0.02] border border-foreground/[0.05] focus:border-foreground/20 rounded-md px-3 py-2 text-[11px] font-medium text-foreground outline-none resize-none h-24"
                 />
               </div>
               <button
                 type="submit"
                 disabled={actionLoading}
-                className="w-full flex items-center justify-center py-3.5 bg-foreground text-background hover:opacity-90 rounded-xl text-xs font-bold uppercase tracking-widest transition-all disabled:opacity-50 shadow-lg"
+                className="w-full py-2 bg-foreground text-background rounded-md text-[10px] font-semibold uppercase tracking-[0.15em] hover:opacity-90 disabled:opacity-50 transition-opacity mt-2"
               >
-                {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "SAVE CHANGES"}
+                {actionLoading ? "Saving..." : "Save Changes"}
               </button>
             </form>
           </div>
@@ -644,99 +604,102 @@ export default function OrdersPage() {
 
       {/* Create Modal */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-md animate-in fade-in duration-300 overflow-y-auto">
-          <div className="glass-card w-full max-w-xl rounded-2xl p-8 border border-foreground/10 shadow-2xl animate-in zoom-in-95 duration-200 my-8">
-            <div className="flex justify-between items-center mb-8">
-              <h2 className="text-xl font-rocaston tracking-widest text-foreground">CREATE ORDER</h2>
-              <button onClick={() => setIsCreateModalOpen(false)} className="text-muted-foreground hover:text-foreground transition-all">
-                <X className="w-5 h-5" />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm overflow-y-auto">
+           <div className="absolute inset-0 z-0 h-[150vh]" onClick={() => setIsCreateModalOpen(false)}></div>
+          <div className="bg-background w-full max-w-lg rounded-xl p-6 border border-foreground/[0.05] shadow-lg relative z-10 my-8">
+            <div className="flex justify-between items-center mb-6 border-b border-foreground/[0.05] pb-4">
+              <h2 className="text-[12px] font-semibold text-foreground tracking-widest uppercase">Create Draft Order</h2>
+              <button onClick={() => setIsCreateModalOpen(false)} className="text-foreground/40 hover:text-foreground">
+                <X className="w-4 h-4" />
               </button>
             </div>
-            <form onSubmit={handleCreateOrder} className="space-y-6">
+            
+            <form onSubmit={handleCreateOrder} className="space-y-5">
                <div className="grid grid-cols-2 gap-4">
-                 <div className="space-y-2">
-                   <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">First Name</label>
-                   <input required value={createForm.firstName} onChange={(e) => setCreateForm(p => ({...p, firstName: e.target.value}))} className="w-full glass bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-foreground/20" />
+                 <div>
+                   <label className="block text-[9px] font-semibold uppercase tracking-widest text-foreground/50 mb-1.5">First Name</label>
+                   <input required value={createForm.firstName} onChange={(e) => setCreateForm(p => ({...p, firstName: e.target.value}))} className="w-full bg-foreground/[0.02] border border-foreground/[0.05] focus:border-foreground/20 rounded-md px-3 py-2 text-[11px] font-medium text-foreground outline-none" />
                  </div>
-                 <div className="space-y-2">
-                   <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Last Name</label>
-                   <input required value={createForm.lastName} onChange={(e) => setCreateForm(p => ({...p, lastName: e.target.value}))} className="w-full glass bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-foreground/20" />
+                 <div>
+                   <label className="block text-[9px] font-semibold uppercase tracking-widest text-foreground/50 mb-1.5">Last Name</label>
+                   <input required value={createForm.lastName} onChange={(e) => setCreateForm(p => ({...p, lastName: e.target.value}))} className="w-full bg-foreground/[0.02] border border-foreground/[0.05] focus:border-foreground/20 rounded-md px-3 py-2 text-[11px] font-medium text-foreground outline-none" />
                  </div>
                </div>
-               <div className="space-y-2">
-                 <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Email</label>
-                 <input required type="email" value={createForm.email} onChange={(e) => setCreateForm(p => ({...p, email: e.target.value}))} className="w-full glass bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-foreground/20" />
+               <div>
+                 <label className="block text-[9px] font-semibold uppercase tracking-widest text-foreground/50 mb-1.5">Email</label>
+                 <input required type="email" value={createForm.email} onChange={(e) => setCreateForm(p => ({...p, email: e.target.value}))} className="w-full bg-foreground/[0.02] border border-foreground/[0.05] focus:border-foreground/20 rounded-md px-3 py-2 text-[11px] font-medium text-foreground outline-none" />
                </div>
 
-               <div className="pt-6 border-t border-foreground/5">
-                 <h3 className="text-xs font-extrabold text-foreground mb-4 uppercase tracking-[0.2em]">Product Item</h3>
-                 <div className="grid grid-cols-12 gap-4 relative">
+               <div className="pt-2">
+                 <h3 className="text-[9px] font-semibold text-foreground/50 uppercase tracking-widest mb-3 border-b border-foreground/[0.05] pb-2">Line Item</h3>
+                 <div className="space-y-3 relative">
                    {isProductsLoading && (
-                     <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/40 rounded-lg">
-                       <Loader2 className="w-4 h-4 animate-spin text-foreground" />
+                     <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/50 backdrop-blur-sm">
+                       <Loader2 className="w-4 h-4 animate-spin text-foreground/50" />
                      </div>
                    )}
-                   <div className="col-span-12 sm:col-span-12 space-y-2">
-                     <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Select Product</label>
-                     <div className="relative">
-                       <select
-                         required
-                         value={selectedProductId}
-                         onChange={(e) => {
-                           setSelectedProductId(e.target.value);
-                           setCreateForm((p) => ({ ...p, variantId: "" })); // reset variant
-                         }}
-                         className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-foreground/20 appearance-none transition-all"
-                       >
-                         <option value="" disabled className="text-muted-foreground">Choose product...</option>
-                         {products.map((p) => (
-                           <option key={p.id} value={p.id} className="text-foreground bg-background">
-                             {p.title}
-                           </option>
-                         ))}
-                       </select>
-                       <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-                     </div>
+                   <div>
+                     <label className="block text-[9px] font-semibold uppercase tracking-widest text-foreground/50 mb-1.5">Product</label>
+                     <select
+                       required
+                       value={selectedProductId}
+                       onChange={(e) => {
+                         setSelectedProductId(e.target.value);
+                         setCreateForm((p) => ({ ...p, variantId: "" }));
+                       }}
+                       className="w-full bg-foreground/[0.02] border border-foreground/[0.05] focus:border-foreground/20 rounded-md px-3 py-2 text-[11px] font-medium text-foreground outline-none appearance-none"
+                     >
+                       <option value="" disabled>Select Product...</option>
+                       {products.map((p) => <option key={p.id} value={p.id}>{p.title}</option>)}
+                     </select>
                    </div>
                    
-                   <div className="col-span-9 sm:col-span-9 space-y-2">
-                     <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Select Variant</label>
-                     <div className="relative">
+                   <div className="grid grid-cols-4 gap-4">
+                     <div className="col-span-3">
+                       <label className="block text-[9px] font-semibold uppercase tracking-widest text-foreground/50 mb-1.5">Variant</label>
                        <select
                          required
                          disabled={!selectedProductId}
                          value={createForm.variantId}
                          onChange={(e) => setCreateForm((p) => ({ ...p, variantId: e.target.value }))}
-                         className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-foreground/20 appearance-none disabled:opacity-40 transition-all font-mono"
+                         className="w-full bg-foreground/[0.02] border border-foreground/[0.05] focus:border-foreground/20 rounded-md px-3 py-2 text-[11px] font-medium text-foreground outline-none appearance-none disabled:opacity-50"
                        >
-                         <option value="" disabled className="text-muted-foreground">Choose variant...</option>
-                         {products
-                           .find((p) => p.id.toString() === selectedProductId)
-                           ?.variants.map((v) => (
-                             <option key={v.id} value={v.id} className="text-foreground bg-background">
-                               {v.title !== "Default Title" ? v.title : "Standard"} - ₹{v.price} ({v.inventory_quantity} in stock)
-                             </option>
-                           ))}
+                         <option value="" disabled>Select Variant...</option>
+                         {products.find((p) => p.id.toString() === selectedProductId)?.variants.map((v) => (
+                           <option key={v.id} value={v.id}>
+                             {v.title !== "Default Title" ? v.title : "Default"} - ₹{v.price}
+                           </option>
+                         ))}
                        </select>
-                       <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
                      </div>
-                   </div>
-
-                   <div className="col-span-3 sm:col-span-3 space-y-2">
-                     <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground text-center block">Qty</label>
-                     <input required type="number" min="1" value={createForm.quantity} onChange={(e) => setCreateForm(p => ({...p, quantity: parseInt(e.target.value) || 1}))} className="w-full glass bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3 text-sm text-foreground text-center focus:outline-none focus:ring-1 focus:ring-foreground/20 font-bold" />
+                     <div>
+                       <label className="block text-[9px] font-semibold uppercase tracking-widest text-foreground/50 mb-1.5">Qty</label>
+                       <input required type="number" min="1" value={createForm.quantity} onChange={(e) => setCreateForm(p => ({...p, quantity: parseInt(e.target.value) || 1}))} className="w-full bg-foreground/[0.02] border border-foreground/[0.05] focus:border-foreground/20 rounded-md px-3 py-2 text-[11px] font-medium text-foreground outline-none" />
+                     </div>
                    </div>
                  </div>
                </div>
 
-               <div className="pt-6 border-t border-foreground/5">
-                 <h3 className="text-xs font-extrabold text-foreground mb-4 uppercase tracking-[0.2em]">Shipping</h3>
-                 <div className="space-y-4">
-                   <input required placeholder="Full Street Address" value={createForm.address1} onChange={(e) => setCreateForm(p => ({...p, address1: e.target.value}))} className="w-full glass bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-foreground/20" />
-                   <div className="grid grid-cols-3 gap-4">
-                     <input required placeholder="City" value={createForm.city} onChange={(e) => setCreateForm(p => ({...p, city: e.target.value}))} className="w-full glass bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3 text-xs text-foreground focus:outline-none" />
-                     <input required placeholder="ZIP" value={createForm.zip} onChange={(e) => setCreateForm(p => ({...p, zip: e.target.value}))} className="w-full glass bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3 text-xs text-foreground font-mono focus:outline-none" />
-                     <input required placeholder="Country" value={createForm.country} onChange={(e) => setCreateForm(p => ({...p, country: e.target.value}))} className="w-full glass bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3 text-xs text-foreground focus:outline-none" />
+               <div className="pt-2">
+                 <h3 className="text-[9px] font-semibold text-foreground/50 uppercase tracking-widest mb-3 border-b border-foreground/[0.05] pb-2">Shipping</h3>
+                 <div className="space-y-3">
+                    <div>
+                      <label className="block text-[9px] font-semibold uppercase tracking-widest text-foreground/50 mb-1.5">Address</label>
+                      <input required value={createForm.address1} onChange={(e) => setCreateForm(p => ({...p, address1: e.target.value}))} className="w-full bg-foreground/[0.02] border border-foreground/[0.05] focus:border-foreground/20 rounded-md px-3 py-2 text-[11px] font-medium text-foreground outline-none" />
+                   </div>
+                   <div className="grid grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-[9px] font-semibold uppercase tracking-widest text-foreground/50 mb-1.5">City</label>
+                        <input required value={createForm.city} onChange={(e) => setCreateForm(p => ({...p, city: e.target.value}))} className="w-full bg-foreground/[0.02] border border-foreground/[0.05] focus:border-foreground/20 rounded-md px-3 py-2 text-[11px] font-medium text-foreground outline-none" />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-semibold uppercase tracking-widest text-foreground/50 mb-1.5">Zip</label>
+                        <input required value={createForm.zip} onChange={(e) => setCreateForm(p => ({...p, zip: e.target.value}))} className="w-full bg-foreground/[0.02] border border-foreground/[0.05] focus:border-foreground/20 rounded-md px-3 py-2 text-[11px] font-medium text-foreground outline-none" />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-semibold uppercase tracking-widest text-foreground/50 mb-1.5">Country</label>
+                        <input required value={createForm.country} onChange={(e) => setCreateForm(p => ({...p, country: e.target.value}))} className="w-full bg-foreground/[0.02] border border-foreground/[0.05] focus:border-foreground/20 rounded-md px-3 py-2 text-[11px] font-medium text-foreground outline-none" />
+                      </div>
                    </div>
                  </div>
                </div>
@@ -744,14 +707,14 @@ export default function OrdersPage() {
                <button
                 type="submit"
                 disabled={actionLoading}
-                className="w-full flex items-center justify-center py-4 bg-foreground text-background hover:opacity-95 rounded-xl text-xs font-bold uppercase tracking-widest transition-all disabled:opacity-50 mt-6 shadow-xl"
+                className="w-full py-2.5 bg-foreground text-background rounded-md text-[10px] font-semibold uppercase tracking-[0.15em] hover:opacity-90 disabled:opacity-50 transition-opacity mt-4"
               >
-                {actionLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "CREATE OFFICIAL ORDER"}
+                {actionLoading ? "Processing..." : "Create Order"}
               </button>
             </form>
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }

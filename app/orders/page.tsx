@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Package, 
   Truck, 
   ChevronRight, 
-  Search, 
-  ArrowLeft,
   Clock,
   CheckCircle2,
   AlertCircle,
@@ -15,13 +14,19 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import StorefrontHeader from "@/components/StorefrontHeader";
 import StorefrontNav from "@/components/StorefrontNav";
 
 export default function OrdersPage() {
+  const { data: session, status } = useSession();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+
+  useEffect(() => {
+    if (status === "unauthenticated" && !loading) {
+      router.push("/login?callbackUrl=/orders");
+    }
+  }, [status, loading, router]);
 
   useEffect(() => {
     fetchOrders();
@@ -30,6 +35,10 @@ export default function OrdersPage() {
   const fetchOrders = async () => {
     try {
       const res = await fetch("/api/orders");
+      if (res.status === 401) {
+        router.push("/login?callbackUrl=/orders");
+        return;
+      }
       const data = await res.json();
       if (res.ok) {
         setOrders(data.orders);
@@ -58,9 +67,7 @@ export default function OrdersPage() {
         <div className="absolute -bottom-[10%] -left-[10%] w-[50vw] h-[50vw] rounded-full glow-orb-1 opacity-5 dark:opacity-10" />
       </div>
 
-      <StorefrontHeader />
-
-      <main className="relative z-10 max-w-md mx-auto px-4 pt-header pb-40">
+      <main className="relative z-10 max-w-md mx-auto px-4 pt-20 pb-40">
         {/* Page Title - Cart Style */}
         <div className="mb-8">
           <p className="text-[7px] font-extralight uppercase tracking-[0.55em] text-muted-foreground/35 mb-0.5 ml-0.5">Your</p>
@@ -73,9 +80,6 @@ export default function OrdersPage() {
                 </span>
               )}
             </h1>
-            <Link href="/profile" className="text-[7px] font-black uppercase tracking-widest text-muted-foreground/30 hover:text-foreground/60 transition-colors">
-              Back to Profile
-            </Link>
           </div>
         </div>
 

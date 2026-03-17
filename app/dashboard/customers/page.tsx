@@ -5,13 +5,14 @@ import {
   Users,
   Mail,
   Phone,
-  CalendarDays,
   Loader2,
   RefreshCw,
   ChevronDown,
   ChevronUp,
   Download,
+  ShoppingCart
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface CustomerOrderItem {
   id: string;
@@ -59,9 +60,7 @@ export default function CustomersPage() {
       setCustomers(data.customers || []);
       if (data.error) setError(data.error);
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "Failed to load customers";
-      setError(message);
+      setError(err instanceof Error ? err.message : "Failed to load customers");
     } finally {
       setLoading(false);
     }
@@ -71,203 +70,180 @@ export default function CustomersPage() {
     fetchCustomers();
   }, []);
 
+  if (loading && customers.length === 0) {
+     return (
+        <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+          <Loader2 className="w-4 h-4 text-foreground/40 animate-spin" />
+          <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-foreground/40">Loading Customers...</span>
+        </div>
+      );
+  }
+
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground mb-1">
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="pb-20 space-y-6 relative z-10"
+    >
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 relative z-10">
+        <div className="space-y-1">
+          <h1 className="text-xl font-semibold text-foreground tracking-tight">
             Customers
           </h1>
-          <p className="text-muted-foreground text-sm">
-            Customers synced from Shopify with their orders.
+          <p className="text-[11px] text-foreground/50 tracking-wide max-w-xl">
+            Manage customer identities and monitor purchase logic.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        
+        <div className="flex items-center gap-3">
           <a
             href="/api/admin/customers?format=csv"
-            className="flex items-center gap-2 px-3 py-2 island-blur island-blur-hover rounded-xl text-xs font-medium text-foreground transition-all duration-300 active:scale-95"
+            className="flex items-center gap-2 px-4 py-2 bg-background border border-foreground/[0.05] text-foreground rounded-md text-[10px] font-medium uppercase tracking-[0.15em] hover:bg-foreground/[0.02] transition-colors"
           >
-            <Download className="w-3.5 h-3.5" />
-            Export CSV
+            <Download className="w-3 h-3" />
+            Export
           </a>
           <button
             onClick={fetchCustomers}
             disabled={loading}
-            className="flex items-center gap-2 px-4 py-2 island-blur island-blur-hover rounded-xl text-sm font-medium text-foreground transition-all duration-300 disabled:opacity-50 active:scale-95"
+            className="flex items-center gap-2 px-4 py-2 bg-foreground text-background rounded-md text-[10px] font-medium uppercase tracking-[0.15em] hover:opacity-90 disabled:opacity-50 transition-opacity"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+            <RefreshCw className={`w-3 h-3 ${loading ? "animate-spin" : ""}`} />
             Refresh
           </button>
         </div>
       </div>
 
       {error && (
-        <div className="glass-card rounded-2xl p-4 border border-destructive/20 text-destructive text-sm">
-          {error}
+        <div className="bg-red-500/10 border border-red-500/20 rounded-md p-3 text-[10px] font-medium uppercase tracking-widest text-red-600 dark:text-red-400 mb-6">
+          Error: {error}
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-4">
-        {loading ? (
-          <div className="glass-card rounded-2xl p-12 text-center flex justify-center border border-foreground/5 backdrop-blur-md">
-            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-          </div>
-        ) : customers.length === 0 ? (
-          <div className="glass-card rounded-2xl p-12 text-center border border-foreground/5 backdrop-blur-sm">
-            <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-foreground">No customers found</h3>
-            <p className="text-muted-foreground mt-2">
-              Run a Shopify sync to import customers.
-            </p>
+      <div className="space-y-3 relative z-10">
+        {customers.length === 0 ? (
+          <div className="bg-background border border-foreground/[0.05] rounded-xl p-12 text-center shadow-sm">
+            <Users className="w-8 h-8 text-foreground/20 mx-auto mb-4" />
+            <h3 className="text-[12px] font-medium text-foreground tracking-tight">No Customers Found</h3>
           </div>
         ) : (
           customers.map((customer) => {
-            const fullName =
-              customer.name || customer.email || "Anonymous User";
+            const fullName = customer.name || customer.email || "Guest";
             const isExpanded = expandedId === customer.id;
 
             return (
-              <div
+              <motion.div
                 key={customer.id}
-                className="glass-card rounded-2xl p-6 space-y-4 border border-foreground/[0.03] backdrop-blur-sm shadow-sm transition-all duration-300 hover:border-foreground/[0.08]"
+                initial={false}
+                className="bg-background border border-foreground/[0.05] rounded-xl overflow-hidden shadow-sm transition-all"
               >
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-foreground/[0.05] flex items-center justify-center text-foreground font-semibold border border-foreground/[0.1] shadow-inner">
-                        {fullName.charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-foreground tracking-tight">
-                          {fullName}
-                        </h3>
-                        <div className="flex flex-wrap items-center gap-3 mt-1 text-sm text-button-muted-foreground">
-                          {customer.email && (
-                            <span className="flex items-center gap-1.5 hover:text-foreground transition-colors cursor-pointer">
-                              <Mail className="w-3.5 h-3.5 opacity-70" /> {customer.email}
-                            </span>
-                          )}
-                          {customer.phone && (
-                            <span className="flex items-center gap-1.5 hover:text-foreground transition-colors cursor-pointer">
-                              <Phone className="w-3.5 h-3.5 opacity-70" /> {customer.phone}
-                            </span>
-                          )}
-                        </div>
+                <div 
+                  className={`flex flex-col md:flex-row md:items-center justify-between gap-6 p-5 cursor-pointer hover:bg-foreground/[0.01] transition-colors ${
+                    isExpanded ? "border-b border-foreground/[0.05] bg-foreground/[0.01]" : ""
+                  }`}
+                  onClick={() => setExpandedId(isExpanded ? null : customer.id)}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-full bg-foreground/[0.03] flex items-center justify-center text-[11px] font-semibold text-foreground">
+                      {fullName.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <h3 className="text-[13px] font-semibold text-foreground tracking-tight">
+                        {fullName}
+                      </h3>
+                      <div className="flex items-center gap-3 mt-1 text-[10px] text-foreground/50">
+                        {customer.email && (
+                          <span className="flex items-center gap-1.5">
+                            <Mail className="w-3 h-3" /> {customer.email}
+                          </span>
+                        )}
+                        {customer.phone && (
+                          <span className="flex items-center gap-1.5">
+                            <Phone className="w-3 h-3" /> {customer.phone}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-6 bg-foreground/[0.02] md:bg-transparent rounded-xl p-4 md:p-0">
-                    <div className="text-center md:text-right px-2">
-                      <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mb-1 opacity-70">
-                        Total Orders
-                      </p>
-                      <p className="text-xl font-black text-foreground tracking-tighter">
-                        {customer.totalOrders}
-                      </p>
+                  <div className="flex items-center gap-8 px-2 md:px-0">
+                    <div className="text-right">
+                      <p className="text-[9px] text-foreground/40 font-semibold uppercase tracking-widest mb-1">Orders</p>
+                      <p className="text-[12px] font-semibold text-foreground">{customer.totalOrders}</p>
                     </div>
-                    <div className="text-center md:text-right px-2">
-                      <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mb-1 opacity-70">
-                        Total Spent
-                      </p>
-                      <p className="text-xl font-black text-foreground tracking-tighter">
-                        ₹{customer.totalSpent.toLocaleString("en-IN")}
-                      </p>
+                    <div className="text-right">
+                      <p className="text-[9px] text-foreground/40 font-semibold uppercase tracking-widest mb-1">Lifetime</p>
+                      <p className="text-[12px] font-semibold text-foreground">₹{customer.totalSpent.toLocaleString("en-IN")}</p>
                     </div>
-                    <div className="text-center md:text-right hidden sm:block px-2">
-                      <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mb-1 opacity-70">
-                        Joined
-                      </p>
-                      <p className="text-sm font-bold text-foreground/80 tracking-tight flex items-center justify-end gap-1.5">
-                        <CalendarDays className="w-3.5 h-3.5 opacity-60" />
-                        {new Date(customer.createdAt).toLocaleDateString(
-                          "en-IN"
-                        )}
-                      </p>
+                    <div className="text-right">
+                      <p className="text-[9px] text-foreground/40 font-semibold uppercase tracking-widest mb-1">Joined</p>
+                      <p className="text-[11px] font-medium text-foreground/60">{new Date(customer.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</p>
+                    </div>
+                    <div className="pl-2 text-foreground/40">
+                      {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                     </div>
                   </div>
                 </div>
-
-                <div className="flex flex-col gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setExpandedId(isExpanded ? null : customer.id)}
-                    className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl transition-all duration-300 text-xs font-bold leading-none ${
-                        isExpanded 
-                        ? "bg-foreground text-background shadow-lg scale-[0.99]" 
-                        : "bg-foreground/[0.04] hover:bg-foreground/[0.08] text-foreground"
-                    }`}
-                  >
-                    <span className="uppercase tracking-widest opacity-90">
-                      {customer.totalOrders === 0
-                        ? "No orders yet"
-                        : `${customer.totalOrders} order${
-                            customer.totalOrders > 1 ? "s" : ""
-                          }`}
-                    </span>
-                    {isExpanded ? (
-                      <ChevronUp className="w-4 h-4 stroke-[3px]" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4 stroke-[3px]" />
-                    )}
-                  </button>
-                  
+                
+                <AnimatePresence>
                   {isExpanded && customer.orders.length > 0 && (
-                    <div className="mt-3 grid gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
-                      {customer.orders.map((order) => (
-                        <div
-                          key={order.id}
-                          className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-foreground/[0.02] border border-foreground/[0.05] rounded-2xl px-4 py-4 transition-all hover:border-foreground/[0.1] hover:bg-foreground/[0.03]"
-                        >
-                          <div className="space-y-2">
-                            <div className="flex items-center gap-2">
-                              <p className="font-black text-foreground text-sm uppercase tracking-tight">
-                                Order #{order.shopifyOrderId}
+                    <motion.div 
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="p-5 bg-foreground/[0.01]"
+                    >
+                      <div className="space-y-3">
+                         <h4 className="text-[9px] font-semibold uppercase tracking-widest text-foreground/40 mb-2">Order History</h4>
+                        {customer.orders.map((order) => (
+                          <div
+                            key={order.id}
+                            className="flex items-center justify-between gap-4 bg-background border border-foreground/[0.05] rounded-md px-4 py-3"
+                          >
+                            <div className="flex items-center gap-3">
+                               <ShoppingCart className="w-3.5 h-3.5 text-foreground/40" />
+                              <p className="text-[11px] font-semibold text-foreground">
+                                #{order.shopifyOrderId}
                               </p>
-                              <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter ${
+                              <span className={`px-2 py-0.5 rounded-sm text-[9px] font-medium uppercase tracking-widest ${
                                 order.fulfillmentStatus === 'fulfilled' 
-                                ? 'bg-green-500/10 text-green-600 border border-green-500/20' 
-                                : 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
+                                ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' 
+                                : 'bg-orange-500/10 text-orange-600 dark:text-orange-400'
                               }`}>
-                                {order.fulfillmentStatus}
+                                {order.fulfillmentStatus || 'unfulfilled'}
                               </span>
                             </div>
-                            <p className="text-[10px] font-bold text-muted-foreground uppercase opacity-80">
-                              {new Date(order.createdAt).toLocaleString("en-IN", {
-                                day: '2-digit',
-                                month: 'short',
-                                year: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
-                            </p>
-                            <div className="flex flex-wrap gap-1.5 mt-2">
-                              {order.items.map((item, idx) => (
-                                <span key={idx} className="bg-foreground/[0.05] px-2 py-1 rounded-lg text-[10px] font-bold text-foreground/80 border border-foreground/[0.05]">
-                                  {item.title} <span className="text-muted-foreground mx-1">×</span> {item.quantity}
-                                </span>
-                              ))}
+                            
+                            <div className="flex items-center gap-6">
+                               <p className="text-[10px] font-medium text-foreground/50 hidden sm:block">
+                                {new Date(order.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                              </p>
+                              <div className="flex items-center gap-4 border-l border-foreground/[0.05] pl-6">
+                                <span className={`text-[9px] font-medium px-2 py-0.5 rounded-sm uppercase tracking-widest ${
+                                    order.paymentStatus === 'paid' 
+                                    ? 'bg-green-500/10 text-green-600 dark:text-green-400' 
+                                    : 'bg-red-500/10 text-red-600 dark:text-red-400'
+                                  }`}>
+                                    {order.paymentStatus}
+                                  </span>
+                                <p className="text-[12px] font-semibold text-foreground">
+                                  ₹{order.totalPrice.toLocaleString("en-IN")}
+                                </p>
+                              </div>
                             </div>
                           </div>
-                          <div className="text-right flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2 border-t sm:border-t-0 border-foreground/[0.05] pt-3 sm:pt-0">
-                            <p className="text-lg font-black text-foreground tracking-tighter">
-                              ₹{order.totalPrice.toLocaleString("en-IN")}
-                            </p>
-                            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-60">
-                              {order.paymentStatus}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    </motion.div>
                   )}
-                </div>
-              </div>
+                </AnimatePresence>
+              </motion.div>
             );
           })
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }
-

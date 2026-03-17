@@ -65,10 +65,55 @@ async function main() {
         }
       ]
     });
-    console.log('Seed completed successfully.');
+    console.log('Featured users created.');
   } else {
-    console.log('Featured users already exist. Skipping seed.');
+    console.log('Featured users already exist. Skipping.');
   }
+
+  // 3. Add Community Updates (Events/Activities)
+  console.log('Creating community updates...');
+  await prisma.communityUpdate.createMany({
+    data: [
+      {
+        type: 'EVENT',
+        title: 'Archival Yacht Soiree',
+        description: 'An exclusive gathering of the Zica Bella collective. Minimalist attire required.',
+      },
+      {
+        type: 'ACTIVITY',
+        title: 'Fashion Trend Syndicate',
+        description: 'Weekly discussion on upcoming silhouettes and sustainable fabrics.',
+      },
+      {
+        type: 'OFFER',
+        title: 'Founder\'s Tier Access',
+        description: 'Early access to the Winter 2026 Archive for verified members.',
+      }
+    ]
+  });
+
+  // 4. Create a verified member and sample messages
+  console.log('Creating sample verified member and chat messages...');
+  const customer = await prisma.customer.findFirst({
+    where: { email: 'alex@example.com' }
+  });
+
+  if (customer) {
+    await prisma.communityMember.upsert({
+      where: { customerId: customer.id },
+      update: { isVerified: true },
+      create: { customerId: customer.id, isVerified: true, dob: new Date('1995-05-15') }
+    });
+
+    await prisma.communityMessage.createMany({
+      data: [
+        { customerId: customer.id, content: 'The new oversized silhouettes are changing the game. Thoughts on the linen blend?' },
+        { customerId: customer.id, content: 'Anyone joining the Archival meet next week?' }
+      ]
+    });
+  }
+
+  console.log('--- SEED COMPLETED ---');
 }
 
 main()

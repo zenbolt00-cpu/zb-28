@@ -3,15 +3,14 @@
 import { useEffect, useState } from "react";
 import {
   PackageSearch,
-  ArrowLeftRight,
-  Undo2,
-  TrendingUp,
-  CircleDollarSign,
   ShoppingCart,
   Users,
   Loader2,
   RefreshCw,
+  Activity,
+  ArrowUpRight,
 } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface DashboardStats {
   totalRevenue: number;
@@ -102,7 +101,6 @@ export default function DashboardOverview() {
       const res = await fetch("/api/shopify/sync", { method: "POST" });
       const data = await res.json();
       console.log("Sync result:", data);
-      // Refresh stats after sync
       await fetchStats();
     } catch (err) {
       console.error("Sync error:", err);
@@ -115,182 +113,209 @@ export default function DashboardOverview() {
     fetchStats();
   }, []);
 
-  if (loading) {
+   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64 text-muted-foreground">
-        <Loader2 className="w-6 h-6 animate-spin mr-2" />
-        Loading dashboard...
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+        <Loader2 className="w-4 h-4 text-foreground/40 animate-spin" />
+        <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-foreground/40">Loading Data...</span>
       </div>
     );
   }
 
   const statCards = [
     {
-      name: "Total Revenue",
+      name: "Revenue",
       value: `₹${(stats?.totalRevenue || 0).toLocaleString("en-IN")}`,
-      icon: CircleDollarSign,
-      color: "text-emerald-500",
+      icon: Activity,
     },
     {
       name: "Orders",
       value: String(stats?.totalOrders || 0),
       icon: ShoppingCart,
-      color: "text-blue-500",
     },
     {
       name: "Customers",
       value: String(stats?.totalCustomers || 0),
       icon: Users,
-      color: "text-purple-500",
     },
     {
       name: "Low Stock",
       value: String(stats?.lowStockItems || 0),
       icon: PackageSearch,
-      color: "text-red-500",
     },
   ];
 
-  return (
-    <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground mb-1 transition-colors">
-            Welcome back, Admin
+   return (
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="pb-20 space-y-12"
+    >
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 relative z-10">
+        <div className="space-y-1">
+          <h1 className="text-xl font-semibold text-foreground tracking-tight">
+            Dashboard
           </h1>
-          <p className="text-muted-foreground">Live overview of your Shopify store.</p>
+          <p className="text-[11px] text-foreground/50 tracking-wide max-w-xl">
+            Overview of store performance and active operations.
+          </p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex items-center gap-3">
           <button
             onClick={fetchStats}
             disabled={loading}
-            className="flex items-center gap-2 px-4 py-2 glass glass-hover rounded-xl text-sm font-medium text-foreground disabled:opacity-50 transition-all border border-foreground/5"
+            className="flex items-center gap-2 px-4 py-2 bg-background border border-foreground/[0.05] rounded-md text-[10px] font-medium uppercase tracking-[0.15em] text-foreground/70 hover:bg-foreground/[0.02] transition-colors disabled:opacity-50"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+            <RefreshCw className={`w-3 h-3 ${loading ? "animate-spin" : ""}`} strokeWidth={1.5} />
             Refresh
           </button>
           <button
             onClick={handleSync}
             disabled={syncing}
-            className="flex items-center gap-2 px-4 py-2 bg-foreground text-background rounded-xl text-sm font-semibold hover:opacity-90 disabled:opacity-50 transition-all shadow-lg shadow-foreground/5"
+            className="flex items-center gap-2 px-4 py-2 bg-foreground text-background rounded-md text-[10px] font-medium uppercase tracking-[0.15em] hover:opacity-90 transition-opacity disabled:opacity-50"
           >
-            <RefreshCw className={`w-4 h-4 ${syncing ? "animate-spin" : ""}`} />
-            {syncing ? "Syncing..." : "Full Sync"}
+            <RefreshCw className={`w-3 h-3 ${syncing ? "animate-spin" : ""}`} strokeWidth={1.5} />
+            {syncing ? "Syncing..." : "Sync"}
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {statCards.map((stat) => {
+       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 relative z-10">
+        {statCards.map((stat, i) => {
           const Icon = stat.icon;
           return (
-            <div
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1, duration: 0.5 }}
               key={stat.name}
-              className="glass-card rounded-2xl p-6 glass-hover transition-all border border-foreground/5 shadow-xl shadow-foreground/[0.02]"
+              className="bg-background border border-foreground/[0.05] rounded-xl p-5 relative overflow-hidden group shadow-sm"
             >
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">{stat.name}</p>
-                  <p className="text-2xl font-semibold text-foreground tracking-tight transition-colors">{stat.value}</p>
-                </div>
-                <div className={`p-3 bg-foreground/5 rounded-xl ${stat.color} border border-foreground/5`}>
-                  <Icon className="w-5 h-5" />
+              <div className="flex justify-between items-start mb-4">
+                <p className="text-[10px] font-medium text-foreground/50 uppercase tracking-[0.15em]">{stat.name}</p>
+                <div className="p-1.5 rounded-md bg-foreground/[0.03] text-foreground/60 group-hover:bg-foreground group-hover:text-background transition-colors">
+                  <Icon className="w-3.5 h-3.5" strokeWidth={1.5} />
                 </div>
               </div>
-            </div>
+              <div>
+                <p className="text-2xl font-semibold text-foreground tracking-tight">{stat.value}</p>
+              </div>
+            </motion.div>
           );
         })}
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
+       <div className="grid lg:grid-cols-2 gap-6 relative z-10">
         {/* Recent Orders */}
-        <div className="glass-card rounded-2xl p-6 border border-foreground/5 shadow-xl shadow-foreground/[0.02]">
-          <h3 className="text-base font-semibold text-foreground mb-5 transition-colors">Recent Orders</h3>
-          <div className="space-y-3">
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+          className="bg-background border border-foreground/[0.05] rounded-xl overflow-hidden shadow-sm flex flex-col"
+        >
+          <div className="px-5 py-4 border-b border-foreground/[0.05] flex items-center justify-between bg-foreground/[0.01]">
+             <h3 className="text-[11px] font-semibold text-foreground uppercase tracking-[0.15em]">Recent Orders</h3>
+             <button className="text-[9px] text-foreground/50 hover:text-foreground uppercase tracking-widest flex items-center gap-1 transition-colors">
+               View All <ArrowUpRight className="w-3 h-3" />
+             </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto">
             {(stats?.recentOrders || []).length === 0 ? (
-              <p className="text-muted-foreground text-sm text-center py-6">No recent orders</p>
+              <div className="py-12 flex flex-col items-center justify-center text-center">
+                 <p className="text-[11px] font-medium text-foreground/40">No recent orders</p>
+              </div>
             ) : (
-              stats?.recentOrders.map((order) => {
-                const customerName = order.customer
-                    ? `${order.customer.first_name || ""} ${order.customer.last_name || ""}`.trim()
-                    : "Anonymous";
+              <table className="w-full text-left whitespace-nowrap">
+                 <tbody className="divide-y divide-foreground/[0.05]">
+                  {stats?.recentOrders.map((order) => {
+                    const customerName = order.customer
+                        ? `${order.customer.first_name || ""} ${order.customer.last_name || ""}`.trim()
+                        : "Guest";
 
-                return (
-                  <div
-                    key={order.id}
-                    className="flex items-center justify-between p-4 rounded-xl bg-foreground/3 border border-foreground/5 hover:bg-foreground/5 transition-colors group"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-full flex items-center justify-center bg-blue-500/10 text-blue-500 border border-blue-500/20">
-                        <ShoppingCart className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-foreground group-hover:text-blue-500 transition-colors">{order.name}</p>
-                        <p className="text-xs text-muted-foreground">{customerName}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-bold text-foreground transition-colors">
-                        ₹{parseFloat(order.total_price).toLocaleString("en-IN")}
-                      </p>
-                      <span
-                        className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                          order.financial_status === "paid"
-                            ? "bg-emerald-500/10 text-emerald-500"
-                            : "bg-yellow-500/10 text-yellow-500"
-                        }`}
-                      >
-                        {order.financial_status}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })
+                    return (
+                      <tr key={order.id} className="hover:bg-foreground/[0.01] transition-colors">
+                        <td className="px-5 py-3">
+                          <p className="text-[12px] font-medium text-foreground leading-none">{order.name}</p>
+                        </td>
+                        <td className="px-5 py-3">
+                           <p className="text-[11px] text-foreground/60">{customerName}</p>
+                        </td>
+                         <td className="px-5 py-3 text-right">
+                          <span
+                            className={`text-[9px] font-medium px-2 py-0.5 rounded-sm uppercase tracking-widest ${
+                              order.financial_status === "paid"
+                                ? "bg-green-500/10 text-green-600 dark:text-green-400"
+                                : "bg-orange-500/10 text-orange-600 dark:text-orange-400"
+                            }`}
+                          >
+                            {order.financial_status}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3 text-right">
+                          <p className="text-[12px] font-medium text-foreground">
+                            ₹{parseFloat(order.total_price).toLocaleString("en-IN")}
+                          </p>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                 </tbody>
+              </table>
             )}
           </div>
-        </div>
+        </motion.div>
 
-        {/* Low Stock Alerts */}
-        <div className="glass-card rounded-2xl p-6 border border-foreground/5 shadow-xl shadow-foreground/[0.02]">
-          <h3 className="text-base font-semibold text-foreground mb-5 transition-colors">Low Stock Alerts</h3>
-          <div className="space-y-3">
+         {/* Low Stock Alerts */}
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+          className="bg-background border border-foreground/[0.05] rounded-xl overflow-hidden shadow-sm flex flex-col"
+        >
+          <div className="px-5 py-4 border-b border-foreground/[0.05] flex items-center justify-between bg-foreground/[0.01]">
+             <h3 className="text-[11px] font-semibold text-foreground uppercase tracking-[0.15em]">Low Stock Alerts</h3>
+             <button className="text-[9px] text-foreground/50 hover:text-foreground uppercase tracking-widest flex items-center gap-1 transition-colors">
+               Manage <ArrowUpRight className="w-3 h-3" />
+             </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto">
             {(stats?.lowStockProducts || []).length === 0 ? (
-              <p className="text-muted-foreground text-sm text-center py-6">All stock levels healthy</p>
+               <div className="py-12 flex flex-col items-center justify-center text-center">
+                 <p className="text-[11px] font-medium text-foreground/40">Inventory optimal</p>
+              </div>
             ) : (
-              stats?.lowStockProducts.map((item, i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-between p-4 rounded-xl bg-foreground/3 border border-foreground/5 hover:bg-foreground/5 transition-colors group"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-foreground/10 border border-foreground/10 flex items-center justify-center overflow-hidden">
-                      <PackageSearch className="w-5 h-5 text-muted-foreground group-hover:text-red-500 transition-colors" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-foreground transition-colors">
-                        {item.title}
-                        {item.variant ? ` - ${item.variant}` : ""}
-                      </p>
-                      <p className="text-xs text-muted-foreground font-mono">SKU: {item.sku || "N/A"}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p
-                      className={`text-sm font-bold px-3 py-1 rounded-lg ${
-                        item.stock <= 0 
-                          ? "bg-red-500/20 text-red-600" 
-                          : "bg-red-500/10 text-red-500"
-                      }`}
-                    >
-                      {item.stock} left
-                    </p>
-                  </div>
-                </div>
-              ))
+              <table className="w-full text-left whitespace-nowrap">
+                 <tbody className="divide-y divide-foreground/[0.05]">
+                  {stats?.lowStockProducts.map((item, i) => (
+                    <tr key={i} className="hover:bg-foreground/[0.01] transition-colors">
+                      <td className="px-5 py-3 max-w-[200px] truncate">
+                         <p className="text-[12px] font-medium text-foreground truncate">{item.title}</p>
+                      </td>
+                      <td className="px-5 py-3 max-w-[150px] truncate">
+                         <p className="text-[10px] text-foreground/50 font-mono truncate">{item.sku || "N/A"}</p>
+                      </td>
+                      <td className="px-5 py-3 text-right">
+                        <span
+                          className={`text-[10px] font-medium ${
+                            item.stock <= 0 
+                              ? "text-red-500" 
+                              : "text-orange-500"
+                          }`}
+                        >
+                          {item.stock} left
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                 </tbody>
+              </table>
             )}
           </div>
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }

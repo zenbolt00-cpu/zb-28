@@ -159,34 +159,35 @@ export default function DashboardScannerPage() {
   const config = modeConfig[activeTab];
   const Icon = config.icon;
 
-  return (
-    <div className="min-h-screen p-6 space-y-6 animate-in fade-in duration-500">
+   return (
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">Warehouse Scanner</h1>
-          <p className="text-gray-400 text-sm mt-0.5">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+        <div className="space-y-1">
+          <div className="px-2 py-0.5 bg-foreground/[0.03] rounded-md text-[8px] font-black text-foreground/40 dark:text-white/30 uppercase tracking-[0.2em] w-fit mb-1">logistics node</div>
+          <h1 className="text-xl font-black text-foreground uppercase tracking-tight mb-0.5 lowercase leading-none">Warehouse Scanner</h1>
+          <p className="text-[10px] text-foreground/40 dark:text-white/20 font-bold uppercase tracking-widest mt-1">
             Scan barcodes to process inventory, orders, and returns.
           </p>
         </div>
-        <div className="flex items-center gap-2 glass-card px-3 py-2 rounded-xl w-fit">
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-foreground/[0.02] border border-foreground/[0.04] rounded-lg w-fit">
           {hasSeenScan ? (
-            <Wifi className="w-4 h-4 text-emerald-400" />
+            <Wifi className="w-3.5 h-3.5 text-emerald-500" />
           ) : (
-            <WifiOff className="w-4 h-4 text-red-400" />
+            <WifiOff className="w-3.5 h-3.5 text-rose-500" />
           )}
           <span
-            className={`text-xs font-medium ${
-              hasSeenScan ? 'text-emerald-400' : 'text-red-400'
+            className={`text-[9px] font-black uppercase tracking-widest ${
+              hasSeenScan ? 'text-emerald-500' : 'text-rose-500'
             }`}
           >
-            {hasSeenScan ? 'Scanner Active' : 'Waiting for first scan'}
+            {hasSeenScan ? 'Relay Active' : 'Offline'}
           </span>
         </div>
       </div>
 
-      {/* Mode Tabs */}
-      <div className="flex flex-wrap gap-2">
+       {/* Mode Tabs */}
+      <div className="flex flex-wrap gap-2 mb-6">
         {(Object.keys(modeConfig) as ScanMode[]).map((mode) => {
           const m = modeConfig[mode];
           const MIcon = m.icon;
@@ -195,13 +196,13 @@ export default function DashboardScannerPage() {
             <button
               key={mode}
               onClick={() => setActiveTab(mode)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all duration-200 border ${
                 isActive
-                  ? `${m.bg} ${m.color} border-white/10 ring-1 ring-white/10 shadow-lg`
-                  : 'text-gray-400 border-white/5 hover:text-white hover:bg-white/5 bg-transparent'
+                  ? 'bg-foreground text-background border-transparent shadow-lg shadow-foreground/5'
+                  : 'text-foreground/30 border-foreground/[0.05] hover:text-foreground hover:bg-foreground/[0.02] bg-transparent'
               }`}
             >
-              <MIcon className="w-4 h-4" />
+              <MIcon className="w-3.5 h-3.5" />
               {m.label}
             </button>
           );
@@ -210,56 +211,56 @@ export default function DashboardScannerPage() {
 
       <div className="grid lg:grid-cols-5 gap-6 items-start">
         {/* Scanner Component - 2/5 width */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="glass-card rounded-2xl p-6">
-            <div className={`flex items-center gap-3 mb-6 px-4 py-3 rounded-xl ${config.bg}`}>
-              <Icon className={`w-5 h-5 ${config.color}`} />
+         <div className="lg:col-span-2 space-y-4">
+          <div className="bg-white/50 dark:bg-white/[0.02] border border-foreground/[0.05] rounded-xl p-6 shadow-sm overflow-hidden">
+            <div className={`flex items-center gap-3 mb-6 px-4 py-2.5 rounded-lg border border-foreground/[0.02] ${config.bg.replace('400/10', '500/5')}`}>
+              <Icon className="w-4 h-4 text-foreground/40" />
               <div>
-                <p className="text-xs text-gray-400 font-medium uppercase tracking-wider">
+                <p className="text-[7px] text-foreground/20 dark:text-white/10 font-black uppercase tracking-[0.2em] leading-none mb-1">
                   Active Mode
                 </p>
-                <p className={`text-sm font-semibold ${config.color}`}>{config.actionLabel}</p>
+                <p className="text-[10px] font-black text-foreground uppercase tracking-tight leading-none lowercase">{config.actionLabel}</p>
               </div>
             </div>
             <ScannerComponent onScan={handleScan} scannerType={activeTab} />
           </div>
 
-          <div className="glass-card rounded-2xl p-5">
-            <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-3">
-              Stats
+          <div className="bg-white/50 dark:bg-white/[0.02] border border-foreground/[0.05] rounded-xl p-4 shadow-sm">
+            <p className="text-[8px] text-foreground/20 dark:text-white/20 font-black uppercase tracking-[0.3em] mb-4">
+              Metadata Analysis
             </p>
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-white/5 rounded-xl p-3 text-center">
-                <p className="text-2xl font-bold text-white">{scannedItems.length}</p>
-                <p className="text-xs text-gray-400 mt-0.5">Total Scanned</p>
+              <div className="bg-foreground/[0.02] rounded-lg p-3 border border-foreground/[0.02]">
+                <p className="text-xl font-black text-foreground leading-none">{scannedItems.length}</p>
+                <p className="text-[8px] font-black text-foreground/20 uppercase tracking-widest mt-1.5">Total Nodes</p>
               </div>
-              <div className="bg-white/5 rounded-xl p-3 text-center">
-                <p className="text-2xl font-bold text-emerald-400">
+              <div className="bg-foreground/[0.02] rounded-lg p-3 border border-foreground/[0.02]">
+                <p className="text-xl font-black text-emerald-500 leading-none">
                   {scannedItems.filter((i) => i.status === 'success').length}
                 </p>
-                <p className="text-xs text-gray-400 mt-0.5">Processed OK</p>
+                <p className="text-[8px] font-black text-foreground/20 uppercase tracking-widest mt-1.5">Processed OK</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Log - 3/5 width */}
-        <div className="lg:col-span-3 glass-card rounded-2xl overflow-hidden flex flex-col max-h-[700px]">
-          <div className="px-5 py-4 border-b border-white/5 flex items-center justify-between flex-shrink-0">
+         <div className="lg:col-span-3 bg-white/50 dark:bg-white/[0.02] border border-foreground/[0.05] rounded-xl overflow-hidden flex flex-col max-h-[700px] shadow-sm">
+          <div className="px-5 py-3 border-b border-foreground/[0.03] flex items-center justify-between flex-shrink-0 bg-foreground/[0.01]">
             <div className="flex items-center gap-2">
-              <ScanLine className="w-4 h-4 text-gray-400" />
-              <h3 className="text-sm font-semibold text-white">Scan Log</h3>
-              <span className="ml-1 bg-white/10 text-gray-300 text-xs px-2 py-0.5 rounded-full">
+              <ScanLine className="w-3.5 h-3.5 text-foreground/20" />
+              <h3 className="text-[10px] font-black text-foreground uppercase tracking-widest">Scan Log</h3>
+              <span className="ml-1 bg-foreground/5 text-foreground/40 text-[8px] px-1.5 rounded font-black">
                 {scannedItems.length}
               </span>
             </div>
             {scannedItems.length > 0 && (
               <button
                 onClick={clearAll}
-                className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-red-400 transition-colors"
+                className="flex items-center gap-1.5 text-[8px] font-black text-foreground/20 hover:text-rose-500 uppercase tracking-widest transition-colors"
               >
-                <Trash2 className="w-3.5 h-3.5" />
-                Clear
+                <Trash2 className="w-3 h-3" />
+                Clear Archives
               </button>
             )}
           </div>
@@ -274,47 +275,47 @@ export default function DashboardScannerPage() {
                 </p>
               </div>
             ) : (
-              <ul className="divide-y divide-white/5">
+               <ul className="divide-y divide-foreground/[0.02]">
                 {scannedItems.map((item, index) => (
                   <li
                     key={index}
-                    className="px-5 py-4 flex items-start justify-between gap-3 hover:bg-white/2 transition-colors group"
+                    className="px-5 py-3 flex items-start justify-between gap-3 hover:bg-foreground/[0.01] transition-colors group"
                   >
-                    <div className="flex items-start gap-3 min-w-0">
+                    <div className="flex items-start gap-4 min-w-0">
                       <div
-                        className={`mt-0.5 flex-shrink-0 h-7 w-7 rounded-lg flex items-center justify-center ${modeConfig[item.mode].bg}`}
+                        className={`mt-1 flex-shrink-0 h-8 w-8 rounded-lg flex items-center justify-center border border-foreground/[0.03] ${modeConfig[item.mode].bg.replace('400/10', '500/5')}`}
                       >
                         {(() => {
                           const MIcon = modeConfig[item.mode].icon;
                           return (
                             <MIcon
-                              className={`w-3.5 h-3.5 ${modeConfig[item.mode].color}`}
+                              className="w-3.5 h-3.5 text-foreground/30"
                             />
                           );
                         })()}
                       </div>
                       <div className="min-w-0">
-                        <p className="font-mono text-sm font-semibold text-white tracking-wide truncate">
+                        <p className="font-black text-[11px] text-foreground tracking-tight uppercase leading-none">
                           {item.barcode}
                         </p>
                         {item.product && (
-                          <p className="text-xs text-gray-400 mt-0.5">{item.product}</p>
+                          <p className="text-[8.5px] font-black text-foreground/40 dark:text-white/20 mt-1.5 uppercase tracking-widest">{item.product}</p>
                         )}
                         {item.message && (
-                          <p className="text-xs text-red-400 mt-0.5">{item.message}</p>
+                          <p className="text-[8.5px] font-black text-rose-500 mt-1.5 uppercase tracking-widest">{item.message}</p>
                         )}
-                        <p className="text-xs text-gray-600 mt-0.5">
+                        <p className="text-[7px] font-black text-foreground/10 uppercase tracking-[0.2em] mt-2">
                           {item.time.toLocaleTimeString()}
                         </p>
                       </div>
                     </div>
-                    <div className="flex-shrink-0">
+                    <div className="flex-shrink-0 mt-1">
                       {item.status === 'processing' ? (
-                        <div className="h-4 w-4 rounded-full border-2 border-gray-500 border-t-transparent animate-spin" />
+                        <div className="h-3.5 w-3.5 rounded-full border border-foreground/10 border-t-foreground animate-spin" />
                       ) : item.status === 'success' ? (
-                        <CheckCircle className="w-4 h-4 text-emerald-400" />
+                        <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
                       ) : (
-                        <XCircle className="w-4 h-4 text-red-400" />
+                        <XCircle className="w-3.5 h-3.5 text-rose-500" />
                       )}
                     </div>
                   </li>

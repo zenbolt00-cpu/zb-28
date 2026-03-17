@@ -7,6 +7,7 @@ import ProductCard from "@/components/ProductCard";
 import { notFound } from "next/navigation";
 
 import CollectionHeaderClient from "@/components/CollectionHeaderClient";
+import CompleteCollectionButton from "@/components/CompleteCollectionButton";
 
 export const dynamic = "force-dynamic";
 
@@ -57,11 +58,6 @@ export default async function CollectionPage({
 
         {/* Back navigation */}
         <div className="mb-5">
-          <Link href="/" className="inline-flex items-center gap-1.5 text-[7px] uppercase tracking-[0.15em] text-muted-foreground/45 hover:text-foreground/70 transition-colors mb-4 active:scale-95" style={{ fontFamily: "'HeadingPro', sans-serif" }}>
-            <ChevronLeft className="w-3 h-3" />
-            Collections
-          </Link>
-
           <CollectionHeaderClient 
             currentHandle={params.handle}
             currentTitle={collection.title}
@@ -105,6 +101,14 @@ export default async function CollectionPage({
             ))}
           </div>
         </form>
+
+        {/* Complete Collection Button */}
+        {products.length > 0 && (
+          <CompleteCollectionButton 
+            products={products} 
+            collectionName={collection.title} 
+          />
+        )}
 
         {/* Product Grid */}
         {products.length === 0 ? (

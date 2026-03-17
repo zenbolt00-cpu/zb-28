@@ -55,59 +55,65 @@ export default function ReturnsPage() {
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white mb-1">Returns</h1>
-          <p className="text-gray-400 text-sm">Review and manage customer return requests.</p>
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-2">
+         <div className="space-y-1">
+          <div className="px-2 py-0.5 bg-foreground/[0.03] rounded-md text-[8px] font-black text-foreground/40 dark:text-white/30 uppercase tracking-[0.2em] w-fit mb-1">reversal protocol</div>
+          <h1 className="text-xl font-black text-foreground uppercase tracking-tight mb-0.5 lowercase leading-none">
+            Returns
+          </h1>
+          <p className="text-[10px] text-foreground/40 dark:text-white/20 font-bold uppercase tracking-widest mt-1">
+            Manage customer feedback loops and reversals.
+          </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4">
-        {loading ? (
-          <div className="glass-card rounded-2xl p-12 text-center flex justify-center">
-            <Loader2 className="w-8 h-8 animate-spin text-gray-500" />
+      <div className="grid grid-cols-1 gap-3">
+         {loading ? (
+          <div className="bg-white/50 dark:bg-white/[0.02] border border-foreground/[0.05] rounded-xl p-12 text-center flex justify-center shadow-sm">
+            <Loader2 className="w-6 h-6 animate-spin text-foreground/10" />
           </div>
         ) : returns.length === 0 ? (
-          <div className="glass-card rounded-2xl p-12 text-center">
-            <Undo2 className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-white">No return requests</h3>
-            <p className="text-gray-400 mt-2">You're all caught up!</p>
+           <div className="bg-white/50 dark:bg-white/[0.02] border border-foreground/[0.05] rounded-xl p-8 text-center shadow-sm">
+            <Undo2 className="w-8 h-8 text-foreground/5 mx-auto mb-3" />
+            <h3 className="text-[11px] font-black text-foreground uppercase tracking-tight lowercase">Protocol inactive</h3>
+            <p className="text-[9px] text-foreground/20 font-black uppercase tracking-[0.2em] mt-1">No reversal nodes detected.</p>
           </div>
         ) : (
           returns.map(req => (
-            <div key={req.id} className="glass-card rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="space-y-2">
+            <div key={req.id} className="bg-white/50 dark:bg-white/[0.02] border border-foreground/[0.05] rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm transition-all hover:bg-foreground/[0.01]">
+              <div className="space-y-1.5">
                 <div className="flex items-center gap-3">
-                  <span className="text-white font-medium">Order #{req.order.shopifyOrderId}</span>
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                    req.status === 'requested' ? 'bg-yellow-500/20 text-yellow-400' :
-                    req.status === 'approved' ? 'bg-blue-500/20 text-blue-400' :
-                    req.status === 'rejected' ? 'bg-red-500/20 text-red-400' :
-                    'bg-green-500/20 text-green-400'
+                  <span className="text-[12px] font-black text-foreground uppercase tracking-tight lowercase leading-none">Order #{req.order.shopifyOrderId}</span>
+                  <span className={`px-1.5 py-0.5 rounded text-[7px] font-black uppercase tracking-widest border ${
+                    req.status === 'requested' ? 'bg-amber-500/5 text-amber-500 border-amber-500/10' :
+                    req.status === 'approved' ? 'bg-blue-500/5 text-blue-500 border-blue-500/10' :
+                    req.status === 'rejected' ? 'bg-rose-500/5 text-rose-500 border-rose-500/10' :
+                    'bg-emerald-500/5 text-emerald-500 border-emerald-500/10'
                   }`}>
                     {req.status}
                   </span>
                 </div>
-                <p className="text-gray-300 text-sm">{req.product.title} (SKU: {req.sku || 'N/A'})</p>
-                <p className="text-gray-400 text-sm flex items-center gap-2">
-                  <span className="font-medium text-gray-300">{req.customer?.name}</span> • 
-                  <span>Reason: {req.reason}</span>
+                <p className="text-[10px] font-black text-foreground/30 dark:text-white/20 uppercase tracking-tight lowercase leading-none">{req.product.title} <span className="text-foreground/10 ml-1">sku: {req.sku || 'N/A'}</span></p>
+                 <p className="text-[8px] font-black text-foreground/20 dark:text-white/10 uppercase tracking-[0.2em] flex items-center gap-2">
+                  <span className="text-foreground/40 dark:text-white/30">{req.customer?.name}</span>
+                  <div className="w-1 h-1 rounded-full bg-foreground/10" />
+                  <span>{req.reason}</span>
                 </p>
               </div>
 
-              {req.status === 'requested' && (
-                <div className="flex items-center gap-3">
+               {req.status === 'requested' && (
+                <div className="flex items-center gap-2">
                   <button 
                     onClick={() => handleStatusUpdate(req.id, 'rejected')}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-red-400 hover:bg-red-500/10 border border-red-500/20 transition-colors"
+                    className="flex items-center gap-2 px-6 py-2 rounded-lg text-rose-500 hover:bg-rose-500/5 border border-rose-500/10 text-[9px] font-black uppercase tracking-widest transition-all active:scale-95"
                   >
-                    <XCircle className="w-4 h-4" /> Reject
+                    Deny
                   </button>
                   <button 
                     onClick={() => handleStatusUpdate(req.id, 'approved')}
-                    className="flex items-center gap-2 px-4 py-2 bg-white text-black rounded-xl hover:bg-gray-100 transition-colors font-medium"
+                    className="flex items-center gap-2 px-6 py-2 bg-foreground text-background rounded-lg text-[9px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-foreground/5"
                   >
-                    <CheckCircle2 className="w-4 h-4" /> Approve Return
+                    Authorize Reversal
                   </button>
                 </div>
               )}

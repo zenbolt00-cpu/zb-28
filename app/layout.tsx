@@ -25,6 +25,7 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  viewportFit: "cover",
 };
 
 export const metadata: Metadata = {
@@ -33,6 +34,11 @@ export const metadata: Metadata = {
   icons: {
     icon: "/zica-bella-logo_8.png",
     apple: "/zica-bella-logo_8.png",
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Zica Bella",
   },
 };
 

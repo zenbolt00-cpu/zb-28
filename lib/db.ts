@@ -1,6 +1,8 @@
 import { PrismaClient } from '@prisma/client'
 import { Pool } from 'pg'
 import { PrismaPg } from '@prisma/adapter-pg'
+import Database from 'better-sqlite3'
+import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
 
 // Mock Prisma client for when database is unavailable
 const createMockPrismaClient = (reason: string) => {
@@ -40,8 +42,13 @@ const prismaClientSingleton = () => {
   }
 
   try {
-      // pg driver's strict SSL parser overrides 'rejectUnauthorized: false' if the connection string contains '?sslmode=require'
-      // To enforce our custom SSL configurations, we must strip the query parameters from the URL
+      // Detecting SQLite or PostgreSQL
+      if (dbUrl.startsWith('file:')) {
+        const adapter = new PrismaBetterSqlite3({ url: dbUrl });
+        return new PrismaClient({ adapter: adapter as any });
+      }
+
+      // pg driver's strict SSL parser overrides 'rejectUnauthorized: false'
       const cleanUrl = dbUrl.split('?')[0];
 
       const pool = new Pool({ 

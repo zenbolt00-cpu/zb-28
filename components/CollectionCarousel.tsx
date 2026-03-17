@@ -36,7 +36,7 @@ export default function CollectionCarousel({ collections }: { collections: Colle
   if (!total) return null;
 
   return (
-    <div className="relative w-full overflow-hidden py-10 touch-none">
+    <div className="relative w-full overflow-hidden py-10">
       <div className="relative h-[85vw] max-h-[460px] w-full flex items-center justify-center overflow-visible">
         {/* The Drag Container */}
         <motion.div
@@ -45,7 +45,11 @@ export default function CollectionCarousel({ collections }: { collections: Colle
           dragElastic={0.2}
           onDragEnd={onDragEnd}
           className="relative w-full h-full flex items-center justify-center cursor-grab active:cursor-grabbing"
-          style={{ perspective: "1200px", transformStyle: "preserve-3d" }}
+          style={{ 
+            perspective: "1200px", 
+            transformStyle: "preserve-3d",
+            touchAction: "pan-y" 
+          }}
         >
           {collections.map((col, i) => {
             // Virtual indices for circular behavior

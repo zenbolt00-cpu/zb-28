@@ -55,6 +55,17 @@ export default function ProductDetailsClient({
   const [showSuccess, setShowSuccess] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [isAdded, setIsAdded] = useState(false);
+  const [[page, dragDirection], setPage] = useState([0, 0]);
+
+  const imageIndex = ((page % allImages.length) + allImages.length) % allImages.length;
+  
+  useEffect(() => {
+    setActiveImg(imageIndex);
+  }, [imageIndex]);
+
+  const paginate = (newDirection: number) => {
+    setPage([page + newDirection, newDirection]);
+  };
 
 
   // Refs for scroll sync — avoids fragile querySelector
@@ -117,6 +128,11 @@ export default function ProductDetailsClient({
       return;
     }
 
+    if ((variant.inventory_quantity || 0) <= 0) {
+      alert("This size is currently sold out.");
+      return;
+    }
+
     addToCart({
       productId: product.id.toString(),
       handle: product.handle,
@@ -141,6 +157,11 @@ export default function ProductDetailsClient({
 
     if (!variant) {
       alert("This product is currently unavailable.");
+      return;
+    }
+
+    if ((variant.inventory_quantity || 0) <= 0) {
+      alert("This size is currently sold out.");
       return;
     }
 
@@ -183,45 +204,151 @@ export default function ProductDetailsClient({
     { id: 'brand', label: 'Brand', show: (shopSettings?.showBrand ?? true) && !!getMeta('BRAND') },
   ].filter(t => t.show);
 
+  // Client-side randomization for Recommended Products
+  const [shuffledRecommended, setShuffledRecommended] = useState<ShopifyProduct[]>([]);
+
+  useEffect(() => {
+    if (recommendedProducts.length > 0) {
+      const shuffled = [...recommendedProducts].sort(() => Math.random() - 0.5);
+      setShuffledRecommended(shuffled);
+    }
+  }, [recommendedProducts]);
+
+  // Curated Pairs Carousel Logic - Mirroring RingCarouselSection smoothness
+  const curatedScrollRef = useRef<HTMLDivElement>(null);
+  const [isCuratedDragging, setIsCuratedDragging] = useState(false);
+  const [curatedStartX, setCuratedStartX] = useState(0);
+  const [curatedScrollLeft, setCuratedScrollLeft] = useState(0);
+
+  const onCuratedMouseDown = (e: React.MouseEvent) => {
+    setIsCuratedDragging(true);
+    if (curatedScrollRef.current) {
+        setCuratedStartX(e.pageX - curatedScrollRef.current.offsetLeft);
+        setCuratedScrollLeft(curatedScrollRef.current.scrollLeft);
+    }
+  };
+
+  const onCuratedMouseMove = (e: React.MouseEvent) => {
+    if (!isCuratedDragging || !curatedScrollRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - curatedScrollRef.current.offsetLeft;
+    const walk = (x - curatedStartX) * 1.8;
+    curatedScrollRef.current.scrollLeft = curatedScrollLeft - walk;
+  };
+
+  const stopCuratedDrag = () => setIsCuratedDragging(false);
+
   return (
     <>
-      {/* Native Standard Glass Box Image Carousel */}
-      <div className="relative z-10 px-2 pt-[73px] pb-2">
+      {/* Sticky Background Gallery with Rounded Bottom Corners */}
+      <div className="sticky top-0 w-full h-[85dvh] overflow-hidden z-0 rounded-b-[1rem] shadow-[0_20px_50px_rgba(0,0,0,0.3)]">
         <div 
-          className="relative aspect-[4/6.4] w-full max-w-[500px] mx-auto rounded-[2rem] overflow-hidden shadow-xl border border-foreground/[0.04] group transition-all duration-300"
+          className="relative w-full h-full"
           style={{
             background: "hsla(var(--glass-bg), 0.1)",
-            backdropFilter: "blur(30px)",
-            WebkitBackdropFilter: "blur(30px)",
           }}
         >
-          <div 
-            ref={scrollRef}
-            onScroll={handleScroll}
-            className="flex h-full w-full overflow-x-auto snap-x snap-mandatory scroll-smooth hide-scrollbar touch-manipulation"
-          >
-            {allImages.map((img, i) => (
-              <div 
-                key={`${i}-${img.src}`} 
-                className="relative w-full h-full flex-shrink-0 snap-center snap-always transition-opacity duration-300"
-              >
-                <Image
-                  src={img.src}
-                  alt={product.title}
-                  fill
-                  className="object-cover"
-                  priority
-                  sizes="(max-width: 768px) 100vw, 500px"
-                  quality={100}
-                  draggable={false}
-                />
-              </div>
-            ))}
-          </div>
+          <AnimatePresence initial={false} custom={dragDirection} mode="popLayout">
+            <motion.div
+              key={page}
+              custom={dragDirection}
+              initial={{ opacity: 0, x: dragDirection > 0 ? '100%' : '-100%' }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: dragDirection > 0 ? '-100%' : '100%' }}
+              transition={{
+                x: { 
+                    type: "spring", 
+                    stiffness: 280, 
+                    damping: 32, 
+                    mass: 0.8,
+                    restDelta: 0.001
+                },
+                opacity: { duration: 0.5, ease: "circOut" }
+              }}
+              className="absolute inset-0"
+            >
+              <Image
+                src={allImages[imageIndex]?.src}
+                alt={product.title}
+                fill
+                className="object-cover"
+                priority
+                sizes="100vw"
+                quality={100}
+                draggable={false}
+              />
+            </motion.div>
+          </AnimatePresence>
+          
+          {/* Parallax Overlay - darkens slightly as user scrolls down */}
+          <motion.div 
+            className={`absolute inset-0 z-10 pointer-events-none transition-colors duration-1000`}
+            id="pdp-blur-overlay-internal"
+            style={{
+              backgroundColor: "rgba(0,0,0,0)",
+            }}
+          />
         </div>
       </div>
 
-      <main className="relative z-20 mt-[1px] product-page px-[1px] pb-[1px]">
+      {/* Scrollable Layer - iOS Optimized */}
+      <div className="relative z-20 -mt-[85dvh] min-h-[100vh]">
+        
+        {/* Transparent Gesture & Spacer Layer - FEATHER TOUCH READY */}
+        <div className="relative h-[85dvh] w-full group">
+          <motion.div 
+            className="absolute inset-0 z-0 touch-pan-y"
+            drag="x"
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.9}
+            dragTransition={{ bounceStiffness: 600, bounceDamping: 20 }}
+            onDragEnd={(e, { offset, velocity }) => {
+              const swipe = Math.abs(offset.x) > 20 || Math.abs(velocity.x) > 300;
+              if (swipe) {
+                paginate(offset.x > 0 ? -1 : 1);
+              }
+            }}
+          />
+          {/* Precise 1px Gap at the bottom of the sticky area */}
+          <div className="absolute bottom-0 left-0 w-full h-[1px] bg-background/5 transition-opacity" />
+        </div>
+
+        {/* Repositioned Thumbnails - Looping Sync */}
+        <div className="relative z-30 px-4 pb-2 mt-[1px]">
+          <div className="flex overflow-x-auto gap-1 py-2 hide-scrollbar snap-x justify-start sm:justify-center items-center -mx-2 px-2">
+            {allImages.map((img, i) => (
+              <button
+                key={`thumb-ios-loop-v4-${img.src || i}`}
+                onClick={() => {
+                  const currentImageIndex = imageIndex;
+                  const diff = i - currentImageIndex;
+                  if (diff !== 0) paginate(diff);
+                }}
+                className={`relative w-28 h-28 rounded-[2rem] overflow-hidden flex-shrink-0 snap-center border transition-all duration-500 shadow-xl outline-none ${
+                    imageIndex === i 
+                    ? "border-white/90 scale-105 ring-2 ring-white/30" 
+                    : "border-white/10 scale-95 hover:border-white/30"
+                }`}
+              >
+                <div className="absolute inset-0 bg-black/5 z-10 pointer-events-none" />
+                <Image 
+                  src={img.src} 
+                  alt="variant" 
+                  fill 
+                  className="object-cover transition-transform duration-700" 
+                  sizes="120px" 
+                  quality={100} 
+                  priority={i < 4}
+                />
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 1px Gap before the details box */}
+        <div className="h-[1px] w-full" />
+
+        <main className="relative z-20 product-page px-[1px] pb-[1px]">
         <div 
           className="min-h-[60vh] rounded-[1.2rem] px-[5px] pt-4 pb-[6px] border border-foreground/[0.05]"
           style={{ 
@@ -231,28 +358,6 @@ export default function ProductDetailsClient({
             boxShadow: "0 20px 80px -10px hsla(var(--glass-shadow), 0.35)"
           }}
         >
-          {/* Image Variants/Thumbnails - Vibrant Glass Theme */}
-          <div className="flex overflow-x-auto gap-2.5 mb-3 pb-1 hide-scrollbar snap-x px-1">
-            {allImages.map((img, i) => (
-              <button
-                key={`thumb-${img.src || i}`}
-                onClick={() => {
-                  setActiveImg(i);
-                  scrollRef.current?.scrollTo({
-                    left: i * scrollRef.current.clientWidth,
-                    behavior: 'smooth'
-                  });
-                }}
-                className={`relative w-[42px] h-[42px] rounded-[0.6rem] overflow-hidden flex-shrink-0 snap-start border transition-all duration-500 shadow-sm outline-none ${
-                  activeImg === i 
-                    ? "border-foreground/50 scale-105 shadow-lg shadow-foreground/5 opacity-100 ring-1 ring-foreground/10" 
-                    : "border-foreground/5 opacity-60 hover:opacity-90"
-                }`}
-              >
-                <Image src={img.src} alt="variant" fill className="object-cover" sizes="60px" quality={75} />
-              </button>
-            ))}
-          </div>
 
           <div className="flex justify-between items-start mb-2 px-1">
             <div className="flex-1">
@@ -303,74 +408,104 @@ export default function ProductDetailsClient({
                 </div>
                 {/* Equal-size 6-column grid — matches QuickAddModal */}
                 <div className="grid grid-cols-6 gap-1.5 px-0.5">
-                  {sizes.map((size) => (
-                    <button
-                      key={size}
-                      onClick={() => setSelectedSize(size)}
-                      className={`h-9 w-full flex items-center justify-center rounded-lg text-[8px] font-medium uppercase tracking-widest transition-all border ${
-                        selectedSize === size
-                          ? "bg-foreground text-background border-transparent shadow-sm"
-                          : "bg-foreground/[0.03] border-foreground/[0.07] text-foreground/40 hover:border-foreground/20 hover:text-foreground/70"
-                      }`}
-                    >
-                      {size}
-                    </button>
-                  ))}
+                  {sizes.map((size) => {
+                    const variant = product.variants?.find(v => v.option1 === size);
+                    const isOutOfStock = (variant?.inventory_quantity || 0) <= 0;
+                    return (
+                      <button
+                        key={size}
+                        onClick={() => setSelectedSize(size)}
+                        className={`h-9 w-full flex items-center justify-center rounded-lg text-[8px] font-medium uppercase tracking-widest transition-all border relative overflow-hidden ${
+                          selectedSize === size
+                            ? "bg-foreground text-background border-transparent shadow-sm"
+                            : isOutOfStock
+                            ? "bg-foreground/[0.01] border-foreground/[0.04] text-foreground/15 cursor-not-allowed"
+                            : "bg-foreground/[0.03] border-foreground/[0.07] text-foreground/40 hover:border-foreground/20 hover:text-foreground/70"
+                        }`}
+                      >
+                        {size}
+                        {isOutOfStock && (
+                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <div className="w-[120%] h-[1px] bg-foreground/10 rotate-[35deg] transform-gpu" />
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
 
             <div className="flex flex-col gap-2 mt-0.5">
-              <button
-                onClick={handleAddToBag}
-                disabled={isAdded}
-                className="w-full py-3.5 rounded-[0.8rem] flex items-center justify-center text-[9px] font-bold text-foreground/80 uppercase tracking-[0.25em] hover:text-foreground transition-all active:scale-[0.99] shadow-sm"
-                style={{
-                  background: isAdded ? "hsla(var(--glass-bg), 0.5)" : "hsla(var(--glass-bg), 0.3)",
-                  backdropFilter: "blur(12px)",
-                  WebkitBackdropFilter: "blur(12px)",
-                  border: isAdded ? "1px solid hsla(var(--foreground), 0.1)" : "1px solid hsla(var(--glass-border), 0.08)",
-                  color: isAdded ? "hsla(var(--foreground), 0.4)" : "inherit"
-                }}
-              >
-                <AnimatePresence mode="wait">
-                  {isAdded ? (
-                    <motion.span
-                      key="added"
-                      initial={{ opacity: 0, y: 5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -5 }}
-                      className="flex items-center gap-2"
+              {(() => {
+                const variant = product.variants?.find(v => v.option1 === selectedSize) || product.variants?.[0];
+                const isVariantSoldOut = (variant?.inventory_quantity || 0) <= 0;
+                
+                return (
+                  <>
+                    <button
+                      onClick={handleAddToBag}
+                      disabled={isAdded || isVariantSoldOut}
+                      className="w-full py-3.5 rounded-[0.8rem] flex items-center justify-center text-[9px] font-bold text-foreground/80 uppercase tracking-[0.25em] hover:text-foreground transition-all active:scale-[0.99] shadow-sm"
+                      style={{
+                        background: isAdded || isVariantSoldOut ? "hsla(var(--glass-bg), 0.5)" : "hsla(var(--glass-bg), 0.3)",
+                        backdropFilter: "blur(12px)",
+                        WebkitBackdropFilter: "blur(12px)",
+                        border: isAdded || isVariantSoldOut ? "1px solid hsla(var(--foreground), 0.1)" : "1px solid hsla(var(--glass-border), 0.08)",
+                        color: isAdded || isVariantSoldOut ? "hsla(var(--foreground), 0.4)" : "inherit"
+                      }}
                     >
-                      Added to Bag!
-                    </motion.span>
-                  ) : (
-                    <motion.span
-                      key="add"
-                      initial={{ opacity: 0, y: 5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -5 }}
-                    >
-                      Add to Bag
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </button>
-              <button
-                onClick={handleBuyNow}
-                disabled={isCheckingOut}
-                className="w-full py-3.5 rounded-[0.8rem] text-background text-[9px] font-bold uppercase tracking-[0.25em] hover:opacity-90 transition-all active:scale-[0.99] shadow-lg flex items-center justify-center gap-2 disabled:opacity-60"
-                style={{
-                  background: "hsl(var(--foreground))",
-                  boxShadow: "0 8px 32px -8px hsla(var(--foreground), 0.3)"
-                }}
-              >
-                {isCheckingOut ? (
-                  <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Preparing…</>
-                ) : (
-                  "Buy Now"
-                )}
-              </button>
+                      <AnimatePresence mode="wait">
+                        {isAdded ? (
+                          <motion.span
+                            key="added"
+                            initial={{ opacity: 0, y: 5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -5 }}
+                            className="flex items-center gap-2"
+                          >
+                            Added to Bag!
+                          </motion.span>
+                        ) : isVariantSoldOut ? (
+                          <motion.span
+                            key="soldout"
+                            initial={{ opacity: 0, y: 5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                          >
+                            Sold Out
+                          </motion.span>
+                        ) : (
+                          <motion.span
+                            key="add"
+                            initial={{ opacity: 0, y: 5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -5 }}
+                          >
+                            Add to Bag
+                          </motion.span>
+                        )}
+                      </AnimatePresence>
+                    </button>
+                    {!isVariantSoldOut && (
+                      <button
+                        onClick={handleBuyNow}
+                        disabled={isCheckingOut}
+                        className="w-full py-3.5 rounded-[0.8rem] text-background text-[9px] font-bold uppercase tracking-[0.25em] hover:opacity-90 transition-all active:scale-[0.99] shadow-lg flex items-center justify-center gap-2 disabled:opacity-60"
+                        style={{
+                          background: "hsl(var(--foreground))",
+                          boxShadow: "0 8px 32px -8px hsla(var(--foreground), 0.3)"
+                        }}
+                      >
+                        {isCheckingOut ? (
+                          <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Preparing…</>
+                        ) : (
+                          "Buy Now"
+                        )}
+                      </button>
+                    )}
+                  </>
+                );
+              })()}
               {checkoutError && (
                 <p className="text-[8px] text-red-400/80 text-center mt-1 px-2">{checkoutError}</p>
               )}
@@ -449,22 +584,64 @@ export default function ProductDetailsClient({
               </div>
             )}
 
-            {/* Recommended Products */}
-            {recommendedProducts.length > 0 && (
-              <div className="mt-[1px] -mx-0.5">
-                <div className="flex items-center justify-between mb-[1px] px-1">
-                  <h2 className="text-[10px] font-bold tracking-[0.15em] uppercase text-foreground/40 font-heading">Curated Pairs</h2>
-                  <Link href="/" className="text-[7.5px] font-bold uppercase tracking-widest text-foreground/20 hover:text-foreground">View Collection</Link>
-                </div>
-                <div className="grid grid-cols-2 gap-x-[6px] gap-y-[1px]">
-                  {recommendedProducts.slice(0, 4).map((p) => <ProductCard key={p.id} product={p} />)}
+            {/* Recommended Products - Apple Standards Overhaul */}
+            {shuffledRecommended.length > 0 && (
+              <div className="mt-6 mb-4 -mx-2">
+                  <div 
+                    className="relative py-4 px-2"
+                  >
+                  {/* Premium Inner top glow */}
+                  <div
+                    className="absolute inset-0 rounded-[2.5rem] pointer-events-none"
+                    style={{ background: "radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.05) 0%, transparent 70%)" }}
+                  />
+
+                  <div className="flex items-center justify-between mb-8 px-2 relative z-10">
+                    <div className="flex flex-col gap-2">
+                      <h2 className="text-[11px] sm:text-[12px] font-bold tracking-[0.5em] uppercase text-foreground/45 font-heading">Curated Pairs</h2>
+                      <div className="h-[1.5px] w-14 bg-foreground/15 rounded-full" />
+                    </div>
+                    <Link href="/collections" className="text-[8px] font-bold uppercase tracking-[0.3em] text-foreground/25 hover:text-foreground/60 transition-all border-b border-foreground/5 pb-0.5">
+                      Explore More
+                    </Link>
+                  </div>
+                  
+                  <div 
+                    ref={curatedScrollRef}
+                    className="flex gap-6 overflow-x-auto snap-x snap-mandatory hide-scrollbar pb-2 px-1 scroll-smooth"
+                    style={{ 
+                        scrollbarWidth: "none", 
+                        msOverflowStyle: "none", 
+                        WebkitOverflowScrolling: "touch",
+                        scrollSnapType: 'x mandatory'
+                    }}
+                    onMouseDown={onCuratedMouseDown}
+                    onMouseLeave={stopCuratedDrag}
+                    onMouseUp={stopCuratedDrag}
+                    onMouseMove={onCuratedMouseMove}
+                  >
+                    {shuffledRecommended.map((p, idx) => (
+                      <motion.div 
+                        key={`curated-v5-${p.id}-${idx}`}
+                        initial={{ opacity: 0, scale: 0.98, y: 10 }}
+                        whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                        viewport={{ once: true, margin: "-50px" }}
+                        transition={{ duration: 0.8, delay: idx * 0.05, ease: [0.16, 1, 0.3, 1] }}
+                        className="min-w-[260px] w-[260px] flex-shrink-0 snap-center"
+                        onClick={(e) => { if (isCuratedDragging) e.preventDefault(); }}
+                      >
+                        <ProductCard product={p} />
+                      </motion.div>
+                    ))}
+                    <div className="shrink-0 w-8" />
+                  </div>
                 </div>
               </div>
             )}
 
             {/* Recently Viewed */}
             {recentlyViewed.length > 1 && (
-              <div className="mt-[1px] pt-[1px] border-t border-foreground/[0.05] -mx-0.5">
+              <div className="mt-4 pt-4 border-t border-foreground/[0.05] -mx-0.5">
                 <div className="flex items-center justify-between mb-[1px] px-1">
                   <h2 className="text-[10px] font-bold tracking-[0.15em] uppercase text-foreground/40 font-heading">Recently Viewed</h2>
                 </div>
@@ -476,6 +653,7 @@ export default function ProductDetailsClient({
           </div>
         </div>
       </main>
+    </div>
 
       {showSizeChart && sizeChartImageUrl && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60" onClick={() => setShowSizeChart(false)}>

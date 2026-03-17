@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from 'react';
-import { ScanLine, Package, ShoppingCart, Undo2, ClipboardList, CheckCircle, XCircle, Wifi, WifiOff, Trash2 } from 'lucide-react';
+import { ScanLine, Package, ShoppingCart, Undo2, ArrowLeftRight, RotateCcw, ClipboardList, CheckCircle, XCircle, Wifi, WifiOff, Trash2 } from 'lucide-react';
 import { ScannerComponent } from '@/components/ScannerComponent';
 
-type ScanMode = 'inventory_receive' | 'order_pack' | 'return_process' | 'audit';
+type ScanMode = 'stock_in' | 'order_out' | 'return_process' | 'exchange' | 'rto' | 'audit';
 
 interface ScannedItem {
   barcode: string;
@@ -16,29 +16,43 @@ interface ScannedItem {
 }
 
 const modeConfig: Record<ScanMode, { label: string; icon: React.ComponentType<any>; color: string; bg: string; actionLabel: string }> = {
-  inventory_receive: {
-    label: 'Receive Stock',
+  stock_in: {
+    label: 'Stock In',
     icon: Package,
     color: 'text-emerald-400',
     bg: 'bg-emerald-400/10',
     actionLabel: 'Receiving to Warehouse',
   },
-  order_pack: {
-    label: 'Pack Orders',
+  order_out: {
+    label: 'Order Out',
     icon: ShoppingCart,
     color: 'text-blue-400',
     bg: 'bg-blue-400/10',
     actionLabel: 'Packing for Dispatch',
   },
   return_process: {
-    label: 'Process Returns',
+    label: 'Returns',
     icon: Undo2,
     color: 'text-orange-400',
     bg: 'bg-orange-400/10',
     actionLabel: 'Processing Return',
   },
+  exchange: {
+    label: 'Exchange',
+    icon: ArrowLeftRight,
+    color: 'text-yellow-400',
+    bg: 'bg-yellow-400/10',
+    actionLabel: 'Processing Exchange',
+  },
+  rto: {
+    label: 'RTO',
+    icon: RotateCcw,
+    color: 'text-red-400',
+    bg: 'bg-red-400/10',
+    actionLabel: 'Return to Origin',
+  },
   audit: {
-    label: 'Stock Audit',
+    label: 'Audit',
     icon: ClipboardList,
     color: 'text-purple-400',
     bg: 'bg-purple-400/10',
@@ -48,12 +62,12 @@ const modeConfig: Record<ScanMode, { label: string; icon: React.ComponentType<an
 
 export default function ScannerPage() {
   const [scannedItems, setScannedItems] = useState<ScannedItem[]>([]);
-  const [activeTab, setActiveTab] = useState<ScanMode>('inventory_receive');
+  const [activeTab, setActiveTab] = useState<ScanMode>('stock_in');
   const [isConnected] = useState(true);
   const [lastScan, setLastScan] = useState<string | null>(null);
 
   const handleScan = async (data: string) => {
-    if (data === lastScan) return; // debounce duplicates
+    if (data === lastScan) return;
     setLastScan(data);
     setTimeout(() => setLastScan(null), 1500);
 
@@ -82,27 +96,19 @@ export default function ScannerPage() {
         const message = payload.error || 'Scan failed';
         setScannedItems((prev) =>
           prev.map((item, idx) =>
-            idx === 0
-              ? {
-                  ...item,
-                  status: 'error',
-                  message,
-                }
-              : item,
+            idx === 0 ? { ...item, status: 'error', message } : item,
           ),
         );
         return;
       }
 
-      const productTitle =
-        payload.product?.title ||
-        payload.product?.sku ||
-        payload.product?.barcode ||
-        'Matched product';
-      const stock =
-        payload.inventory && typeof payload.inventory.stockQuantity === 'number'
-          ? `Stock: ${payload.inventory.stockQuantity}`
-          : undefined;
+      const productTitle = payload.product?.title || payload.product?.sku || 'Matched product';
+      const stock = payload.inventory && typeof payload.inventory.stockQuantity === 'number'
+        ? `Stock: ${payload.inventory.stockQuantity}`
+        : undefined;
+      const beforeAfter = payload.inventory?.beforeStock !== undefined
+        ? `(${payload.inventory.beforeStock} → ${payload.inventory.stockQuantity})`
+        : '';
 
       setScannedItems((prev) =>
         prev.map((item, idx) =>
@@ -110,7 +116,7 @@ export default function ScannerPage() {
             ? {
                 ...item,
                 status: 'success',
-                product: stock ? `${productTitle} — ${stock}` : productTitle,
+                product: stock ? `${productTitle} — ${stock} ${beforeAfter}` : productTitle,
                 message: undefined,
               }
             : item,
@@ -120,11 +126,7 @@ export default function ScannerPage() {
       setScannedItems((prev) =>
         prev.map((item, idx) =>
           idx === 0
-            ? {
-                ...item,
-                status: 'error',
-                message: 'Network error while processing scan',
-              }
+            ? { ...item, status: 'error', message: 'Network error while processing scan' }
             : item,
         ),
       );
@@ -142,7 +144,7 @@ export default function ScannerPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-white">Warehouse Scanner</h1>
-          <p className="text-gray-400 text-sm mt-0.5">Scan barcodes to process inventory, orders, and returns.</p>
+          <p className="text-gray-400 text-sm mt-0.5">Scan barcodes to process inventory actions.</p>
         </div>
         <div className="flex items-center gap-2 glass-card px-3 py-2 rounded-xl w-fit">
           {isConnected ? <Wifi className="w-4 h-4 text-emerald-400" /> : <WifiOff className="w-4 h-4 text-red-400" />}
@@ -176,7 +178,7 @@ export default function ScannerPage() {
       </div>
 
       <div className="grid lg:grid-cols-5 gap-6 items-start">
-        {/* Scanner Component - 2/5 width */}
+        {/* Scanner Component */}
         <div className="lg:col-span-2 space-y-4">
           <div className="glass-card rounded-2xl p-6">
             <div className={`flex items-center gap-3 mb-6 px-4 py-3 rounded-xl ${config.bg}`}>
@@ -191,22 +193,28 @@ export default function ScannerPage() {
 
           <div className="glass-card rounded-2xl p-5">
             <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-3">Stats</p>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               <div className="bg-white/5 rounded-xl p-3 text-center">
                 <p className="text-2xl font-bold text-white">{scannedItems.length}</p>
-                <p className="text-xs text-gray-400 mt-0.5">Total Scanned</p>
+                <p className="text-xs text-gray-400 mt-0.5">Scanned</p>
               </div>
               <div className="bg-white/5 rounded-xl p-3 text-center">
                 <p className="text-2xl font-bold text-emerald-400">
                   {scannedItems.filter(i => i.status === 'success').length}
                 </p>
-                <p className="text-xs text-gray-400 mt-0.5">Processed OK</p>
+                <p className="text-xs text-gray-400 mt-0.5">Success</p>
+              </div>
+              <div className="bg-white/5 rounded-xl p-3 text-center">
+                <p className="text-2xl font-bold text-red-400">
+                  {scannedItems.filter(i => i.status === 'error').length}
+                </p>
+                <p className="text-xs text-gray-400 mt-0.5">Failed</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Log - 3/5 width */}
+        {/* Scan Log */}
         <div className="lg:col-span-3 glass-card rounded-2xl overflow-hidden flex flex-col max-h-[700px]">
           <div className="px-5 py-4 border-b border-white/5 flex items-center justify-between flex-shrink-0">
             <div className="flex items-center gap-2">
@@ -247,7 +255,12 @@ export default function ScannerPage() {
                         {item.message && (
                           <p className="text-xs text-red-400 mt-0.5">{item.message}</p>
                         )}
-                        <p className="text-xs text-gray-600 mt-0.5">{item.time.toLocaleTimeString()}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className={`text-[10px] font-medium uppercase tracking-wider ${modeConfig[item.mode].color}`}>
+                            {modeConfig[item.mode].label}
+                          </span>
+                          <span className="text-xs text-gray-600">{item.time.toLocaleTimeString()}</span>
+                        </div>
                       </div>
                     </div>
                     <div className="flex-shrink-0">

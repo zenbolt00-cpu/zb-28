@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   try {
     const { status } = await req.json(); // expected: 'approved', 'rejected', 'payment_pending', 'shipped'

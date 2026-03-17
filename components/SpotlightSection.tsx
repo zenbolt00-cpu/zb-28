@@ -25,7 +25,7 @@ export default function SpotlightSection({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/shopify/products?pageSize=6")
+    fetch("/api/shopify/products?pageSize=6&collection=tshirts")
       .then(res => res.json())
       .then(data => {
         if (data.products) setProducts(data.products);
@@ -51,8 +51,8 @@ export default function SpotlightSection({
   return (
     <section className="mt-16 mb-20 px-4">
       <div className="text-center mb-12">
-        <h2 className="font-heading text-[32px] tracking-tight text-foreground mb-4 uppercase">{title}</h2>
-        <p className="text-[11px] text-muted-foreground max-w-[280px] mx-auto leading-relaxed tracking-wider font-extralight uppercase">
+        <h2 className="font-heading text-[22px] tracking-[0.2em] text-foreground mb-4 uppercase">{title}</h2>
+        <p className="text-[10px] text-muted-foreground max-w-[280px] mx-auto leading-relaxed tracking-wider font-extralight uppercase opacity-40">
           {subtitle}
         </p>
       </div>
@@ -64,21 +64,20 @@ export default function SpotlightSection({
             href={product ? `/products/${product.handle || product.id}` : "#"}
             className="flex flex-col items-center gap-5 group/item active:scale-[0.98] transition-all duration-700"
           >
-            <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden bg-foreground/[0.03] border border-foreground/[0.06] group-hover/item:border-foreground/20 transition-all duration-700 shadow-sm group-hover/item:shadow-xl">
+            <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden border border-foreground/[0.06] group-hover/item:border-foreground/20 transition-all duration-700 shadow-sm group-hover/item:shadow-xl">
               {product?.images?.[0]?.src ? (
                 <NextImage 
                   src={product.images[0].src} 
                   alt={product.title} 
                   fill 
-                  className="object-cover opacity-90 group-hover/item:opacity-100 group-hover/item:scale-105 transition-all duration-1000 ease-out"
+                  className="object-cover group-hover/item:scale-105 transition-all duration-1000 ease-out"
                 />
               ) : (
                 <div className="w-full h-full bg-foreground/[0.02] flex items-center justify-center">
                   <span className="text-[7px] text-muted-foreground/20 uppercase tracking-[0.3em] font-light">ZB Studio</span>
                 </div>
               )}
-              {/* Subtle overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover/item:opacity-100 transition-opacity duration-700" />
+              {/* Subtle overlay removed for clarity in light mode */}
             </div>
             <div className="flex flex-col items-center gap-1.5 px-1">
               <span className="text-[8px] font-bold tracking-[0.25em] text-foreground/80 uppercase group-hover/item:text-foreground transition-colors text-center line-clamp-1">

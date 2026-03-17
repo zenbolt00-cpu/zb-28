@@ -25,15 +25,15 @@ export default function CollectionHeaderClient({
         backdropFilter: "blur(40px) saturate(210%) brightness(1.02)"
       }}
     >
-      {/* Minimal Collection Branding (Compact Banner Overlay) */}
-      <div className="mb-5 flex justify-center select-none">
-        <div className="relative w-40 h-20 rounded-2xl overflow-hidden shadow-xl shadow-black/5 border border-foreground/[0.04]">
+      {/* Collection Banner Image — fills the box */}
+      <div className="mb-5 select-none">
+        <div className="relative w-full h-36 rounded-2xl overflow-hidden shadow-xl shadow-black/5 border border-foreground/[0.04]">
           {currentImage ? (
             <Image 
               src={currentImage} 
               alt={currentTitle} 
               fill 
-              className="object-cover transition-transform duration-700 hover:scale-110" 
+              className="object-cover object-center transition-transform duration-700 hover:scale-105" 
               priority
             />
           ) : (
@@ -43,9 +43,12 @@ export default function CollectionHeaderClient({
               </span>
             </div>
           )}
-          
-          {/* Subtle Glass Polish Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-tr from-white/10 via-transparent to-black/5 opacity-50 pointer-events-none" />
+          {/* Subtle gradient polish */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
+          {/* Collection title badge */}
+          <div className="absolute bottom-3 left-3">
+            <span className="text-[7px] font-bold uppercase tracking-[0.3em] text-white/70">{currentTitle}</span>
+          </div>
         </div>
       </div>
 

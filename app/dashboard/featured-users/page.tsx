@@ -135,152 +135,136 @@ export default function FeaturedUsersModeration() {
 
   const featuredTopCount = submissions.filter(s => s.isTopFeatured).length;
 
-  if (loading && submissions.length === 0) {
+   if (loading && submissions.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64 text-muted-foreground">
-        <RefreshCw className="w-5 h-5 animate-spin mr-2" />
-        Loading community submissions...
+      <div className="p-8 text-[10px] font-black uppercase tracking-widest text-foreground/20 animate-pulse">
+        Synchronizing submissions...
       </div>
     );
   }
 
-  return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Community Moderation</h1>
+   return (
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+        <div className="space-y-1">
+          <div className="px-2 py-0.5 bg-foreground/[0.03] rounded-md text-[8px] font-black text-foreground/40 dark:text-white/30 uppercase tracking-[0.2em] w-fit mb-1">moderation hub</div>
+          <h1 className="text-xl font-black text-foreground uppercase tracking-tight mb-0.5 lowercase leading-none">
+            Featured Users
+          </h1>
           <div className="flex items-center gap-3 mt-1">
-            <p className="text-muted-foreground text-sm">Approve and curate the homepage showcase.</p>
-            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest ${featuredTopCount >= 20 ? 'bg-orange-500/10 text-orange-500' : 'bg-emerald-500/10 text-emerald-500'}`}>
-              {featuredTopCount}/20 Featured
+            <p className="text-[10px] text-foreground/40 dark:text-white/20 font-bold uppercase tracking-widest">
+              Curate the Zica Bella community showcase.
+            </p>
+            <span className={`px-1.5 py-0.5 rounded text-[7px] font-black uppercase tracking-widest border ${featuredTopCount >= 20 ? 'bg-orange-500/5 text-orange-500 border-orange-500/10' : 'bg-emerald-500/5 text-emerald-500 border-emerald-500/10'}`}>
+              {featuredTopCount}/20 featured
             </span>
           </div>
         </div>
         
-        <div className="flex items-center gap-4">
+         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowCreateModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-foreground text-background rounded-xl text-xs font-bold uppercase tracking-widest hover:opacity-90 transition-all shadow-lg active:scale-95"
+            className="flex items-center gap-2 px-6 py-2 bg-foreground text-background rounded-lg text-[9px] font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-lg shadow-foreground/5 active:scale-95"
           >
-            <Plus className="w-4 h-4" />
-            Create Submission
+            <Plus className="w-3 h-3" /> Insert Node
           </button>
           <a 
             href="/community" 
             target="_blank" 
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:opacity-90 transition-all shadow-lg active:scale-95"
+            className="flex items-center gap-2 px-6 py-2 bg-emerald-500 text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-lg shadow-emerald-500/5 active:scale-95"
           >
-            <ExternalLink className="w-3.5 h-3.5" />
-            Live Community
+            <ExternalLink className="w-3 h-3" /> Live View
           </a>
-          <div className="flex items-center gap-2 px-4 py-2 bg-foreground/5 rounded-xl border border-foreground/10">
-            <Users className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm font-medium">{submissions.length} Submissions</span>
+          <div className="h-9 px-4 bg-foreground/[0.02] border border-foreground/[0.04] rounded-lg flex items-center gap-3">
+            <Users className="w-3 h-3 text-foreground/20" />
+            <span className="text-[9px] font-black uppercase tracking-widest text-foreground/20">{submissions.length} Total</span>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {submissions.map((item) => (
-          <div key={item.id} className={`glass-card rounded-2xl overflow-hidden border transition-all hover:scale-[1.01] ${
-            item.isTopFeatured ? 'ring-2 ring-emerald-500 ring-offset-2 ring-offset-background border-emerald-500/50' :
-            item.status === 'APPROVED' ? 'border-emerald-500/20' : 
-            item.status === 'REJECTED' ? 'border-red-500/20' : 'border-foreground/10'
+          <div key={item.id} className={`group relative bg-white/50 dark:bg-white/[0.02] border border-foreground/[0.05] rounded-xl overflow-hidden shadow-sm transition-all duration-700 hover:bg-foreground/[0.01] ${
+            item.isTopFeatured ? 'ring-1 ring-emerald-500/50' : ''
           }`}>
-            <div className="relative aspect-[4/5] bg-foreground/5">
-              <Image src={item.imageUrl || "/placeholder.png"} alt={item.name} fill className="object-cover" />
-              <div className="absolute top-4 right-4 flex flex-col items-end gap-2">
-                <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-lg flex items-center gap-1.5 ${
+             <div className="relative aspect-[4/5] bg-foreground/[0.02] overflow-hidden">
+              <Image src={item.imageUrl || "/placeholder.png"} alt={item.name} fill className="object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-1000 scale-105 group-hover:scale-100" />
+              <div className="absolute top-3 right-3 flex flex-col items-end gap-1.5">
+                <span className={`px-2 py-0.5 rounded text-[7px] font-black uppercase tracking-widest shadow-sm flex items-center gap-1 ${
                   item.status === 'APPROVED' ? 'bg-emerald-500 text-white' : 
-                  item.status === 'REJECTED' ? 'bg-red-500 text-white' : 'bg-yellow-500 text-black'
+                  item.status === 'REJECTED' ? 'bg-rose-500 text-white' : 'bg-amber-500 text-white'
                 }`}>
-                  {item.status === 'APPROVED' ? <CheckCircle className="w-3 h-3" /> : 
-                   item.status === 'REJECTED' ? <XCircle className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
                   {item.status}
                 </span>
                 {item.isTopFeatured && (
-                  <span className="bg-emerald-500 text-white px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl animate-pulse">
+                  <span className="bg-emerald-500 text-white px-2 py-0.5 rounded text-[7px] font-black uppercase tracking-widest shadow-lg">
                     TOP 20
                   </span>
                 )}
               </div>
             </div>
 
-            <div className="p-5 space-y-4">
+             <div className="p-4 space-y-3">
               <div>
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-bold text-foreground">{item.name}</h3>
-                  <span className="text-[10px] text-muted-foreground">{new Date(item.createdAt).toLocaleDateString()}</span>
+                  <h3 className="text-[11px] font-black text-foreground uppercase tracking-tight lowercase leading-none">{item.name}</h3>
+                  <span className="text-[7.5px] font-black text-foreground/20 dark:text-white/10 uppercase tracking-widest">{new Date(item.createdAt).toLocaleDateString()}</span>
                 </div>
-                <div className="flex items-center gap-2 mt-1">
-                  <p className="text-[10px] text-muted-foreground underline truncate max-w-[120px]">{item.email}</p>
+                <div className="flex items-center gap-2 mt-1.5">
+                  <p className="text-[7.5px] font-black text-foreground/20 dark:text-white/10 uppercase tracking-widest truncate max-w-[120px] leading-none lowercase">{item.email}</p>
                   {item.orderId && (
-                    <span className="text-[9px] font-bold text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded uppercase tracking-tighter">
-                      OrderID: {item.orderId.substring(0, 8)}...
+                    <span className="text-[7px] font-black text-emerald-500 bg-emerald-500/5 px-1 rounded uppercase tracking-widest leading-none">
+                      #{item.orderId.substring(0, 8)}
                     </span>
                   )}
                 </div>
               </div>
 
-              <div className="p-3 bg-foreground/5 rounded-xl border border-foreground/5 italic text-[11px] text-muted-foreground/80 leading-relaxed min-h-[50px]">
-                "{item.styleDescription || "No style description provided."}"
+              <div className="p-3 bg-foreground/[0.01] rounded-lg border border-foreground/[0.02]">
+                <p className="text-[8.5px] font-black text-foreground/40 dark:text-white/20 italic leading-snug lowercase">
+                  "{item.styleDescription || "Unspecified Transmission."}"
+                </p>
               </div>
 
-              <div className="flex items-center justify-between pt-2">
-                <div className="flex items-center gap-2">
+              <div className="flex items-center justify-between pt-1">
+                 <div className="flex items-center gap-1.5">
                   <button 
                     disabled={updatingId === item.id || item.status === 'APPROVED'}
                     onClick={() => handleUpdateStatus(item.id, 'APPROVED')}
-                    className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white transition-all disabled:opacity-30"
-                    title="Approve"
+                    className="w-7 h-7 rounded-lg bg-emerald-500/5 text-emerald-500 flex items-center justify-center hover:bg-emerald-500/10 transition-all disabled:opacity-20"
                   >
-                    <CheckCircle className="w-4 h-4" />
+                    <CheckCircle className="w-3.5 h-3.5" />
                   </button>
                   <button 
                     disabled={updatingId === item.id || item.status === 'REJECTED'}
                     onClick={() => handleUpdateStatus(item.id, 'REJECTED')}
-                    className="p-2 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all disabled:opacity-30"
-                    title="Reject"
+                    className="w-7 h-7 rounded-lg bg-rose-500/5 text-rose-500 flex items-center justify-center hover:bg-rose-500/10 transition-all disabled:opacity-20"
                   >
-                    <XCircle className="w-4 h-4" />
+                    <XCircle className="w-3.5 h-3.5" />
                   </button>
-                  <div className="w-[1px] h-6 bg-foreground/10 mx-1" />
-                  <button 
-                    disabled={updatingId === item.id || item.status !== 'APPROVED'}
-                    onClick={() => handleToggleTopFeatured(item.id, item.isTopFeatured)}
-                    className={`p-2 rounded-lg transition-all flex items-center gap-2 ${
+                  <div 
+                    onClick={() => item.status === 'APPROVED' && handleToggleTopFeatured(item.id, item.isTopFeatured)}
+                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border transition-all cursor-pointer ${
                       item.isTopFeatured 
-                        ? 'bg-emerald-500 text-white shadow-lg' 
-                        : 'bg-foreground/5 text-muted-foreground hover:bg-emerald-500/10 hover:text-emerald-500'
-                    }`}
-                    title={item.isTopFeatured ? "Remove from Home" : "Feature on Home"}
+                        ? 'bg-emerald-500 text-white border-transparent' 
+                        : 'bg-foreground/[0.03] border-transparent text-foreground/30'
+                    } ${item.status !== 'APPROVED' ? 'opacity-20 cursor-not-allowed' : ''}`}
                   >
-                    <Star className={`w-4 h-4 ${item.isTopFeatured ? 'fill-white' : ''}`} />
-                    <span className="text-[9px] font-bold uppercase tracking-widest hidden sm:inline">
-                      {item.isTopFeatured ? 'Featured' : 'Feature'}
+                    <Star className={`w-2.5 h-2.5 ${item.isTopFeatured ? 'fill-white' : ''}`} />
+                    <span className="text-[7.5px] font-black uppercase tracking-widest">
+                      {item.isTopFeatured ? 'Top 20' : 'Feature'}
                     </span>
-                  </button>
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <button 
                     disabled={updatingId === item.id}
                     onClick={() => handleDelete(item.id)}
-                    className="p-2 rounded-lg bg-foreground/5 text-muted-foreground hover:bg-red-500 hover:text-white transition-all"
-                    title="Delete Permanently"
+                    className="w-7 h-7 rounded-lg hover:bg-rose-500/5 text-foreground/10 hover:text-rose-500 flex items-center justify-center transition-all"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-3.5 h-3.5" />
                   </button>
-                  <a 
-                    href={item.imageUrl} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="p-2 rounded-lg bg-foreground/5 text-muted-foreground hover:bg-blue-500 hover:text-white transition-all"
-                    title="View Original Image"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                  </a>
                 </div>
               </div>
             </div>

@@ -44,7 +44,7 @@ function envSettings() {
     appleUrl: '',
     spotifyUrl: '',
     youtubeUrl: '',
-    showHeroText: true,
+    showHeroText: false,
     showLatestCuration: true,
     showArchive: true,
     showBlueprint: true,
@@ -65,6 +65,14 @@ function envSettings() {
     enabledCollectionsHeader: '[]',
     enabledCollectionsPage: '[]',
     enabledCollectionsMenu: '[]',
+    flipbookConfig: '[]',
+    flipbookImage: '',
+    flipbookTitle: 'Archival Vision',
+    flipbookTag: 'Core Manifest',
+    flipbookDesc: 'Engineered for those who move without compromise.',
+    communityMinOrders: 1,
+    communityAgeRestricted: true,
+    communityWhatsAppEnabled: true,
   };
 }
 
@@ -166,6 +174,18 @@ export async function GET(req: Request) {
       enabledCollectionsHeader: s.enabledCollectionsHeader || '[]',
       enabledCollectionsPage: s.enabledCollectionsPage || '[]',
       enabledCollectionsMenu: s.enabledCollectionsMenu || '[]',
+      flipbookConfig: s.flipbookConfig || '[]',
+      flipbookImage: s.flipbookImage || '',
+      flipbookVideo: s.flipbookVideo || '',
+      flipbookTitle: s.flipbookTitle || 'Archival Vision',
+      flipbookTag: s.flipbookTag || 'Core Manifest',
+      flipbookDesc: s.flipbookDesc || 'Engineered for those who move without compromise.',
+      communityMinOrders: s.communityMinOrders ?? 1,
+      communityAgeRestricted: s.communityAgeRestricted ?? true,
+      communityWhatsAppEnabled: s.communityWhatsAppEnabled ?? true,
+      showRingCarousel: s.showRingCarousel ?? true,
+      ringCarouselTitle: s.ringCarouselTitle || 'RING COLLECTION',
+      ringCarouselItems: s.ringCarouselItems || '[]',
     });
   } catch (e: any) {
     console.error('[Settings API GET Error]:', e);
@@ -235,13 +255,17 @@ export async function PATCH(req: Request) {
       'footerVideo', 'mainMenuHandle', 'secondaryMenuHandle', 'showTreeText',
       'showCommunity', 'communityTitle', 'communitySubtitle', 'spotlightTitle',
       'spotlightSubtitle', 'kineticMeshTitle', 'enabledCollectionsHeader',
-      'enabledCollectionsPage', 'enabledCollectionsMenu'
+      'enabledCollectionsPage', 'enabledCollectionsMenu', 'flipbookConfig',
+      'flipbookImage', 'flipbookVideo', 'flipbookTitle', 'flipbookTag', 'flipbookDesc',
+      'communityMinOrders', 'communityAgeRestricted', 'communityWhatsAppEnabled',
+      'showRingCarousel', 'ringCarouselTitle', 'ringCarouselItems'
     ] as const;
 
     const booleanKeys = [
       'showHeroText', 'showLatestCuration', 'showArchive', 'showBlueprint',
       'showProductVideo', 'showSizeChart', 'showBrand', 'showShippingReturn',
-      'showCare', 'showSizeFit', 'showDetails', 'showTreeText', 'showCommunity'
+      'showCare', 'showSizeFit', 'showDetails', 'showTreeText', 'showCommunity',
+      'communityAgeRestricted', 'communityWhatsAppEnabled', 'showRingCarousel'
     ];
 
     const data: any = {};

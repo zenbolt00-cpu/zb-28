@@ -94,91 +94,91 @@ export default function CollectionsAdminPage() {
   }
 
   return (
-    <div className="space-y-8 pb-32">
+    <div className="space-y-4 pb-20 animate-in fade-in slide-in-from-bottom-2 duration-500">
       {/* Header Area */}
-      <div className="flex items-end justify-between gap-4">
+       <div className="flex items-end justify-between gap-4 mb-2">
         <div>
-          <h1 className="font-rocaston text-2xl tracking-widest text-foreground uppercase mb-2">Collection Visibility</h1>
-          <p className="text-xs text-muted-foreground max-w-md">
-            Control exactly where each collection is displayed on your storefront. 
-            Enable collections specifically for the header slider, main collections page, or navigation menu.
+          <div className="px-2 py-0.5 bg-foreground/[0.03] rounded-md text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em] w-fit mb-2">visibility matrix</div>
+          <h1 className="font-normal text-lg tracking-[0.2em] text-foreground uppercase mb-0.5 leading-none">Collections</h1>
+          <p className="text-[9px] text-foreground/20 font-normal uppercase tracking-[0.2em] mt-1">
+            Control storefront visibility for each node.
           </p>
         </div>
         
         <button 
           onClick={saveChanges}
           disabled={saving}
-          className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all ${
+          className={`flex items-center gap-2 px-6 py-2 rounded-md font-normal text-[8px] uppercase tracking-[0.2em] transition-all ${
             success 
-              ? "bg-green-500 text-white shadow-lg shadow-green-500/20" 
-              : "bg-foreground text-background shadow-xl shadow-foreground/10 hover:opacity-90 active:scale-95 disabled:opacity-50"
+              ? "bg-green-500/10 text-green-500 border border-green-500/10" 
+              : "bg-foreground text-background shadow-md shadow-foreground/5 hover:opacity-90 active:scale-95 disabled:opacity-50"
           }`}
         >
-          {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : success ? <Check className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
-          {saving ? "Saving..." : success ? "Settings Saved" : "Save Changes"}
+          {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : success ? <Check className="w-3 h-3" /> : <Save className="w-3 h-3" strokeWidth={1.5} />}
+          {saving ? "SAVING..." : success ? "SAVED" : "SAVE"}
         </button>
       </div>
 
-      {/* Search Bar */}
-      <div className="relative group max-w-xl">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-foreground transition-colors" />
+       {/* Search Bar */}
+      <div className="relative group max-w-sm">
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3 h-3 text-foreground/20 group-focus-within:text-foreground/50 transition-colors" />
         <input 
           type="text" 
-          placeholder="Filter collections..."
+          placeholder="FILTER SPECTRUM..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-foreground/5 border border-foreground/5 focus:border-foreground/20 focus:bg-foreground/10 transition-all outline-none text-sm placeholder:text-muted-foreground/50"
+          className="w-full pl-9 pr-4 py-2 rounded-md bg-foreground/[0.02] border border-foreground/[0.05] focus:border-foreground/10 focus:bg-foreground/[0.04] transition-all outline-none text-[10px] font-normal uppercase tracking-[0.1em] placeholder:text-foreground/10"
         />
       </div>
 
       {/* Collections Table-like Grid */}
-      <div className="glass border border-foreground/5 rounded-[2.5rem] overflow-hidden">
-        <div className="grid grid-cols-[1fr,100px,100px,100px] gap-4 px-8 py-5 border-b border-foreground/5 bg-foreground/[0.02]">
-          <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground">Collection & Info</span>
-          <div className="flex items-center justify-center gap-2">
-            <PanelTop className="w-3 h-3 text-muted-foreground" />
-            <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground">Header</span>
+       <div className="bg-white/50 dark:bg-white/[0.02] border border-foreground/[0.05] rounded-xl overflow-hidden shadow-sm">
+        <div className="grid grid-cols-[1fr,80px,80px,80px] gap-2 px-5 py-3 border-b border-foreground/[0.02] bg-foreground/[0.01]">
+          <span className="text-[7px] uppercase tracking-[0.3em] font-normal text-foreground/15">Collection & Info</span>
+          <div className="flex items-center justify-center gap-1.5">
+            <PanelTop className="w-2.5 h-2.5 text-foreground/10" strokeWidth={1.5} />
+            <span className="text-[7px] uppercase tracking-[0.3em] font-normal text-foreground/15">Header</span>
           </div>
-          <div className="flex items-center justify-center gap-2">
-            <Layers className="w-3 h-3 text-muted-foreground" />
-            <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground">List</span>
+          <div className="flex items-center justify-center gap-1.5">
+            <Layers className="w-2.5 h-2.5 text-foreground/10" strokeWidth={1.5} />
+            <span className="text-[7px] uppercase tracking-[0.3em] font-normal text-foreground/15">List</span>
           </div>
-          <div className="flex items-center justify-center gap-2">
-            <MenuIcon className="w-3 h-3 text-muted-foreground" />
-            <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground">Menu</span>
+          <div className="flex items-center justify-center gap-1.5">
+            <MenuIcon className="w-2.5 h-2.5 text-foreground/10" strokeWidth={1.5} />
+            <span className="text-[7px] uppercase tracking-[0.3em] font-normal text-foreground/15">Menu</span>
           </div>
         </div>
 
         <div className="divide-y divide-foreground/[0.03]">
           <AnimatePresence mode="popLayout">
             {filteredCollections.map((collection) => (
-              <motion.div
+                <motion.div
                 layout
                 key={collection.id}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="grid grid-cols-[1fr,100px,100px,100px] gap-4 px-8 py-4 items-center hover:bg-foreground/[0.01] transition-colors"
+                className="grid grid-cols-[1fr,80px,80px,80px] gap-2 px-5 py-2 items-center hover:bg-foreground/[0.01] transition-colors"
               >
                 {/* Collection Info */}
-                <div className="flex items-center gap-4">
-                  <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-foreground/5">
+                <div className="flex items-center gap-3">
+                  <div className="relative w-8 h-8 rounded-lg overflow-hidden bg-foreground/[0.03] border border-foreground/[0.02]">
                     {collection.image?.src ? (
                       <Image 
                         src={collection.image.src} 
                         alt={collection.title} 
                         fill 
-                        className="object-cover"
+                        className="object-cover grayscale opacity-70"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <Package className="w-5 h-5 text-foreground/10" />
+                        <Package className="w-3 h-3 text-foreground/5" />
                       </div>
                     )}
                   </div>
                   <div>
-                    <h3 className="text-[11px] font-bold uppercase tracking-widest text-foreground">{collection.title}</h3>
-                    <p className="text-[8px] text-muted-foreground uppercase tracking-widest">{collection.products?.length || 0} Pieces</p>
+                    <h3 className="text-[9px] font-normal uppercase tracking-[0.1em] text-foreground lowercase leading-none">{collection.title}</h3>
+                    <p className="text-[7px] text-foreground/20 font-normal uppercase tracking-[0.2em] mt-1">{collection.products?.length || 0} Pieces</p>
                   </div>
                 </div>
 
@@ -210,18 +210,18 @@ export default function CollectionsAdminPage() {
   );
 }
 
-function VisibilityToggle({ active, onClick }: { active: boolean, onClick: () => void }) {
+ function VisibilityToggle({ active, onClick }: { active: boolean, onClick: () => void }) {
   return (
     <div className="flex justify-center">
       <button 
         onClick={onClick}
-        className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 border ${
+        className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300 border ${
           active 
-            ? "bg-foreground text-background border-foreground shadow-lg shadow-foreground/10" 
-            : "bg-background text-muted-foreground/30 border-foreground/5 hover:border-foreground/10 hover:text-muted-foreground/60"
+            ? "bg-foreground text-background border-foreground shadow-sm" 
+            : "bg-foreground/[0.02] text-foreground/10 border-foreground/[0.05] hover:border-foreground/10 hover:text-foreground/40"
         }`}
       >
-        {active ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+        {active ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
       </button>
     </div>
   );

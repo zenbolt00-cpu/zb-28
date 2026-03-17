@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/cart-context";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  ChevronLeft, 
   MapPin, 
   CreditCard, 
   Truck, 
@@ -17,7 +16,6 @@ import {
   Loader2
 } from "lucide-react";
 import Link from "next/link";
-import StorefrontHeader from "@/components/StorefrontHeader";
 import StorefrontNav from "@/components/StorefrontNav";
 
 type Address = {
@@ -60,10 +58,12 @@ export default function CheckoutPage() {
   const total = subtotal + (paymentMethod === "COD" ? codFee : 0) + shipping;
 
   useEffect(() => {
-    if (items.length === 0 && step !== 4) {
+    if (status === "unauthenticated") {
+       router.push(`/login?callbackUrl=/checkout`);
+    } else if (items.length === 0 && step !== 4) {
       router.push("/cart");
     }
-  }, [items, step, router]);
+  }, [items, step, router, status]);
 
   // Auto-fetch previous order address if available
   useEffect(() => {
@@ -181,9 +181,7 @@ export default function CheckoutPage() {
         <div className="absolute -bottom-[10%] -left-[10%] w-[50vw] h-[50vw] rounded-full glow-orb-1 opacity-5 dark:opacity-10" />
       </div>
 
-      <StorefrontHeader />
-
-      <div className="relative z-10 max-w-md mx-auto px-4 pt-header pb-40">
+      <div className="relative z-10 max-w-md mx-auto px-4 pt-20 pb-40">
         {/* Page Title - Unified Style */}
         <div className="mb-8">
           <p className="text-[7px] font-extralight uppercase tracking-[0.55em] text-muted-foreground/35 mb-0.5 ml-0.5">Your</p>
@@ -194,12 +192,6 @@ export default function CheckoutPage() {
                 Step {step}/2
               </span>
             </h1>
-            <button 
-              onClick={() => step > 1 ? setStep(step - 1) : router.back()}
-              className="text-[7px] font-black uppercase tracking-widest text-muted-foreground/30 hover:text-foreground/60 transition-colors"
-            >
-              {step > 1 ? "Go Back" : "Cancel"}
-            </button>
           </div>
         </div>
 

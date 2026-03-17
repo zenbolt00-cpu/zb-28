@@ -32,7 +32,7 @@ export default async function StorefrontFooter() {
     <footer className="w-full pb-10 pt-12 px-4 text-center mt-1 relative z-10 glass rounded-t-[3rem] border-t-0">
       <div className="max-w-md mx-auto px-4">
         {/* 3D GLB Logo */}
-        <div className="mb-6 flex justify-center">
+        <div className="mb-6 flex justify-center pointer-events-none">
           <div className="w-20 h-20 sm:w-24 sm:h-24">
             {/* @ts-expect-error model-viewer web component */}
             <model-viewer
@@ -81,7 +81,7 @@ export default async function StorefrontFooter() {
                 href={`https://8tiahf-bk.myshopify.com/policies/${policy.handle}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[7px] font-extralight uppercase tracking-[0.4em] text-muted-foreground/30 hover:text-foreground/60 transition-colors"
+                className="text-[7px] font-bold uppercase tracking-[0.4em] text-foreground/80 hover:text-foreground transition-colors"
               >
                 {policy.title}
               </a>

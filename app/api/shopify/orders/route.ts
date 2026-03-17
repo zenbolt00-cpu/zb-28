@@ -68,10 +68,18 @@ export async function GET(request: Request) {
 
     // Enrich with local delivery status
     const shopifyOrderIds = orders.map(o => String(o.id));
-    const localOrders = await prisma.order.findMany({
-      where: { shopifyOrderId: { in: shopifyOrderIds } },
-      select: { shopifyOrderId: true, deliveryStatus: true }
-    });
+    console.log('[Orders API] Shopify Order IDs:', shopifyOrderIds);
+    
+    let localOrders: any[] = [];
+    try {
+      localOrders = await prisma.order.findMany({
+        where: { shopifyOrderId: { in: shopifyOrderIds } },
+        select: { shopifyOrderId: true, deliveryStatus: true }
+      });
+    } catch (prismaErr) {
+      console.error('[Orders API] Prisma findMany Error:', prismaErr);
+      // Fallback to empty if prisma fails, but don't crash
+    }
     
     const deliveryMap = Object.fromEntries(localOrders.map(o => [o.shopifyOrderId, o.deliveryStatus]));
     const enrichedOrders = orders.map(o => ({
