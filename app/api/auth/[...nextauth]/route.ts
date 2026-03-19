@@ -132,10 +132,15 @@ export const authOptions: AuthOptions = {
 
           if (!customer) {
             console.log(`[AUTH] Customer not found for ${fullPhone}. Creating new customer...`);
-            const shop = await prisma.shop.findFirst();
+            let shop = await prisma.shop.findFirst();
             if (!shop) {
-              console.error("[AUTH] No shop configured in database!");
-              throw new Error("System configuration error: No shop found");
+              console.log("[AUTH] No shop found. Creating a default shop to allow login.");
+              shop = await prisma.shop.create({
+                data: {
+                  domain: process.env.SHOPIFY_STORE_DOMAIN || "zicabella.myshopify.com",
+                  accessToken: process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_TOKEN || "default_token",
+                }
+              });
             }
 
             customer = await prisma.customer.create({
@@ -190,8 +195,16 @@ export const authOptions: AuthOptions = {
           });
 
           if (!customer) {
-            const shop = await prisma.shop.findFirst();
-            if (!shop) throw new Error("No shop configured");
+            let shop = await prisma.shop.findFirst();
+            if (!shop) {
+              console.log("[AUTH] No shop found. Creating a default shop to allow login.");
+              shop = await prisma.shop.create({
+                data: {
+                  domain: process.env.SHOPIFY_STORE_DOMAIN || "zicabella.myshopify.com",
+                  accessToken: process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_TOKEN || "default_token",
+                }
+              });
+            }
 
             customer = await prisma.customer.create({
               data: {
@@ -229,8 +242,16 @@ export const authOptions: AuthOptions = {
         });
 
         if (!customer) {
-          const shop = await prisma.shop.findFirst();
-          if (!shop) return false;
+          let shop = await prisma.shop.findFirst();
+          if (!shop) {
+            console.log("[AUTH] No shop found. Creating a default shop to allow login.");
+            shop = await prisma.shop.create({
+              data: {
+                domain: process.env.SHOPIFY_STORE_DOMAIN || "zicabella.myshopify.com",
+                accessToken: process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_TOKEN || "default_token",
+              }
+            });
+          }
 
           await prisma.customer.create({
             data: {
