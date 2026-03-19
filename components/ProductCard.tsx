@@ -13,9 +13,10 @@ const QuickAddModal = dynamic(() => import("./QuickAddModal"), { ssr: false });
 interface Props {
   product: ShopifyProduct;
   priority?: boolean;
+  selectedSize?: string;
 }
 
-export default function ProductCard({ product, priority = false }: Props) {
+export default function ProductCard({ product, priority = false, selectedSize }: Props) {
   const [showModal, setShowModal] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const image = product.images?.[0]?.src || "/placeholder.png";
@@ -37,7 +38,8 @@ export default function ProductCard({ product, priority = false }: Props) {
   };
 
   const totalStock = product.variants?.reduce((acc, v) => acc + (v.inventory_quantity || 0), 0) || 0;
-  const isSoldOut = totalStock <= 0;
+  // Sold out ONLY if all variants are out of stock
+  const isSoldOut = product.variants ? !product.variants.some(v => (v.inventory_quantity || 0) > 0) : true;
 
   return (
     <>
@@ -94,17 +96,17 @@ export default function ProductCard({ product, priority = false }: Props) {
         </Link>
 
         {/* Info row with "+" button */}
-        <div className="flex justify-between items-start leading-tight px-1 pb-2">
-          <div className="flex-1 min-w-0 pr-1.5 flex flex-col gap-1">
-            <p className="text-[9px] sm:text-[10px] font-medium uppercase tracking-[0.1em] text-foreground/80 leading-[1.2] truncate">
+        <div className="flex justify-between items-start leading-tight px-1 pb-1">
+          <div className="flex-1 min-w-0 pr-1.5 flex flex-col gap-0.5">
+            <p className="text-[7.5px] sm:text-[8.5px] font-sans font-bold uppercase tracking-[0.15em] text-foreground/45 leading-none truncate pt-0.5">
               {product.title}
             </p>
-            <div className="flex items-center gap-2 mt-0.5">
-              <p className="text-[10px] font-black tracking-[0.05em] text-foreground/90 uppercase">
+            <div className="flex items-center gap-1.5">
+              <p className="text-[8px] sm:text-[9px] font-sans font-medium tracking-tight text-foreground/65 uppercase">
                 ₹{parseFloat(price).toLocaleString("en-IN")}
               </p>
               {isOnSale && compareAtPrice && (
-                <p className="text-[9px] font-light tracking-[0.05em] text-foreground/20 uppercase line-through">
+                <p className="text-[7px] font-sans font-normal tracking-tight text-foreground/20 uppercase line-through">
                   ₹{parseFloat(compareAtPrice).toLocaleString("en-IN")}
                 </p>
               )}
@@ -129,7 +131,7 @@ export default function ProductCard({ product, priority = false }: Props) {
 
       {/* Quick-Add Modal */}
       {showModal && (
-        <QuickAddModal product={product} onClose={() => setShowModal(false)} />
+        <QuickAddModal product={product} initialSize={selectedSize} onClose={() => setShowModal(false)} />
       )}
     </>
   );

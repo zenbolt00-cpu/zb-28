@@ -15,21 +15,12 @@ export default function StorefrontLayout({ children, footer }: StorefrontLayoutP
   const pathname = usePathname();
   const [collections, setCollections] = useState<any[]>([]);
   
-  // Don't show storefront UI on dashboard or scanner routes
-  const isDashboard = pathname.startsWith("/dashboard") || pathname.startsWith("/scanner") || pathname.startsWith("/portal");
-  
   useEffect(() => {
-    if (!isDashboard) {
-      fetch("/api/shopify/collections?usage=header")
-        .then(res => res.json())
-        .then(data => setCollections(data))
-        .catch(err => console.error("Error fetching collections for header:", err));
-    }
-  }, [isDashboard]);
-
-  if (isDashboard) {
-    return <>{children}</>;
-  }
+    fetch("/api/shopify/collections?usage=header")
+      .then(res => res.json())
+      .then(data => setCollections(data))
+      .catch(err => console.error("Error fetching collections for header:", err));
+  }, []);
 
   return (
     <div className="min-h-screen max-w-full overflow-x-hidden bg-background text-foreground selection:bg-foreground/10 transition-colors duration-500">

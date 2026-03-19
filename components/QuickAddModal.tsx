@@ -9,12 +9,13 @@ import { createPortal } from "react-dom";
 
 interface Props {
   product: ShopifyProduct;
+  initialSize?: string;
   onClose: () => void;
 }
 
-export default function QuickAddModal({ product, onClose }: Props) {
+export default function QuickAddModal({ product, initialSize, onClose }: Props) {
   const { add } = useCart();
-  const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [selectedSize, setSelectedSize] = useState<string | null>(initialSize || null);
   const [added, setAdded] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -114,7 +115,7 @@ export default function QuickAddModal({ product, onClose }: Props) {
             <p className="text-[9px] font-extralight uppercase tracking-[0.22em] text-foreground/80 line-clamp-2 leading-relaxed">
               {product.title}
             </p>
-            <p className="text-[9px] font-medium text-foreground/50 tracking-widest mt-0.5">
+            <p className="text-[9px] font-normal text-foreground/50 tracking-widest mt-0.5">
               ₹{parseFloat(price).toLocaleString("en-IN")}
             </p>
           </div>
@@ -166,8 +167,14 @@ export default function QuickAddModal({ product, onClose }: Props) {
         {/* Add Button */}
         <div className="px-5 pb-10">
           {(() => {
-            const variant = product.variants?.find(v => v.option1 === (selectedSize || sizes[0]?.size)) || product.variants?.[0];
-            const isVariantSoldOut = (variant?.inventory_quantity || 0) <= 0;
+            let isVariantSoldOut = false;
+            
+            if (selectedSize) {
+              const variant = product.variants?.find(v => v.option1 === selectedSize);
+              isVariantSoldOut = (variant?.inventory_quantity || 0) <= 0;
+            } else {
+              isVariantSoldOut = product.variants ? !product.variants.some(v => (v.inventory_quantity || 0) > 0) : true;
+            }
             
             return (
               <button
@@ -176,7 +183,7 @@ export default function QuickAddModal({ product, onClose }: Props) {
                 className={`w-full py-3.5 rounded-2xl text-[9px] font-light uppercase tracking-[0.4em] transition-all duration-300 active:scale-[0.98] flex items-center justify-center gap-2 ${
                   added
                     ? "bg-green-500 text-white"
-                    : (sizes.length > 1 && !selectedSize) || isVariantSoldOut
+                    : isVariantSoldOut || (sizes.length > 1 && !selectedSize)
                       ? "bg-foreground/10 text-foreground/30 cursor-not-allowed"
                       : "bg-foreground text-background hover:opacity-90"
                 }`}

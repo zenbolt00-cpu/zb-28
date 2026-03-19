@@ -11,7 +11,7 @@ export async function PATCH(
   try {
     const { id } = params;
     const body = await req.json();
-    const { status, isTopFeatured } = body;
+    const { status, isTopFeatured, name, email, imageUrl, instagramUrl, styleDescription } = body;
 
     const data: any = {};
     if (status !== undefined) {
@@ -21,9 +21,12 @@ export async function PATCH(
       data.status = status;
     }
     
-    if (isTopFeatured !== undefined) {
-      data.isTopFeatured = !!isTopFeatured;
-    }
+    if (isTopFeatured !== undefined) data.isTopFeatured = !!isTopFeatured;
+    if (name !== undefined) data.name = name;
+    if (email !== undefined) data.email = email;
+    if (imageUrl !== undefined) data.imageUrl = imageUrl;
+    if (instagramUrl !== undefined) data.instagramUrl = instagramUrl;
+    if (styleDescription !== undefined) data.styleDescription = styleDescription;
 
     const user = await prisma.featuredUser.update({
       where: { id },

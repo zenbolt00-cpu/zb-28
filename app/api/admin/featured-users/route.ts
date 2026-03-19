@@ -29,7 +29,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const { name, email, imageUrl, styleDescription } = await req.json();
+    const { name, email, imageUrl, styleDescription, instagramUrl, status = 'APPROVED' } = await req.json();
 
     if (!name || !email || !imageUrl) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -40,8 +40,9 @@ export async function POST(req: Request) {
         name,
         email,
         imageUrl,
+        instagramUrl,
         styleDescription,
-        status: 'APPROVED',
+        status,
         isTopFeatured: false,
       },
     });

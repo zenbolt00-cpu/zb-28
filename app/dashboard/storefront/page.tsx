@@ -215,7 +215,7 @@ export default function StorefrontSettingsPage() {
         'communityTitle', 'communitySubtitle', 'spotlightTitle', 'spotlightSubtitle',
         'kineticMeshTitle', 'kineticMeshProducts', 'enabledCollectionsHeader', 
         'enabledCollectionsPage', 'enabledCollectionsMenu',
-        'flipbookImage', 'flipbookTitle', 'flipbookTag', 'flipbookDesc',
+        'flipbookImage', 'flipbookVideo', 'flipbookTitle', 'flipbookTag', 'flipbookDesc',
         'showRingCarousel', 'ringCarouselTitle', 'ringCarouselItems'
     ];
 

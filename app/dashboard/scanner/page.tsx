@@ -162,12 +162,13 @@ export default function DashboardScannerPage() {
    return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
-        <div className="space-y-1">
-          <div className="px-2 py-0.5 bg-foreground/[0.03] rounded-md text-[8px] font-black text-foreground/40 dark:text-white/30 uppercase tracking-[0.2em] w-fit mb-1">logistics node</div>
-          <h1 className="text-xl font-black text-foreground uppercase tracking-tight mb-0.5 lowercase leading-none">Warehouse Scanner</h1>
-          <p className="text-[10px] text-foreground/40 dark:text-white/20 font-bold uppercase tracking-widest mt-1">
-            Scan barcodes to process inventory, orders, and returns.
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 lg:gap-6 mb-8 lg:mb-12 relative z-10">
+        <div className="space-y-1 lg:space-y-2">
+          <h1 className="text-2xl lg:text-3xl font-bold text-foreground uppercase tracking-tighter leading-none">
+            Transmission Link
+          </h1>
+          <p className="text-[9px] lg:text-[10px] text-foreground/40 font-bold uppercase tracking-[0.3em] max-w-xl">
+            Real-time optical substrate analysis and synchronization.
           </p>
         </div>
         <div className="flex items-center gap-2 px-3 py-1.5 bg-foreground/[0.02] border border-foreground/[0.04] rounded-lg w-fit">
@@ -212,7 +213,7 @@ export default function DashboardScannerPage() {
       <div className="grid lg:grid-cols-5 gap-6 items-start">
         {/* Scanner Component - 2/5 width */}
          <div className="lg:col-span-2 space-y-4">
-          <div className="bg-white/50 dark:bg-white/[0.02] border border-foreground/[0.05] rounded-xl p-6 shadow-sm overflow-hidden">
+          <div className="bg-foreground/[0.02] border border-foreground/[0.05] rounded-xl p-6 shadow-sm overflow-hidden">
             <div className={`flex items-center gap-3 mb-6 px-4 py-2.5 rounded-lg border border-foreground/[0.02] ${config.bg.replace('400/10', '500/5')}`}>
               <Icon className="w-4 h-4 text-foreground/40" />
               <div>
@@ -225,7 +226,7 @@ export default function DashboardScannerPage() {
             <ScannerComponent onScan={handleScan} scannerType={activeTab} />
           </div>
 
-          <div className="bg-white/50 dark:bg-white/[0.02] border border-foreground/[0.05] rounded-xl p-4 shadow-sm">
+          <div className="bg-foreground/[0.02] border border-foreground/[0.05] rounded-xl p-4 shadow-sm">
             <p className="text-[8px] text-foreground/20 dark:text-white/20 font-black uppercase tracking-[0.3em] mb-4">
               Metadata Analysis
             </p>
@@ -245,7 +246,7 @@ export default function DashboardScannerPage() {
         </div>
 
         {/* Log - 3/5 width */}
-         <div className="lg:col-span-3 bg-white/50 dark:bg-white/[0.02] border border-foreground/[0.05] rounded-xl overflow-hidden flex flex-col max-h-[700px] shadow-sm">
+         <div className="lg:col-span-3 bg-foreground/[0.02] border border-foreground/[0.05] rounded-xl overflow-hidden flex flex-col max-h-[700px] shadow-sm">
           <div className="px-5 py-3 border-b border-foreground/[0.03] flex items-center justify-between flex-shrink-0 bg-foreground/[0.01]">
             <div className="flex items-center gap-2">
               <ScanLine className="w-3.5 h-3.5 text-foreground/20" />

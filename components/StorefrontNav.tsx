@@ -36,24 +36,23 @@ export default function StorefrontNav() {
 
     const isChatPage = pathname === "/chat";
   
-    return (
-      <div
-        className="fixed bottom-0 left-0 w-full z-50 transition-all duration-300 pointer-events-none"
-        style={{ 
-          transform: (hidden || isChatPage) ? "translateY(120%)" : "translateY(0)", 
-          opacity: (hidden || isChatPage) ? 0 : 1,
-          paddingBottom: "env(safe-area-inset-bottom, 0px)"
-        }}
-      >
-      <div className="w-full px-2 sm:max-w-xl sm:mx-auto mb-3">
+  return (
+    <div
+      className="fixed bottom-0 left-0 w-full z-50 transition-all duration-300 pointer-events-none"
+      style={{ 
+        transform: (hidden || isChatPage) ? "translateY(120%)" : "translateY(0)", 
+        opacity: (hidden || isChatPage) ? 0 : 1,
+      }}
+    >
+      <div className="w-full px-4 sm:max-w-xl sm:mx-auto mb-[1px]">
         <nav
-          className="flex justify-around items-center py-2 px-7 pointer-events-auto rounded-[2.5rem]"
+          className="grid grid-cols-5 items-center py-2.5 px-1 pointer-events-auto rounded-[2.25rem]"
           style={{
-            background: "hsla(var(--glass-bg), 0.78)",
+            background: "hsla(var(--glass-bg), 0.8)",
             backdropFilter: "blur(40px) saturate(210%)",
             WebkitBackdropFilter: "blur(40px) saturate(210%)",
-            border: "1px solid hsla(var(--glass-border), 0.1)",
-            boxShadow: "0 12px 48px -12px rgba(0,0,0,0.4), inset 0 1px 1px hsla(var(--foreground), 0.08)",
+            border: "1px solid hsla(var(--glass-border), 0.08)",
+            boxShadow: "0 10px 40px -10px rgba(0,0,0,0.35), inset 0 0.5px 0 0 hsla(var(--foreground), 0.05)",
           }}
         >
           {navItems.map(({ href, icon: Icon, label, isCart }) => {
@@ -66,42 +65,35 @@ export default function StorefrontNav() {
                 key={href}
                 href={href}
                 aria-label={label}
-                className={`relative flex flex-col items-center gap-0.5 px-3 py-1 rounded-2xl transition-all duration-400 active:scale-75 ${
-                  isActive ? "text-foreground" : "text-foreground/30 hover:text-foreground/60"
+                className={`relative flex flex-col items-center justify-center h-9 w-full transition-all duration-300 active:scale-75 ${
+                  isActive ? "text-foreground" : "text-foreground/25 hover:text-foreground/50"
                 }`}
               >
                 {isProfile && profileImage ? (
-                  <div className={`w-[18px] h-[18px] rounded-full overflow-hidden border ${isActive ? 'border-foreground/60' : 'border-transparent'}`}>
+                  <div className={`w-[19px] h-[19px] rounded-full overflow-hidden border ${isActive ? 'border-foreground/40' : 'border-transparent'}`}>
                     <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
                   </div>
                 ) : (
                   <Icon
-                    className="w-[17px] h-[17px]"
+                    className="w-[18px] h-[18px]"
                     strokeWidth={isActive ? 2.5 : 2}
                   />
                 )}
-                <span
-                   className="text-[6.5px] uppercase tracking-[0.16em] transition-all"
-                  style={{
-                    fontFamily: "ui-monospace, SF Mono, Menlo, monospace",
-                    fontWeight: isActive ? 600 : 400,
-                    opacity: isActive ? 0.9 : 0.5,
-                  }}
-                >
-                  {label}
-                </span>
+                
+                {/* Minimal Dot Indicator instead of text labels */}
                 {isActive && (
                   <motion.span
                     layoutId="active-nav-indicator"
-                    className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-0.5 h-0.5 rounded-full"
+                    className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full"
                     style={{ background: "hsla(var(--foreground), 0.8)" }}
                     aria-hidden
                   />
                 )}
+                
                 {isCart && count > 0 && (
                   <span
-                    className="absolute top-0.5 right-1 w-3 h-3 rounded-full bg-foreground flex items-center justify-center text-background font-black shadow-md border-[0.5px] border-background"
-                    style={{ fontSize: "6px", lineHeight: 1 }}
+                    className="absolute top-1 right-1/2 translate-x-3 w-3.5 h-3.5 rounded-full bg-foreground flex items-center justify-center text-background font-black shadow-lg border-[0.5px] border-background"
+                    style={{ fontSize: "6.5px", lineHeight: 1 }}
                   >
                     {count > 9 ? "9+" : count}
                   </span>

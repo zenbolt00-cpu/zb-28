@@ -25,9 +25,6 @@ interface RingCarouselSectionProps {
 export default function RingCarouselSection({ title = "RING COLLECTION", itemsConfig }: RingCarouselSectionProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [items, setItems] = useState<RingItem[]>(DEFAULT_RINGS);
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [scrollLeft, setScrollLeft] = useState(0);
 
   useEffect(() => {
     if (itemsConfig) {
@@ -39,21 +36,6 @@ export default function RingCarouselSection({ title = "RING COLLECTION", itemsCo
       }
     }
   }, [itemsConfig]);
-
-  const onMouseDown = (e: React.MouseEvent) => {
-    setIsDragging(true);
-    setStartX(e.pageX - (scrollRef.current?.offsetLeft || 0));
-    setScrollLeft(scrollRef.current?.scrollLeft || 0);
-  };
-
-  const onMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging || !scrollRef.current) return;
-    e.preventDefault();
-    const x = e.pageX - scrollRef.current.offsetLeft;
-    scrollRef.current.scrollLeft = scrollLeft - (x - startX) * 1.8;
-  };
-
-  const stopDrag = () => setIsDragging(false);
 
   return (
     <section className="w-full mt-1 mb-1">
@@ -95,25 +77,20 @@ export default function RingCarouselSection({ title = "RING COLLECTION", itemsCo
           {/* Carousel */}
           <div
             ref={scrollRef}
-            className={`flex gap-3 overflow-x-auto snap-x snap-mandatory pb-0.5 ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}
+            className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-0.5 touch-pan-x scroll-smooth"
             style={{ scrollbarWidth: "none", msOverflowStyle: "none", WebkitOverflowScrolling: "touch" }}
-            onMouseDown={onMouseDown}
-            onMouseLeave={stopDrag}
-            onMouseUp={stopDrag}
-            onMouseMove={onMouseMove}
           >
             {items.map((item, i) => (
               <motion.a
                 key={item.id}
-                href={`/collections/accessories`}
+                href={item.link || `/collections/accessories`}
                 draggable={false}
                 initial={{ opacity: 0, y: 6 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: i * 0.06, ease: [0.16, 1, 0.3, 1] }}
-                className="snap-center shrink-0 group"
+                className="snap-center shrink-0 group block"
                 style={{ width: 110 }}
-                onClick={(e) => { if (isDragging) e.preventDefault(); }}
               >
                 {/* Just the image — no box, no price, no label */}
                 <div className="w-full aspect-[4/5] flex items-center justify-center">

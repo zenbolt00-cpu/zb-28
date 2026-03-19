@@ -1,0 +1,30 @@
+'use client';
+
+export default function GlobalError({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  return (
+    <html>
+      <body>
+        <div className="flex flex-col items-center justify-center min-h-screen text-center p-6 bg-background">
+          <h2 className="text-xl font-heading mb-4 text-foreground/80 lowercase tracking-widest">
+            A critical error occurred
+          </h2>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] mb-8 max-w-sm leading-relaxed">
+            The application encountered a global error. Please try refreshing or returning home.
+          </p>
+          <button
+            onClick={() => reset()}
+            className="px-8 py-4 bg-foreground text-background text-[10px] font-bold uppercase tracking-[0.3em] rounded-full hover:opacity-90 active:scale-95 transition-all shadow-2xl"
+          >
+            Try Again
+          </button>
+        </div>
+      </body>
+    </html>
+  );
+}

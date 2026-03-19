@@ -372,7 +372,7 @@ export default function ProductDetailsClient({
                 )}
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-medium text-foreground/40 tracking-tight">₹{parseFloat(initialPrice).toLocaleString('en-IN')}</span>
+                <span className="text-[11px] font-normal text-foreground/40 tracking-tight">₹{parseFloat(initialPrice).toLocaleString('en-IN')}</span>
                 {comparePrice && parseFloat(comparePrice) > parseFloat(initialPrice) && (
                   <span className="text-[10px] font-light text-foreground/15 line-through tracking-wider">₹{parseFloat(comparePrice).toLocaleString('en-IN')}</span>
                 )}
@@ -584,31 +584,40 @@ export default function ProductDetailsClient({
               </div>
             )}
 
-            {/* Recommended Products - Apple Standards Overhaul */}
+                {/* Recommended Products - Premium Stark Editorial Overhaul */}
             {shuffledRecommended.length > 0 && (
-              <div className="mt-6 mb-4 -mx-2">
-                  <div 
-                    className="relative py-4 px-2"
-                  >
-                  {/* Premium Inner top glow */}
-                  <div
-                    className="absolute inset-0 rounded-[2.5rem] pointer-events-none"
-                    style={{ background: "radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.05) 0%, transparent 70%)" }}
-                  />
-
-                  <div className="flex items-center justify-between mb-8 px-2 relative z-10">
-                    <div className="flex flex-col gap-2">
-                      <h2 className="text-[11px] sm:text-[12px] font-bold tracking-[0.5em] uppercase text-foreground/45 font-heading">Curated Pairs</h2>
-                      <div className="h-[1.5px] w-14 bg-foreground/15 rounded-full" />
-                    </div>
-                    <Link href="/collections" className="text-[8px] font-bold uppercase tracking-[0.3em] text-foreground/25 hover:text-foreground/60 transition-all border-b border-foreground/5 pb-0.5">
-                      Explore More
-                    </Link>
+              <div className="mt-6 mb-4 -mx-1 border-y border-foreground/20 bg-background">
+                  <div className="flex items-center justify-between px-3 py-3 border-b border-foreground/20">
+                      <h2 className="text-[12px] font-bold tracking-[0.05em] uppercase text-foreground">
+                        YOU'D ALSO LIKE
+                      </h2>
+                      <div className="flex items-center gap-2">
+                        <button 
+                          className="flex items-center justify-center p-1 active:scale-95 transition-transform"
+                          onClick={() => {
+                            if (curatedScrollRef.current) {
+                              curatedScrollRef.current.scrollBy({ left: -300, behavior: 'smooth' });
+                            }
+                          }}
+                        >
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+                        </button>
+                        <button 
+                          className="flex items-center justify-center p-1 active:scale-95 transition-transform"
+                          onClick={() => {
+                            if (curatedScrollRef.current) {
+                              curatedScrollRef.current.scrollBy({ left: 300, behavior: 'smooth' });
+                            }
+                          }}
+                        >
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                        </button>
+                      </div>
                   </div>
                   
                   <div 
                     ref={curatedScrollRef}
-                    className="flex gap-6 overflow-x-auto snap-x snap-mandatory hide-scrollbar pb-2 px-1 scroll-smooth"
+                    className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar scroll-smooth"
                     style={{ 
                         scrollbarWidth: "none", 
                         msOverflowStyle: "none", 
@@ -620,22 +629,49 @@ export default function ProductDetailsClient({
                     onMouseUp={stopCuratedDrag}
                     onMouseMove={onCuratedMouseMove}
                   >
-                    {shuffledRecommended.map((p, idx) => (
-                      <motion.div 
-                        key={`curated-v5-${p.id}-${idx}`}
-                        initial={{ opacity: 0, scale: 0.98, y: 10 }}
-                        whileInView={{ opacity: 1, scale: 1, y: 0 }}
-                        viewport={{ once: true, margin: "-50px" }}
-                        transition={{ duration: 0.8, delay: idx * 0.05, ease: [0.16, 1, 0.3, 1] }}
-                        className="min-w-[260px] w-[260px] flex-shrink-0 snap-center"
-                        onClick={(e) => { if (isCuratedDragging) e.preventDefault(); }}
-                      >
-                        <ProductCard product={p} />
-                      </motion.div>
-                    ))}
-                    <div className="shrink-0 w-8" />
+                    {shuffledRecommended.map((p, idx) => {
+                      const initialPrice = p.variants?.[0]?.price || "0.00";
+                      return (
+                        <div 
+                          key={`stark-pair-${p.id}-${idx}`}
+                          className="min-w-[85vw] sm:min-w-[400px] flex-shrink-0 snap-center border-r border-foreground/20 flex flex-col group cursor-pointer"
+                          onClick={(e) => { 
+                            if (isCuratedDragging) e.preventDefault(); 
+                            else router.push(`/products/${p.handle}`);
+                          }}
+                        >
+                          {/* Large Image Container */}
+                          <div className="relative w-full aspect-[3/4.5] overflow-hidden bg-background">
+                            <Image 
+                              src={p.image?.src || p.images?.[0]?.src || "/placeholder.png"} 
+                              alt={p.title} 
+                              fill 
+                              className="object-cover transition-transform duration-[1500ms] ease-out group-hover:scale-[1.03]" 
+                              sizes="(max-width: 600px) 100vw, 400px" 
+                              quality={100} 
+                            />
+                            {/* In-stock overlay hover effect optionally */}
+                            <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                          </div>
+                          
+                          {/* Bottom Details Grid */}
+                          <div className="grid grid-cols-[1fr_auto] border-t border-foreground/20 min-h-[50px]">
+                            <div className="p-3 border-r border-foreground/20 flex items-center">
+                              <span className="text-[10px] font-bold tracking-widest uppercase text-foreground line-clamp-2 leading-tight pr-2">
+                                {p.title}
+                              </span>
+                            </div>
+                            <div className="p-3 flex items-center justify-center min-w-[70px]">
+                              <span className="text-[11px] font-normal tracking-wide text-foreground">
+                                ₹{parseFloat(initialPrice).toLocaleString('en-IN')}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
                   </div>
-                </div>
+                  
               </div>
             )}
 

@@ -23,19 +23,19 @@ interface SettingsData {
 function SettingsGroup({ title, children, icon: Icon }: { title?: string; children: React.ReactNode; icon?: any }) {
   return (
     <motion.div 
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 15 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      transition={{ duration: 0.5 }}
-      className="space-y-4 relative z-10"
+      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+      className="space-y-5 relative z-10"
     >
       {title && (
-        <div className="flex items-center gap-2 px-6">
-           {Icon && <Icon className="w-3.5 h-3.5 text-foreground/40" />}
-           <h3 className="text-[9px] font-semibold uppercase tracking-widest text-foreground/50">{title}</h3>
+        <div className="flex items-center gap-3 px-6">
+           {Icon && <Icon className="w-4.5 h-4.5 text-white/20" />}
+           <h3 className="text-[11px] font-bold uppercase tracking-[0.4em] text-white/20">{title}</h3>
         </div>
       )}
-      <div className="bg-background border border-foreground/[0.05] rounded-xl px-6 py-2 shadow-sm relative overflow-hidden">
+      <div className="glass-card rounded-[2.5rem] overflow-hidden">
         <div className="relative z-10">
            {children}
         </div>
@@ -56,16 +56,16 @@ function SettingsRow({
   description?: string;
 }) {
   return (
-    <div className="flex flex-col md:flex-row md:items-center justify-between py-5 border-b border-foreground/[0.05] last:border-0 gap-4 md:gap-0">
-      <div className="flex items-center gap-4">
+    <div className="flex flex-col md:flex-row md:items-center justify-between px-10 py-8 border-b border-white/5 last:border-0 gap-6 group/row hover:bg-white/[0.01] transition-all duration-700">
+      <div className="flex items-center gap-8">
         {Icon && (
-          <div className="w-8 h-8 rounded-md bg-foreground/[0.02] flex items-center justify-center text-foreground/40 border border-foreground/[0.05]">
-            <Icon className="w-4 h-4" />
+          <div className="w-14 h-14 rounded-[1.25rem] bg-white/5 flex items-center justify-center text-white/20 border border-white/5 group-hover/row:bg-white group-hover/row:text-black transition-all duration-700 shadow-2xl">
+            <Icon className="w-6 h-6" strokeWidth={1.5} />
           </div>
         )}
         <div className="flex flex-col">
-          <span className="text-[12px] font-medium text-foreground tracking-tight mb-0.5">{label}</span>
-          {description && <span className="text-[9px] text-foreground/50 uppercase tracking-widest">{description}</span>}
+          <span className="text-[15px] font-bold text-white tracking-tight leading-none mb-2 uppercase">{label}</span>
+          {description && <span className="text-[10px] text-white/20 font-bold uppercase tracking-[0.3em] leading-none">{description}</span>}
         </div>
       </div>
       <div className="flex-1 w-full md:max-w-md flex justify-end">
@@ -89,19 +89,19 @@ function InputField({
   const [show, setShow] = useState(!secret);
   return (
     <div className="relative flex items-center w-full">
-       <input
+      <input
         type={show ? 'text' : 'password'}
         value={value || ''}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full bg-foreground/[0.02] px-3 py-2.5 rounded-md border border-foreground/[0.05] focus:border-foreground/20 text-right text-[11px] font-medium text-foreground placeholder:text-foreground/30 outline-none transition-colors pr-10"
+        className="w-full bg-white/5 px-6 py-4 rounded-2xl border border-white/5 focus:border-white/20 text-right text-[13px] font-bold text-white placeholder:text-white/10 outline-none transition-all pr-14 shadow-inner font-mono tracking-tight"
       />
       {secret && (
         <button 
           onClick={() => setShow(!show)}
-          className="absolute right-3 p-1 rounded-sm text-foreground/40 hover:text-foreground transition-colors"
+          className="absolute right-4 p-1.5 rounded-lg text-white/20 hover:text-white transition-colors"
         >
-          {show ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+          {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
         </button>
       )}
     </div>
@@ -173,12 +173,12 @@ export default function AdminSettingsPage() {
     >
       
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-2 pt-4 relative z-10">
-        <div className="space-y-1">
-          <h1 className="text-xl font-semibold text-foreground tracking-tight">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-10 px-4 pt-10 mb-16 relative z-10">
+        <div className="space-y-4">
+          <h1 className="text-5xl font-bold text-white uppercase tracking-tighter leading-none">
             Infrastructure
           </h1>
-          <p className="text-[11px] text-foreground/50 tracking-wide max-w-xl">
+          <p className="text-[11px] text-white/30 font-bold uppercase tracking-[0.4em] max-w-xl">
             Secure configuration and API key management.
           </p>
         </div>
@@ -186,18 +186,18 @@ export default function AdminSettingsPage() {
         <button
           onClick={handleSave}
           disabled={saving}
-          className={`flex items-center justify-center gap-2 px-6 py-2.5 rounded-md text-[10px] font-medium tracking-[0.15em] uppercase transition-all ${
-            saveStatus === 'success' ? 'bg-green-500 text-white' : 'bg-foreground text-background hover:opacity-90'
+          className={`flex items-center justify-center gap-3 px-8 py-3 rounded-2xl text-[10px] font-bold tracking-[0.3em] uppercase transition-all shadow-xl active:scale-95 ${
+            saveStatus === 'success' ? 'bg-emerald-500 text-white shadow-emerald-500/20' : 'bg-foreground text-background shadow-foreground/20 hover:opacity-90'
           } disabled:opacity-50`}
         >
           {saving ? (
-            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+            <RefreshCw className="w-4 h-4 animate-spin" strokeWidth={2.5} />
           ) : saveStatus === 'success' ? (
-            <CheckCircle className="w-3.5 h-3.5" />
+            <CheckCircle className="w-4 h-4" strokeWidth={2.5} />
           ) : (
-             <Save className="w-3.5 h-3.5" />
+             <Save className="w-4 h-4" strokeWidth={2.5} />
           )}
-          {saving ? 'Saving...' : saveStatus === 'success' ? 'Saved' : 'Save Config'}
+          {saving ? 'Synchronizing...' : saveStatus === 'success' ? 'Persisted' : 'Commit Config'}
         </button>
       </div>
 
@@ -242,10 +242,10 @@ export default function AdminSettingsPage() {
 
       </div>
 
-      <div className="text-center pt-8">
-         <div className="inline-flex items-center gap-2 px-4 py-2 border border-foreground/[0.05] rounded-md bg-background shadow-sm">
-            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-[9px] font-semibold uppercase tracking-widest text-foreground/50">Configuration Locked</span>
+      <div className="text-center pt-10">
+         <div className="inline-flex items-center gap-3 px-6 py-2.5 border border-foreground/[0.08] rounded-full bg-white/40 dark:bg-white/[0.02] shadow-xl backdrop-blur-md">
+            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse-slow" />
+            <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-foreground/30">System Configuration Locked</span>
          </div>
       </div>
     </motion.div>

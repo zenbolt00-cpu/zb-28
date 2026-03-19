@@ -3,11 +3,12 @@ import { ShopifyProduct } from "@/lib/shopify-admin";
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
+import { LayoutGrid, Grid3X3, Square } from "lucide-react";
 import ProductCard from "@/components/ProductCard";
 import { notFound } from "next/navigation";
 
 import CollectionHeaderClient from "@/components/CollectionHeaderClient";
-import CompleteCollectionButton from "@/components/CompleteCollectionButton";
+import CollectionFilters from "@/components/CollectionFilters";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +17,7 @@ export default async function CollectionPage({
   searchParams,
 }: {
   params: { handle: string };
-  searchParams: { sort?: string; min?: string; max?: string };
+  searchParams: { sort?: string; min?: string; max?: string; size?: string; view?: string };
 }) {
   const { collection, products: rawProducts } = await fetchCollectionByHandle(
     params.handle,
@@ -26,30 +27,52 @@ export default async function CollectionPage({
   const allCollections = await fetchEnabledCollections('page');
 
   if (!collection) notFound();
-
+ 
   const sortBy = searchParams.sort || "featured";
   const minPrice = parseFloat(searchParams.min || "0");
   const maxPrice = parseFloat(searchParams.max || "999999");
+  const selectedSize = searchParams.size;
+  const viewMode = searchParams.view || "current";
 
-  // ... rest of filtering logic ...
+  // Extract all unique sizes from products
+  const allSizes = Array.from(new Set(
+    rawProducts.flatMap(p => 
+      p.variants?.map(v => v.option1) || []
+    )
+  )).filter((s): s is string => typeof s === "string" && s !== "Default Title" && !s.includes(" / ")); // Simple size extraction
+
+  // Apply filtering
   let products = rawProducts.filter((p) => {
     const price = parseFloat(p.variants?.[0]?.price || "0");
-    return price >= minPrice && price <= maxPrice;
+    const matchesPrice = price >= minPrice && price <= maxPrice;
+    
+    if (!matchesPrice) return false;
+    
+    return true;
   });
 
-  if (sortBy === "price-asc") {
-    products = [...products].sort(
-      (a, b) => parseFloat(a.variants?.[0]?.price || "0") - parseFloat(b.variants?.[0]?.price || "0")
-    );
-  } else if (sortBy === "price-desc") {
-    products = [...products].sort(
-      (a, b) => parseFloat(b.variants?.[0]?.price || "0") - parseFloat(a.variants?.[0]?.price || "0")
-    );
-  } else if (sortBy === "newest") {
-    products = [...products].sort(
-      (a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
-    );
-  }
+  // Apply sorting
+  products = [...products].sort((a, b) => {
+    // Primary Sort: selected size availability
+    if (selectedSize) {
+      const aHasVariant = a.variants?.some(v => v.option1 === selectedSize && (v.inventory_quantity || 0) > 0) ? 1 : 0;
+      const bHasVariant = b.variants?.some(v => v.option1 === selectedSize && (v.inventory_quantity || 0) > 0) ? 1 : 0;
+      if (aHasVariant !== bHasVariant) {
+        return bHasVariant - aHasVariant;
+      }
+    }
+    
+    // Secondary Sort: user choice
+    if (sortBy === "price-asc") {
+      return parseFloat(a.variants?.[0]?.price || "0") - parseFloat(b.variants?.[0]?.price || "0");
+    } else if (sortBy === "price-desc") {
+      return parseFloat(b.variants?.[0]?.price || "0") - parseFloat(a.variants?.[0]?.price || "0");
+    } else if (sortBy === "newest") {
+      return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+    }
+    
+    return 0;
+  });
 
   return (
     <div className="min-h-screen">
@@ -66,49 +89,9 @@ export default async function CollectionPage({
           />
         </div>
 
-        {/* Filter/Sort Bar */}
-        <form method="GET" className="mb-8">
-          <div className="flex gap-2 flex-wrap">
-            {[
-              { label: "Featured",  value: "featured"   },
-              { label: "Newest",    value: "newest"     },
-              { label: "Price ↑",   value: "price-asc"  },
-              { label: "Price ↓",   value: "price-desc" },
-            ].map((opt) => (
-              <button
-                key={opt.value}
-                type="submit"
-                name="sort"
-                value={opt.value}
-                className={`px-2.5 py-1.5 rounded-full text-[7px] uppercase tracking-[0.1em] transition-all ${
-                  sortBy === opt.value
-                    ? "bg-foreground text-background"
-                    : "text-foreground/45 border border-foreground/10"
-                }`}
-                style={
-                  sortBy !== opt.value
-                    ? { 
-                        background: "hsla(var(--glass-bg), 0.5)", 
-                        backdropFilter: "blur(12px)", 
-                        WebkitBackdropFilter: "blur(12px)",
-                        fontFamily: "'HeadingPro', sans-serif" 
-                      }
-                    : { fontFamily: "'HeadingPro', sans-serif" }
-                }
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        </form>
+        {/* Minimalist Filter Bar */}
+        <CollectionFilters allSizes={allSizes} />
 
-        {/* Complete Collection Button */}
-        {products.length > 0 && (
-          <CompleteCollectionButton 
-            products={products} 
-            collectionName={collection.title} 
-          />
-        )}
 
         {/* Product Grid */}
         {products.length === 0 ? (
@@ -118,9 +101,13 @@ export default async function CollectionPage({
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-x-1 gap-y-4">
+          <div className={`grid gap-x-1 ${
+            viewMode === "full" ? "grid-cols-1 gap-y-6" : 
+            viewMode === "thumbnail" ? "grid-cols-4 sm:grid-cols-5 gap-x-0.5 gap-y-1.5" : 
+            "grid-cols-2 gap-y-4"
+          }`}>
             {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <ProductCard key={product.id} product={product} selectedSize={selectedSize} />
             ))}
           </div>
         )}

@@ -104,7 +104,7 @@ export default function BookmarkDrawer({ isOpen, onClose }: BookmarkDrawerProps)
                           <p className="text-[10px] font-bold uppercase tracking-tight text-foreground/80 line-clamp-1 mb-1">
                             {product.title}
                           </p>
-                          <p className="text-[11px] font-medium tracking-tight text-foreground/60">
+                          <p className="text-[11px] font-normal tracking-tight text-foreground/60">
                             ₹{parseFloat(product.variants[0].price).toLocaleString("en-IN")}
                           </p>
                         </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { useEffect, useRef } from "react";
 import Image from "next/image";
 
 interface CollectionHeaderClientProps {
@@ -17,70 +17,69 @@ export default function CollectionHeaderClient({
   allCollections,
   currentImage
 }: CollectionHeaderClientProps) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      const activeItem = scrollRef.current.querySelector('[data-active="true"]');
+      if (activeItem) {
+        activeItem.scrollIntoView({ behavior: 'auto', block: 'nearest', inline: 'center' });
+      }
+    }
+  }, [currentHandle]);
+
   return (
     <div 
-      className="mb-6 p-4 rounded-[2.5rem] island-blur border border-foreground/[0.03]"
+      className="mb-3 px-1.5 py-2 rounded-[2rem] border border-foreground/[0.03] overflow-hidden group"
       style={{ 
-        background: "hsla(var(--glass-bg), 0.65)",
-        backdropFilter: "blur(40px) saturate(210%) brightness(1.02)"
+        background: "hsla(var(--glass-bg), 0.25)",
+        backdropFilter: "blur(30px) saturate(210%)"
       }}
     >
-      {/* Collection Banner Image — fills the box */}
-      <div className="mb-5 select-none">
-        <div className="relative w-full h-36 rounded-2xl overflow-hidden shadow-xl shadow-black/5 border border-foreground/[0.04]">
-          {currentImage ? (
-            <Image 
-              src={currentImage} 
-              alt={currentTitle} 
-              fill 
-              className="object-cover object-center transition-transform duration-700 hover:scale-105" 
-              priority
-            />
-          ) : (
-            <div className="w-full h-full bg-foreground/[0.03] flex items-center justify-center p-4">
-              <span className="font-heading text-[10px] uppercase tracking-[0.2em] text-foreground/15 text-center leading-tight">
-                {currentTitle}
-              </span>
-            </div>
-          )}
-          {/* Subtle gradient polish */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
-          {/* Collection title badge */}
-          <div className="absolute bottom-3 left-3">
-            <span className="text-[7px] font-bold uppercase tracking-[0.3em] text-white/70">{currentTitle}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Collection Selection Pills */}
+      {/* High-Fidelity Carousel — Uniform Navigation */}
       <div className="relative">
-        <div className="flex overflow-x-auto gap-1.5 pb-0.5 hide-scrollbar snap-x">
+        <div 
+          ref={scrollRef}
+          className="flex overflow-x-auto gap-3 pb-1 hide-scrollbar snap-x px-3 items-center"
+        >
           {allCollections.map((col: any) => {
             const isActive = col.handle === currentHandle;
             return (
               <Link 
                 key={col.handle} 
                 href={`/collections/${col.handle}`}
-                className="relative shrink-0 snap-start"
+                data-active={isActive}
+                className={`relative shrink-0 snap-center transition-all duration-1000 w-[82vw] ${isActive ? 'opacity-100' : 'opacity-40 hover:opacity-70 blur-[0.2px]'}`}
               >
-                <motion.div 
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.96 }}
-                  className={`px-3.5 py-1.5 rounded-full text-[7px] uppercase font-bold tracking-[0.1em] transition-all duration-300 flex items-center justify-center ${
-                    isActive 
-                      ? "text-background" 
-                      : "text-foreground/40 hover:text-foreground/70 bg-foreground/[0.03] border border-foreground/[0.01]"
-                  }`}
-                >
-                  {isActive && (
-                    <motion.div
-                      layoutId="active-pill"
-                      className="absolute inset-0 bg-foreground rounded-full z-0"
-                      transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
+                <div className={`relative aspect-[21/9] rounded-[1.5rem] overflow-hidden border transition-all duration-1000 ${isActive ? 'border-white/30 shadow-[0_0_20px_rgba(255,255,255,0.15)] ring-1 ring-white/20' : 'border-foreground/5 shadow-none'}`}>
+                  {col.image?.src ? (
+                    <Image 
+                      src={col.image.src} 
+                      alt={col.title} 
+                      fill 
+                      className={`object-cover transition-transform duration-[3000ms] ${isActive ? 'scale-105' : 'scale-100'}`} 
+                      priority={isActive}
                     />
+                  ) : (
+                    <div className="w-full h-full bg-foreground/[0.05] flex items-center justify-center">
+                      <span className="text-[6px] font-black uppercase tracking-widest opacity-10">{col.title}</span>
+                    </div>
                   )}
-                  <span className="relative z-10">{col.title}</span>
-                </motion.div>
+                  
+                  {/* Persistent Rocaston Title Overlay */}
+                  <div className={`absolute inset-0 flex items-center justify-center transition-all duration-1000 ${isActive ? 'bg-black/25' : 'bg-black/40'}`}>
+                    <span 
+                      className={`text-[11px] sm:text-[13px] font-rocaston font-bold uppercase tracking-[0.4em] text-white/95 text-center px-4 leading-relaxed transition-all duration-1000 ${isActive ? 'drop-shadow-2xl scale-100' : 'opacity-80 scale-95'}`}
+                    >
+                      {col.title}
+                    </span>
+                  </div>
+
+                  {/* Glass Selection Shine */}
+                  {isActive && (
+                    <div className="absolute inset-0 bg-gradient-to-tr from-white/5 via-transparent to-white/10 pointer-events-none" />
+                  )}
+                </div>
               </Link>
             );
           })}

@@ -142,7 +142,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                               </p>
                             )}
                             <div className="mt-auto flex justify-between items-center">
-                              <p className="text-[11px] font-bold tracking-tight text-foreground/70">
+                              <p className="text-[11px] font-normal tracking-tight text-foreground/70">
                                 ₹{(parseFloat(item.price) * item.quantity).toLocaleString("en-IN")}
                               </p>
                               <div
@@ -192,7 +192,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                     <span className="text-[9px] font-medium uppercase tracking-[0.25em] text-foreground/35">
                       Estimated Total
                     </span>
-                    <span className="text-[15px] font-bold tracking-tight text-foreground/80">
+                    <span className="text-[15px] font-normal tracking-tight text-foreground/80">
                       ₹{subtotal.toLocaleString("en-IN")}
                     </span>
                   </div>

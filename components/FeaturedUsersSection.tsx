@@ -8,6 +8,7 @@ interface FeaturedUser {
   id: string;
   name: string;
   imageUrl: string;
+  instagramUrl?: string | null;
   styleDescription: string | null;
   reviews: { id: string; rating: number }[];
 }
@@ -43,15 +44,19 @@ export default function FeaturedUsersSection({
   if (!showCommunity) return null;
   if (loading) {
     return (
-      <section className="mt-24 mb-40 px-4 h-[400px] flex items-center justify-center">
-        <div className="w-10 h-10 rounded-full border-2 border-foreground/10 border-t-foreground/40 animate-spin" />
+      <section className="py-4 px-4">
+        <div className="flex gap-5 overflow-x-hidden pb-4">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="min-w-[260px] shrink-0 aspect-[3/4.2] rounded-[2rem] bg-foreground/[0.03] animate-pulse" />
+          ))}
+        </div>
       </section>
     );
   }
   if (users.length === 0) {
     if (process.env.NODE_ENV === 'development') {
       return (
-        <section className="mt-24 mb-40 px-4 text-center opacity-20">
+        <section className="py-4 px-4 text-center opacity-20">
           <p className="text-[10px] uppercase tracking-widest">Featured Looks Standby</p>
           <p className="text-[8px] mt-1">Add approved looks in Admin Dashboard</p>
         </section>
@@ -75,7 +80,15 @@ export default function FeaturedUsersSection({
               : 5;
 
             return (
-              <div key={user.id} className="min-w-[260px] snap-center group">
+              <div 
+                key={user.id} 
+                className={`min-w-[260px] snap-center group ${user.instagramUrl ? 'cursor-pointer' : ''}`}
+                onClick={() => {
+                   if (user.instagramUrl) {
+                      window.open(user.instagramUrl, '_blank', 'noopener,noreferrer');
+                   }
+                }}
+              >
                 <div className="relative aspect-[3/4.2] rounded-[2rem] overflow-hidden bg-foreground/[0.02] border border-foreground/[0.06] shadow-xl transition-all duration-700 active:scale-95">
                   <NextImage 
                     src={user.imageUrl || "/placeholder.png"} 

@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["driverAdapters"]
 }
 
@@ -34,7 +34,6 @@ model Shop {
   showLatestCuration       Boolean    @default(true)
   showArchive              Boolean    @default(true)
   showBlueprint            Boolean    @default(true)
-  showCommunity            Boolean    @default(true)
   showProductVideo         Boolean    @default(true)
   showSizeChart            Boolean    @default(true)
   showBrand                Boolean    @default(true)
@@ -43,8 +42,6 @@ model Shop {
   showSizeFit              Boolean    @default(true)
   showDetails              Boolean    @default(true)
   pdpBackground            String?
-  communityTitle           String?    @default("Featured Looks")
-  communitySubtitle        String?    @default("Community")
   instagramUrl             String?
   appleUrl                 String?
   spotifyUrl               String?
@@ -60,49 +57,52 @@ model Shop {
   enabledCollectionsMenu   String?
   featuredMediaImage       String?
   kineticMeshProducts      String?
-  spotlightTitle           String?    @default("AUTHENTIC STREETWEAR")
-  spotlightSubtitle        String?    @default("Luxury Indian streetwear for modern men. Redefining bold everyday style.")
+  communitySubtitle        String?    @default("Community")
+  communityTitle           String?    @default("Featured Looks")
   kineticMeshTitle         String?    @default("ARCHIVE EDITION")
-  flipbookConfig           String?    @default("[]")
-  flipbookImage            String?
-  flipbookVideo            String?
-  flipbookTitle            String?    @default("Archival Vision")
-  flipbookTag              String?    @default("Core Manifest")
-  flipbookDesc             String?    @default("Engineered for those who move without compromise.")
-  showRingCarousel         Boolean    @default(true)
-  ringCarouselTitle        String?    @default("RING COLLECTION")
-  ringCarouselItems        String?    @default("[]")
-  communityMinOrders       Int        @default(1)
+  showCommunity            Boolean    @default(true)
+  spotlightSubtitle        String?    @default("Luxury Indian streetwear for modern men. Redefining bold everyday style.")
+  spotlightTitle           String?    @default("AUTHENTIC STREETWEAR")
+  chatAccessMode           String     @default("open")
   communityAgeRestricted   Boolean    @default(true)
+  communityMinOrders       Int        @default(1)
   communityWhatsAppEnabled Boolean    @default(true)
-  chatAccessMode           String     @default("open") // "open" | "orders_only"
+  flipbookConfig           String?    @default("[]")
+  flipbookDesc             String?    @default("Engineered for those who move without compromise.")
+  flipbookImage            String?
+  flipbookTag              String?    @default("Core Manifest")
+  flipbookTitle            String?    @default("Archival Vision")
+  flipbookVideo            String?
+  ringCarouselItems        String?    @default("[]")
+  ringCarouselTitle        String?    @default("RING COLLECTION")
+  showRingCarousel         Boolean    @default(true)
   customers                Customer[]
   orders                   Order[]
   products                 Product[]
 }
 
 model Customer {
-  id             String    @id @default(cuid())
-  shopId         String
-  shopifyId      String    @unique
-  email          String?
-  name           String?
-  phone          String?
-  image          String?
-  region         String?
-  defaultAddress String?
-  ordersCount    Int       @default(0)
-  totalSpent     Float     @default(0)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  shop           Shop      @relation(fields: [shopId], references: [id])
-  orders         Order[]
-  payments       Payment[]
-  returns        Return[]
-  communityMember CommunityMember?
+  id                String             @id @default(cuid())
+  shopId            String
+  shopifyId         String             @unique
+  email             String?
+  name              String?
+  phone             String?
+  defaultAddress    String?
+  ordersCount       Int                @default(0)
+  totalSpent        Float              @default(0)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  image             String?
+  region            String?
+  communityMember   CommunityMember?
   communityMessages CommunityMessage[]
-  followers      Follow[]          @relation("UserFollowers")
-  following      Follow[]          @relation("UserFollowing")
+  shop              Shop               @relation(fields: [shopId], references: [id])
+  following         Follow[]           @relation("UserFollowing")
+  followers         Follow[]           @relation("UserFollowers")
+  orders            Order[]
+  payments          Payment[]
+  returns           Return[]
 }
 
 model Follow {
@@ -110,9 +110,8 @@ model Follow {
   followerId  String
   followingId String
   createdAt   DateTime @default(now())
-
   follower    Customer @relation("UserFollowing", fields: [followerId], references: [id], onDelete: Cascade)
-  following    Customer @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
+  following   Customer @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
 
   @@unique([followerId, followingId])
 }
@@ -153,8 +152,8 @@ model OrderItem {
   quantity          Int
   price             Float
   sku               String?
-  product           Product? @relation(fields: [productId], references: [id])
   order             Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product           Product? @relation(fields: [productId], references: [id])
 }
 
 model Product {
@@ -198,8 +197,8 @@ model Return {
   requestedAt DateTime @default(now())
   updatedAt   DateTime @updatedAt
   customer    Customer @relation(fields: [customerId], references: [id])
-  product     Product  @relation(fields: [productId], references: [id])
   order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product     Product  @relation(fields: [productId], references: [id])
 }
 
 model Exchange {
@@ -212,8 +211,8 @@ model Exchange {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
   newProduct        Product  @relation("NewProduct", fields: [newProductId], references: [id])
-  originalProduct   Product  @relation("OriginalProduct", fields: [originalProductId], references: [id])
   order             Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  originalProduct   Product  @relation("OriginalProduct", fields: [originalProductId], references: [id])
 }
 
 model Payment {
@@ -249,21 +248,22 @@ model FeaturedUser {
   imageUrl         String
   styleDescription String?
   isTopFeatured    Boolean  @default(false)
-  status           String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  status           String   @default("PENDING")
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+  instagramUrl     String?
   reviews          Review[]
 }
 
 model Review {
   id             String       @id @default(cuid())
   featuredUserId String
-  featuredUser   FeaturedUser @relation(fields: [featuredUserId], references: [id], onDelete: Cascade)
   reviewerName   String
   rating         Int          @default(5)
   comment        String?
   status         String       @default("APPROVED")
   createdAt      DateTime     @default(now())
+  featuredUser   FeaturedUser @relation(fields: [featuredUserId], references: [id], onDelete: Cascade)
 }
 
 model Admin {
@@ -275,60 +275,60 @@ model Admin {
 }
 
 model BlogPost {
-  id          String   @id @default(cuid())
-  title       String
-  slug        String   @unique
-  excerpt     String?
-  content     String   // MD or HTML content
-  coverImage  String?
-  published   Boolean  @default(false)
-  author      String   @default("Zica Bella")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         String   @id @default(cuid())
+  title      String
+  slug       String   @unique
+  excerpt    String?
+  content    String
+  coverImage String?
+  published  Boolean  @default(false)
+  author     String   @default("Zica Bella")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 model CommunityMember {
-  id              String   @id @default(cuid())
-  customerId      String   @unique
-  customer        Customer @relation(fields: [customerId], references: [id])
-  isVerified      Boolean  @default(false)
-  status          String   @default("PENDING") // PENDING, APPROVED, REJECTED
-  phone           String?
-  dob             DateTime?
-  whatsappOptIn   Boolean  @default(false)
-  joinedAt        DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id            String    @id @default(cuid())
+  customerId    String    @unique
+  isVerified    Boolean   @default(false)
+  status        String    @default("PENDING")
+  phone         String?
+  dob           DateTime?
+  whatsappOptIn Boolean   @default(false)
+  joinedAt      DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  customer      Customer  @relation(fields: [customerId], references: [id])
 }
 
 model CommunityUpdate {
-  id          String   @id @default(cuid())
-  type        String   @default("EVENT") // EVENT, ACTIVITY, OFFER
+  id          String    @id @default(cuid())
+  type        String    @default("EVENT")
   title       String
   description String?
   imageUrl    String?
   date        DateTime?
-  published   Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  published   Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 model CommunityMessage {
-  id         String          @id @default(cuid())
+  id         String         @id @default(cuid())
   customerId String
-  customer   Customer        @relation(fields: [customerId], references: [id])
   content    String
   imageUrl   String?
-  createdAt  DateTime        @default(now())
+  createdAt  DateTime       @default(now())
   reactions  ChatReaction[]
+  customer   Customer       @relation(fields: [customerId], references: [id])
 }
 
 model ChatReaction {
-  id        String           @id @default(cuid())
-  messageId String
-  message   CommunityMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  id         String           @id @default(cuid())
+  messageId  String
   customerId String
-  emoji     String           @default("❤️")
-  createdAt DateTime         @default(now())
+  emoji      String           @default("❤️")
+  createdAt  DateTime         @default(now())
+  message    CommunityMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
 
   @@unique([messageId, customerId, emoji])
 }
@@ -340,9 +340,9 @@ model ScanRecord {
   variantInfo  String?
   sku          String?
   barcode      String?
-  actionType   String   // STOCK_IN, ORDER_OUT, RETURN, EXCHANGE, RTO, AUDIT
+  actionType   String
   quantity     Int      @default(1)
-  beforeStock  Int?     
+  beforeStock  Int?
   afterStock   Int?
   locationId   String?
   staffName    String   @default("Admin")

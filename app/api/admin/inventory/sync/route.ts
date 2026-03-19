@@ -1,79 +1,139 @@
 import { NextResponse } from 'next/server';
 import prisma from "@/lib/db";
+import { adjustInventoryLevel, fetchLocations, fetchAllProducts } from '@/lib/shopify-admin';
+
+function normalizeSku(raw: string): string {
+  if (!raw) return '';
+  return raw.trim().toUpperCase();
+}
 
 export async function POST(req: Request) {
   try {
-    const { code, mode } = await req.json();
+    const { code, mode, quantity = 1 } = await req.json();
+    const qty = Math.max(1, Number(quantity) || 1);
 
     if (!code) {
       return NextResponse.json({ error: 'Missing Scan Data' }, { status: 400 });
     }
 
+    const normalizedCode = normalizeSku(code);
+
     // Identify the subject (Product or Order)
-    // Most scans are Product-based (SKU/Barcode)
-    const product = await prisma.product.findFirst({
-      where: {
-        OR: [
-          { id: code },
-          { shopifyProductId: code },
-          { sku: code },
-          { barcode: code }
-        ]
-      },
-      include: {
-        inventory: true
+    const products = await fetchAllProducts();
+    let matchedProduct = null;
+    let matchedVariant = null;
+
+    for (const p of products) {
+      if (p.id.toString() === code || p.handle === code) {
+        matchedProduct = p;
+        matchedVariant = p.variants?.[0] || null;
+        break;
       }
-    });
+      for (const v of p.variants || []) {
+        if (
+          v.id.toString() === code ||
+          normalizeSku(v.sku || '') === normalizedCode ||
+          normalizeSku(v.barcode || '') === normalizedCode
+        ) {
+          matchedProduct = p;
+          matchedVariant = v;
+          break;
+        }
+      }
+      if (matchedProduct) break;
+    }
 
     let message = '';
     let productName = 'Unknown';
 
-    if (product) {
-      productName = product.title;
-      const inventory = product.inventory[0]; // Assuming primary location
+    if (matchedProduct && matchedVariant) {
+      productName = `${matchedProduct.title} - ${matchedVariant.title}`;
+      let delta = 0;
+      const currentQty = matchedVariant.inventory_quantity || 0;
 
       if (mode === 'STOCK_IN') {
-        if (inventory) {
-          await prisma.inventory.update({
-            where: { id: inventory.id },
-            data: { stockQuantity: { increment: 1 } }
-          });
-        }
-        message = `Injected 1 unit of ${product.title} into the grid.`;
+        delta = qty;
+        message = `Injected ${qty} unit(s) of ${productName} into the grid.`;
       } 
-      
       else if (mode === 'ORDER_OUT') {
-        if (inventory && inventory.stockQuantity > 0) {
-          await prisma.inventory.update({
-            where: { id: inventory.id },
-            data: { stockQuantity: { decrement: 1 } }
-          });
-          message = `Fulfillment Complete: ${product.title} extracted from inventory.`;
+        if (currentQty >= qty) {
+          delta = -qty;
+          message = `Fulfillment Complete: ${qty} unit(s) of ${productName} extracted from inventory.`;
         } else {
-          return NextResponse.json({ error: 'Stock Depleted for this segment.' }, { status: 400 });
+          return NextResponse.json({ error: `Stock Depleted. Only ${currentQty} units available.` }, { status: 400 });
         }
       }
-
       else if (mode === 'RETURN' || mode === 'RTO') {
-        if (inventory) {
-          await prisma.inventory.update({
-            where: { id: inventory.id },
-            data: { stockQuantity: { increment: 1 } }
-          });
+        delta = qty;
+        message = `${mode === 'RTO' ? 'RTO' : 'Return'} Processed: ${qty} unit(s) restored to inventory.`;
+      }
+      else if (mode === 'EXCHANGE') {
+        if (currentQty >= qty) {
+          delta = -qty;
+          message = `Exchange Out: ${qty} unit(s) of ${productName} extracted for replacement.`;
+        } else {
+          return NextResponse.json({ error: `Stock Depleted. Only ${currentQty} units available.` }, { status: 400 });
         }
-        message = `${mode === 'RTO' ? 'RTO' : 'Return'} Processed: Unit restored to inventory.`;
       }
 
-      else if (mode === 'EXCHANGE') {
-        if (inventory && inventory.stockQuantity > 0) {
-          await prisma.inventory.update({
-            where: { id: inventory.id },
-            data: { stockQuantity: { decrement: 1 } }
+      // Fetch Shopify Location and Push Update
+      try {
+        const locations = await fetchLocations();
+        const activeLocation = locations.find((l) => l.active) || locations[0];
+        const locationId = activeLocation ? String(activeLocation.id) : null;
+        let newStockQuantity = currentQty + delta;
+
+        if (locationId && matchedVariant.inventory_item_id && delta !== 0) {
+          const updatedLevel = await adjustInventoryLevel(
+            String(matchedVariant.inventory_item_id),
+            locationId,
+            delta
+          );
+          newStockQuantity = updatedLevel.available ?? newStockQuantity;
+          
+          // Sync with Prisma DB if this variant is the primary one stored
+          const localProduct = await prisma.product.findUnique({
+            where: { shopifyProductId: String(matchedProduct.id) }
           });
-          message = `Exchange Out: ${product.title} extracted for replacement.`;
-        } else {
-          return NextResponse.json({ error: 'Stock Depleted for this segment.' }, { status: 400 });
+          
+          if (localProduct && localProduct.inventoryItemId === String(matchedVariant.inventory_item_id)) {
+            const inventory = await prisma.inventory.findFirst({
+              where: { productId: localProduct.id }
+            });
+            
+            if (inventory) {
+              await prisma.inventory.update({
+                where: { id: inventory.id },
+                data: { stockQuantity: newStockQuantity }
+              });
+            }
+          }
         }
+
+        // Record scan
+        let dbProductId = null;
+        try {
+          const p = await prisma.product.findUnique({ where: { shopifyProductId: String(matchedProduct.id) } });
+          if (p) dbProductId = p.id;
+        } catch (e) {}
+
+        await (prisma as any).scanRecord.create({
+          data: {
+            productId: dbProductId,
+            productTitle: matchedProduct.title,
+            variantInfo: matchedVariant.title,
+            sku: matchedVariant.sku,
+            barcode: matchedVariant.barcode,
+            actionType: mode,
+            quantity: Math.abs(delta) || 1,
+            beforeStock: currentQty,
+            afterStock: newStockQuantity,
+            locationId: locationId || 'LOCAL',
+            staffName: 'Admin'
+          }
+        });
+      } catch (e: any) {
+        console.error('[Shopify Sync / Log Error]:', e);
       }
 
       return NextResponse.json({ 

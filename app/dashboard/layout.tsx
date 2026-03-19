@@ -70,16 +70,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return (
       <Link 
         href={item.href}
-        className={`group flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-300 ${
+        className={`group flex items-center gap-4 px-6 py-3 rounded-2xl transition-all duration-500 relative overflow-hidden ${
           isActive 
-            ? "bg-foreground text-background" 
-            : "text-foreground/60 hover:text-foreground hover:bg-foreground/[0.03]"
+            ? "text-foreground bg-foreground/10 shadow-lg border border-foreground/10" 
+            : "text-foreground/40 hover:text-foreground/80 hover:bg-foreground/5"
         }`}
       >
-        <Icon className={`w-3.5 h-3.5 ${isActive ? 'opacity-100' : 'opacity-60 group-hover:opacity-100 transition-opacity'}`} strokeWidth={1.5} />
-        <span className={`text-[10px] uppercase tracking-[0.15em] font-medium`}>
+        <Icon className={`w-4.5 h-4.5 transition-colors duration-300 ${isActive ? 'text-foreground' : 'opacity-40 group-hover:opacity-100'}`} strokeWidth={isActive ? 2 : 1.5} />
+        <span className="text-[12px] font-medium relative z-10">
           {item.name}
         </span>
+        {isActive && (
+          <motion.div 
+            layoutId="activeNav"
+            className="absolute inset-0 bg-gradient-to-r from-foreground/5 to-transparent -z-10"
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          />
+        )}
       </Link>
     );
   };
@@ -91,17 +98,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="min-h-screen flex text-foreground bg-[#FAFAFA] dark:bg-[#0A0A0A] font-sans selection:bg-foreground/20 selection:text-foreground">
+    <div className="min-h-screen flex text-foreground bg-background dark:bg-[#0A0A0A] font-sans selection:bg-foreground/20 selection:text-foreground">
       
-      {/* Siri Aura Glow Background */}
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
-        {/* Existing Grid */}
-        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-[0.02] dark:opacity-[0.04]" />
-        
-        {/* Siri Glowing Orbs */}
-        <div className="absolute -top-[20%] -left-[10%] w-[60%] h-[60%] bg-blue-500/10 dark:bg-blue-600/15 rounded-full blur-[140px] mix-blend-normal dark:mix-blend-screen" style={{ animation: 'pulse 8s cubic-bezier(0.4, 0, 0.6, 1) infinite' }} />
-        <div className="absolute top-[10%] -right-[20%] w-[50%] h-[70%] bg-purple-500/10 dark:bg-purple-600/15 rounded-full blur-[150px] mix-blend-normal dark:mix-blend-screen" style={{ animation: 'pulse 12s cubic-bezier(0.4, 0, 0.6, 1) infinite' }} />
-        <div className="absolute -bottom-[20%] left-[10%] w-[70%] h-[60%] bg-pink-500/10 dark:bg-pink-600/15 rounded-full blur-[160px] mix-blend-normal dark:mix-blend-screen" style={{ animation: 'pulse 10s cubic-bezier(0.4, 0, 0.6, 1) infinite' }} />
+      {/* Apple Liquid Background */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-background" aria-hidden="true">
+        <div className="absolute inset-0 bg-center opacity-[0.03] dark:opacity-[0.05]" style={{ backgroundImage: "url('/grid.svg')" }} />
+        {/* Local liquid gradient for depth */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(var(--primary),0.05),transparent_70%),radial-gradient(circle_at_bottom_right,rgba(var(--primary),0.05),transparent_70%)] opacity-60" />
       </div>
 
       {/* Mobile Sidebar Overlay */}
@@ -112,38 +115,39 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsSidebarOpen(false)}
-            className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[55] lg:hidden"
+            className="fixed inset-0 bg-background/60 backdrop-blur-md z-[55] lg:hidden"
           />
         )}
       </AnimatePresence>
 
-      {/* Ultra-Minimal Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 w-64 border-r border-foreground/[0.05] bg-background/80 backdrop-blur-xl z-[60] flex flex-col transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:pointer-events-auto`}>
-        <div className="flex flex-col h-full px-4 py-8">
+      {/* Sidebar - Premium Floating Glass */}
+      <aside className={`fixed inset-y-0 left-0 w-72 m-4 rounded-[2.5rem] glass overflow-hidden border border-foreground/5 shadow-3xl z-[60] flex flex-col transition-all duration-[800ms] ease-[cubic-bezier(0.16,1,0.3,1)] lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:pointer-events-auto`}>
+        <div className="flex flex-col h-full px-6 py-10">
           
-          {/* Brand Identity */}
-          <div className="mb-10 px-2 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-6 h-6 bg-foreground text-background rounded-md flex items-center justify-center">
+           {/* Brand Identity */}
+          <div className="mb-10 lg:mb-12 px-4 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-foreground/5 text-foreground rounded-2xl flex items-center justify-center shadow-lg border border-foreground/10 transition-transform hover:scale-105 duration-700 backdrop-blur-md group">
                  <Image
-                  src="/zica-bella-logo_8.png"
+                  src="/zb-logo-220px.png"
                   alt="Logo"
-                  width={14}
-                  height={14}
-                  className="invert dark:invert-0"
+                  width={30}
+                  height={30}
+                  priority
+                  className="dark:brightness-200 dark:grayscale dark:contrast-200"
                 />
               </div>
               <div className="flex flex-col">
-                <span className="text-[11px] font-bold tracking-[0.2em] uppercase leading-none">Zica Bella</span>
-                <span className="text-[8px] tracking-[0.3em] uppercase text-foreground/40 mt-1">Admin OS</span>
+                <span className="text-[14px] font-semibold text-foreground/90 font-inter">Zica Bella</span>
+                <span className="text-[10px] text-foreground/40 mt-1 font-medium select-none font-inter">System Configurator</span>
               </div>
             </div>
           </div>
 
           <div className="flex-1 overflow-y-auto custom-scrollbar space-y-8 pr-2">
             <div>
-              <div className="mb-3 px-2">
-                 <span className="text-[8px] font-bold text-foreground/30 uppercase tracking-[0.3em]">Core Flow</span>
+              <div className="mb-3 px-4">
+                 <span className="text-[10px] font-semibold text-foreground/30 font-inter">Core Services</span>
               </div>
               <div className="space-y-0.5">
                 {[...coreNav].map(item => <NavLink key={item.name} item={item} />)}
@@ -151,8 +155,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
              
             <div>
-              <div className="mb-3 px-2">
-                 <span className="text-[8px] font-bold text-foreground/30 uppercase tracking-[0.3em]">Operations</span>
+              <div className="mb-3 px-4">
+                 <span className="text-[10px] font-semibold text-foreground/30 font-inter">Logistics</span>
               </div>
               <div className="space-y-0.5">
                 {[...operationalNav].map(item => <NavLink key={item.name} item={item} />)}
@@ -160,8 +164,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
              
             <div>
-              <div className="mb-3 px-2">
-                 <span className="text-[8px] font-bold text-foreground/30 uppercase tracking-[0.3em]">Aesthetics</span>
+              <div className="mb-3 px-4">
+                 <span className="text-[10px] font-semibold text-foreground/30 font-inter">Experience</span>
               </div>
               <div className="space-y-0.5">
                 {[...aestheticNav].map(item => <NavLink key={item.name} item={item} />)}
@@ -169,66 +173,62 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
           </div>
           
-          <div className="mt-6 pt-4 border-t border-foreground/[0.05]">
+          <div className="mt-6 pt-4 border-t border-foreground/[0.04]">
             <Link
               href="/dashboard/settings"
-              className={`flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-300 ${
+              className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-500 ${
                 pathname === '/dashboard/settings'
-                  ? "bg-foreground text-background"
-                  : "text-foreground/60 hover:text-foreground hover:bg-foreground/[0.03]"
+                  ? "bg-foreground text-background shadow-lg shadow-black/10"
+                  : "text-foreground/40 hover:text-foreground hover:bg-foreground/[0.03]"
               }`}
             >
-              <Settings className="w-3.5 h-3.5" strokeWidth={1.5} />
-              <span className="text-[10px] uppercase tracking-[0.15em] font-medium">Settings</span>
+              <Settings className="w-4 h-4" strokeWidth={pathname === '/dashboard/settings' ? 2 : 1.5} />
+              <span className="text-[12px] font-medium font-inter">Settings</span>
             </Link>
           </div>
         </div>
       </aside>
 
-      {/* Main Experience Stage */}
-      <main className="flex-1 lg:ml-64 flex flex-col min-h-screen relative z-10 w-full overflow-hidden">
+       {/* Main Experience Stage */}
+      <main className="flex-1 lg:ml-72 flex flex-col min-h-screen relative z-10 overflow-hidden">
         
-        {/* Minimal Top Navigation */}
-        <header className="h-16 flex items-center justify-between px-6 lg:px-12 border-b border-foreground/[0.03] bg-background/50 backdrop-blur-md sticky top-0 z-40">
-          <div className="flex items-center gap-4">
+        {/* Header - Floating Island Style */}
+        <header className="h-14 lg:h-16 flex items-center justify-between px-4 lg:px-8 m-2 lg:mx-8 lg:my-6 rounded-3xl glass shadow-2xl sticky top-2 lg:top-6 z-40 border border-foreground/5">
+          <div className="flex items-center gap-3 lg:gap-6">
             <button 
               onClick={() => setIsSidebarOpen(true)}
-              className="lg:hidden p-1.5 rounded-md hover:bg-foreground/[0.05] transition-colors"
+              className="lg:hidden p-2 rounded-2xl bg-foreground/5 text-foreground/50 hover:text-foreground transition-colors border border-foreground/10"
             >
-               <Menu className="w-4 h-4 text-foreground/60" />
+               <Menu className="w-5 h-5" />
             </button>
-            <div className="flexitems-center gap-2">
-               <span className="text-[10px] text-foreground/30 uppercase tracking-[0.2em] hidden sm:block">System /</span>
-               <h2 className="text-[11px] font-bold tracking-[0.2em] text-foreground uppercase pt-[1px] hidden sm:block">
-                 {pathname === '/dashboard' ? 'Overview' : pathname.split('/').filter(Boolean).pop()?.replace(/-/g, ' ')}
+            <div className="flex items-center gap-4 min-w-0">
+               <h2 className="text-[14px] lg:text-[16px] font-semibold text-foreground font-inter truncate whitespace-nowrap">
+                 {pathname === '/dashboard' ? 'Overview' : pathname.split('/').filter(Boolean).pop()?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                </h2>
             </div>
           </div>
           
-          <div className="flex items-center gap-5">
-            <div className="flex items-center gap-2">
-              <div className="relative group cursor-pointer">
-                <Search className="w-3.5 h-3.5 text-foreground/40 group-hover:text-foreground transition-colors" />
-              </div>
-              <div className="w-[1px] h-3 bg-foreground/10 mx-2" />
+          <div className="flex items-center gap-3 lg:gap-6">
+            <div className="flex items-center gap-2 lg:gap-4">
                <ThemeToggle />
-              <button className="text-foreground/40 hover:text-foreground transition-colors">
-                <Bell className="w-3.5 h-3.5" />
+               <div className="hidden sm:block w-[1px] h-4 bg-foreground/10 mx-1" />
+              <button className="hidden sm:flex w-9 h-9 items-center justify-center rounded-2xl bg-foreground/5 text-foreground/30 hover:text-foreground transition-all border border-foreground/5">
+                <Bell className="w-4.5 h-4.5" />
               </button>
             </div>
  
-            <Link href="/dashboard/settings" className="flex items-center gap-2 p-1 pl-3 bg-foreground/[0.02] border border-foreground/[0.05] hover:bg-foreground/[0.04] transition-colors rounded-full cursor-pointer">
-              <span className="text-[9px] font-medium tracking-[0.1em] text-foreground/60 uppercase">Karthik</span>
-              <div className="h-5 w-5 rounded-full bg-foreground text-background flex items-center justify-center">
-                <span className="text-[7px] font-bold tracking-widest">KT</span>
+            <Link href="/dashboard/settings" className="flex items-center gap-2 lg:gap-3 p-1 lg:p-1.5 pl-3 lg:pl-4 bg-foreground/5 border border-foreground/10 hover:bg-foreground/10 transition-all rounded-full cursor-pointer group shadow-inner">
+              <span className="hidden sm:inline text-[12px] font-medium text-foreground/60 group-hover:text-foreground transition-colors font-inter">Admin</span>
+              <div className="h-7 w-7 rounded-full bg-foreground text-background flex items-center justify-center shadow-2xl transition-transform group-hover:scale-105 duration-500">
+                <span className="text-[10px] font-medium font-inter">KT</span>
               </div>
             </Link>
           </div>
         </header>
 
         {/* Content Area */}
-        <div className="flex-1 px-6 lg:px-12 py-10 overflow-y-auto custom-scrollbar relative z-10 w-full">
-          <div className="max-w-[1400px] w-full mx-auto relative min-h-screen">
+        <div className="flex-1 px-4 lg:px-12 py-6 lg:py-12 overflow-y-auto custom-scrollbar relative w-full">
+          <div className="max-w-[1500px] w-full mx-auto relative min-h-screen">
             {children}
           </div>
         </div>

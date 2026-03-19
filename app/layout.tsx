@@ -4,7 +4,7 @@ import localFont from "next/font/local";
 import Script from "next/script";
 import { Providers } from "./providers";
 import "./globals.css";
-import StorefrontLayout from "@/components/StorefrontLayout";
+import LayoutWrapper from "@/components/LayoutWrapper";
 import StorefrontFooter from "@/components/StorefrontFooter";
 
 const geistSans = localFont({
@@ -58,9 +58,9 @@ export default function RootLayout({
       </head>
       <body className={`${geistSans.variable} ${inter.variable} antialiased`}>
         <Providers>
-          <StorefrontLayout footer={<StorefrontFooter />}>
+          <LayoutWrapper footer={<StorefrontFooter />}>
             {children}
-          </StorefrontLayout>
+          </LayoutWrapper>
         </Providers>
       </body>
     </html>

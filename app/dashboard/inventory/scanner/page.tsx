@@ -15,7 +15,9 @@ import {
   RotateCcw,
   ArrowRightLeft,
   XCircle,
-  ClipboardList
+  ClipboardList,
+  Plus,
+  Minus
 } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -23,7 +25,8 @@ import { motion, AnimatePresence } from "framer-motion";
 export default function InventoryScannerPage() {
   const [scanResult, setScanResult] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(true);
-  const [status, setStatus] = useState<'idle' | 'success' | 'error' | 'syncing'>('idle');
+  const [status, setStatus] = useState<'idle' | 'confirm' | 'success' | 'error' | 'syncing'>('idle');
+  const [quantity, setQuantity] = useState(1);
   const [message, setMessage] = useState('');
   const [mode, setMode] = useState<'STOCK_IN' | 'ORDER_OUT' | 'RETURN' | 'EXCHANGE' | 'RTO'>('STOCK_IN');
   const [recentScans, setRecentScans] = useState<any[]>([]);
@@ -57,18 +60,21 @@ export default function InventoryScannerPage() {
   }, [isScanning]);
 
   const onScanSuccess = async (decodedText: string) => {
-    if (status === 'syncing') return;
+    if (status === 'syncing' || status === 'confirm') return;
     
     setScanResult(decodedText);
     setIsScanning(false);
-    handleSync(decodedText);
+    setQuantity(1);
+    setStatus('confirm');
   };
 
   const onScanFailure = (error: any) => {
     // Suppress noise
   };
 
-  const handleSync = async (code: string) => {
+  const handleSync = async () => {
+    if (!scanResult) return;
+    const code = scanResult;
     setStatus('syncing');
     setMessage('Synchronizing with Core Matrix...');
     
@@ -76,7 +82,7 @@ export default function InventoryScannerPage() {
       const res = await fetch('/api/admin/inventory/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, mode })
+        body: JSON.stringify({ code, mode, quantity })
       });
       
       const data = await res.json();
@@ -89,6 +95,7 @@ export default function InventoryScannerPage() {
           code,
           mode,
           productName: data.productName || 'Unknown',
+          quantity,
           timestamp: new Date().toLocaleTimeString(),
           status: 'success'
         }, ...prev].slice(0, 5));
@@ -107,6 +114,7 @@ export default function InventoryScannerPage() {
     setScanResult(null);
     setStatus('idle');
     setMessage('');
+    setQuantity(1);
     setIsScanning(true);
   };
 
@@ -118,22 +126,18 @@ export default function InventoryScannerPage() {
       className="pb-20 max-w-6xl mx-auto"
     >
       {/* Siri Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12 relative z-10">
-        <div className="space-y-2">
-           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/5 dark:bg-white/10 backdrop-blur-md border border-black/5 dark:border-white/10 w-fit mb-4 shadow-sm">
-             <ScanLine className="w-3.5 h-3.5 text-[#5E5CE6]" />
-             <span className="text-[10px] font-bold text-foreground/70 dark:text-white/70 uppercase tracking-[0.2em] leading-none pt-0.5">Optical Link</span>
-          </div>
-          <h1 className="text-5xl md:text-7xl font-black text-foreground dark:text-white uppercase tracking-tighter mb-2 leading-[0.9]">
-            UNIVERSAL <br /> SCANNER
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 lg:gap-6 mb-8 lg:mb-12 relative z-10">
+        <div className="space-y-1 lg:space-y-2">
+          <h1 className="text-2xl lg:text-3xl font-bold text-foreground uppercase tracking-tighter leading-none">
+            Logistics Scanner
           </h1>
-          <p className="text-[13px] md:text-[15px] font-medium text-foreground/50 dark:text-white/50 tracking-wide mt-4 max-w-xl leading-relaxed">
-            Real-time optical ingestion into the inventory matrix.
+          <p className="text-[9px] lg:text-[10px] text-foreground/40 font-bold uppercase tracking-[0.3em] max-w-xl">
+            Advanced inventory reconciliation and substrate tracking.
           </p>
         </div>
 
         {/* Mode Selector - Siri Tab Style */}
-        <div className="bg-black/5 dark:bg-white/5 p-1.5 rounded-2xl flex items-center gap-1.5 overflow-x-auto hide-scrollbar border border-black/5 dark:border-white/10 shadow-inner max-w-full backdrop-blur-xl">
+        <div className="bg-foreground/5 p-1.5 rounded-2xl flex items-center gap-1.5 overflow-x-auto hide-scrollbar border border-foreground/5 shadow-inner max-w-full backdrop-blur-xl">
           {modes.map((m) => {
             const Icon = m.icon;
             const isActive = mode === m.id;
@@ -167,7 +171,7 @@ export default function InventoryScannerPage() {
        <div className="grid lg:grid-cols-5 gap-8">
         {/* Scanner Substrate */}
         <div className="lg:col-span-3 relative group">
-          <div className="bg-white/60 dark:bg-[#1C1C1E]/60 backdrop-blur-[60px] saturate-[200%] border border-white/50 dark:border-white/10 rounded-[2rem] overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.2)] p-6 h-full relative">
+          <div className="bg-foreground/[0.02] backdrop-blur-[60px] saturate-[200%] border border-foreground/10 rounded-[2rem] overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.2)] p-6 h-full relative">
             <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-transparent dark:from-white/5 pointer-events-none z-0" />
             
             <div className={`relative z-10 w-full h-[400px] md:h-full min-h-[400px] rounded-[1.5rem] overflow-hidden border border-black/5 dark:border-white/5 bg-black/5 dark:bg-black/20 ${isScanning ? 'shadow-inner' : ''}`}>
@@ -187,23 +191,78 @@ export default function InventoryScannerPage() {
 
               {!isScanning && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 dark:bg-[#1C1C1E]/90 backdrop-blur-2xl z-20 p-8 text-center animate-in fade-in zoom-in-95 duration-300">
-                  <div className={`w-20 h-20 rounded-[2rem] flex items-center justify-center mb-6 shadow-2xl ${
-                     status === 'success' ? 'bg-[#34C759]/10 text-[#34C759] shadow-[#34C759]/20' : 
-                     status === 'error' ? 'bg-[#FF3B30]/10 text-[#FF3B30] shadow-[#FF3B30]/20' : 
-                     'bg-[#007AFF]/10 text-[#007AFF] shadow-[#007AFF]/20 animate-pulse'
-                  }`}>
-                     <Zap className="w-10 h-10" strokeWidth={2} />
-                  </div>
-                  <h3 className="text-[14px] font-black uppercase tracking-[0.2em] mb-2 text-foreground dark:text-white">Signal Decoded</h3>
-                  <p className="text-[12px] font-bold text-foreground/50 dark:text-white/50 mb-8 whitespace-pre-wrap max-w-[80%] mx-auto">{scanResult}</p>
-                  
-                  <button 
-                    onClick={resetScanner}
-                    className="inline-flex items-center gap-3 px-8 py-4 bg-foreground text-background dark:bg-white dark:text-black rounded-2xl text-[12px] font-bold uppercase tracking-[0.15em] hover:scale-105 active:scale-95 transition-all shadow-[0_8px_24px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_24px_rgba(255,255,255,0.4)]"
-                  >
-                    <RefreshCcw className="w-4 h-4" strokeWidth={2} />
-                    Restart Link
-                  </button>
+                  {status === 'confirm' ? (
+                    <>
+                      <div className="w-20 h-20 rounded-[2rem] flex items-center justify-center mb-6 shadow-2xl bg-[#007AFF]/10 text-[#007AFF] shadow-[#007AFF]/20">
+                         <ScanLine className="w-10 h-10" strokeWidth={2} />
+                      </div>
+                      <h3 className="text-[14px] font-black uppercase tracking-[0.2em] mb-2 text-foreground dark:text-white">Verify Submission</h3>
+                      <p className="text-[12px] font-bold text-foreground/50 dark:text-white/50 mb-6 whitespace-pre-wrap max-w-[80%] mx-auto block break-all">{scanResult}</p>
+                      
+                      {/* Quantity Selector */}
+                      <div className="flex items-center gap-4 mb-8 bg-black/5 dark:bg-white/5 p-2 rounded-[1.5rem] border border-black/5 dark:border-white/5 shadow-inner">
+                        <button 
+                          onClick={() => setQuantity(Math.max(1, quantity - 1))} 
+                          className="w-12 h-12 rounded-xl bg-white dark:bg-[#2C2C2E] flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.2)] text-foreground dark:text-white"
+                        >
+                          <Minus className="w-5 h-5" strokeWidth={2.5} />
+                        </button>
+                        <div className="w-16 flex flex-col items-center justify-center">
+                          <span className="text-2xl font-black text-foreground dark:text-white tracking-tighter leading-none">{quantity}</span>
+                          <span className="text-[8px] font-black text-foreground/40 dark:text-white/40 uppercase tracking-widest mt-1">Units</span>
+                        </div>
+                        <button 
+                          onClick={() => setQuantity(quantity + 1)} 
+                          className="w-12 h-12 rounded-xl bg-white dark:bg-[#2C2C2E] flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.2)] text-foreground dark:text-white"
+                        >
+                          <Plus className="w-5 h-5" strokeWidth={2.5} />
+                        </button>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <button 
+                          onClick={resetScanner} 
+                          className="px-6 py-4 rounded-2xl text-[12px] font-bold uppercase tracking-[0.1em] text-foreground/50 dark:text-white/50 hover:bg-black/5 dark:hover:bg-white/5 hover:text-foreground dark:hover:text-white transition-colors"
+                        >
+                          Cancel
+                        </button>
+                        <button 
+                          onClick={handleSync} 
+                          className="inline-flex items-center gap-2 px-8 py-4 bg-[#34C759] text-white rounded-2xl text-[12px] font-bold uppercase tracking-[0.15em] hover:scale-105 active:scale-95 transition-all shadow-[0_8px_24px_rgba(52,199,89,0.3)]"
+                        >
+                          <Zap className="w-4 h-4" strokeWidth={2.5} />
+                          Confirm
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className={`w-20 h-20 rounded-[2rem] flex items-center justify-center mb-6 shadow-2xl ${
+                         status === 'success' ? 'bg-[#34C759]/10 text-[#34C759] shadow-[#34C759]/20' : 
+                         status === 'error' ? 'bg-[#FF3B30]/10 text-[#FF3B30] shadow-[#FF3B30]/20' : 
+                         'bg-[#007AFF]/10 text-[#007AFF] shadow-[#007AFF]/20 animate-pulse'
+                      }`}>
+                         <Zap className="w-10 h-10" strokeWidth={2} />
+                      </div>
+                      <h3 className="text-[14px] font-black uppercase tracking-[0.2em] mb-2 text-foreground dark:text-white">
+                        {status === 'success' ? 'Terminal State Achieved' : status === 'error' ? 'Transmission Failed' : 'Signal Decoded'}
+                      </h3>
+                      <p className="text-[12px] font-bold text-foreground/50 dark:text-white/50 mb-8 whitespace-pre-wrap max-w-[80%] mx-auto flex flex-col items-center">
+                        <span className="text-[10px] uppercase tracking-widest opacity-60 mb-2 block">{scanResult}</span>
+                        {message}
+                      </p>
+                      
+                      {status !== 'syncing' && (
+                        <button 
+                          onClick={resetScanner}
+                          className="inline-flex items-center gap-3 px-8 py-4 bg-foreground text-background dark:bg-white dark:text-black rounded-2xl text-[12px] font-bold uppercase tracking-[0.15em] hover:scale-105 active:scale-95 transition-all shadow-[0_8px_24px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_24px_rgba(255,255,255,0.4)]"
+                        >
+                          <RefreshCcw className="w-4 h-4" strokeWidth={2} />
+                          Restart Link
+                        </button>
+                      )}
+                    </>
+                  )}
                 </div>
               )}
             </div>
@@ -212,7 +271,7 @@ export default function InventoryScannerPage() {
 
          {/* Transmission Logistics */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white/60 dark:bg-[#1C1C1E]/60 backdrop-blur-[60px] saturate-[200%] border border-white/50 dark:border-white/10 rounded-[2rem] p-8 shadow-[0_8px_32px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden h-full flex flex-col">
+          <div className="bg-foreground/[0.02] backdrop-blur-[60px] saturate-[200%] border border-foreground/10 rounded-[2rem] p-8 shadow-[0_8px_32px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden h-full flex flex-col">
             <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-transparent dark:from-white/5 pointer-events-none z-0" />
             
             <div className="relative z-10 flex flex-col h-full">
@@ -288,7 +347,7 @@ export default function InventoryScannerPage() {
                               </div>
                            </div>
                            <div className="text-right">
-                              <span className="text-[9px] font-black px-2.5 py-1.5 rounded-lg bg-black/10 dark:bg-white/10 text-foreground/70 dark:text-white/70 uppercase tracking-[0.15em]">{s.mode}</span>
+                              <span className="text-[9px] font-black px-2.5 py-1.5 rounded-lg bg-black/10 dark:bg-white/10 text-foreground/70 dark:text-white/70 uppercase tracking-[0.15em]">{s.mode} {s.quantity > 1 ? `x${s.quantity}` : ''}</span>
                               <p className="text-[9px] font-bold text-foreground/40 dark:text-white/40 mt-2 uppercase tracking-widest">{s.timestamp}</p>
                            </div>
                          </motion.div>

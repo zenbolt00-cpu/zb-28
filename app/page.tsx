@@ -129,7 +129,7 @@ export default async function Home() {
         )}
 
         {/* ═══ COLLECTIONS CAROUSEL ═══ */}
-        <section className="py-10 -mx-2">
+        <section className="py-5 -mx-2">
           {s?.showArchive && (
             <div className="flex justify-center mb-5 px-4">
               <span className="text-[7px] font-extralight uppercase tracking-[0.9em] text-muted-foreground/22">— {archiveTitle} —</span>
@@ -142,6 +142,25 @@ export default async function Home() {
             </div>
           )}
         </section>
+        
+        {/* ═══ RING COLLECTION CAROUSEL ═══ */}
+        {showRingCarousel && (
+          <div className="mt-3 mb-3">
+            <RingCarouselSection 
+              title={ringCarouselTitle} 
+              itemsConfig={ringCarouselItems} 
+            />
+          </div>
+        )}
+
+        {/* ═══ 3D FLIPBOOK SECTION ═══ */}
+        <FlipbookSection 
+          imgUrl={flipbookImage}
+          videoUrl={flipbookVideo}
+          title={flipbookTitle} 
+          tag={flipbookTag} 
+          desc={flipbookDesc} 
+        />
 
         {/* ═══ PRODUCT GRID 2 ═══ */}
         <section className="mb-2 px-[1px]">
@@ -171,14 +190,7 @@ export default async function Home() {
           </section>
         )}
 
-        {/* ═══ 3D FLIPBOOK SECTION ═══ */}
-        <FlipbookSection 
-          imgUrl={flipbookImage}
-          videoUrl={flipbookVideo}
-          title={flipbookTitle} 
-          tag={flipbookTag} 
-          desc={flipbookDesc} 
-        />
+
 
         {/* ═══ PRODUCT GRID 3 ═══ */}
         <section className="mt-4 mb-2 px-[1px]">
@@ -203,16 +215,6 @@ export default async function Home() {
             subtitle={s?.communitySubtitle}
           />
         </div>
-
-        {/* ═══ RING COLLECTION CAROUSEL ═══ */}
-        {showRingCarousel && (
-          <div className="mt-8 mb-8">
-            <RingCarouselSection 
-              title={ringCarouselTitle} 
-              itemsConfig={ringCarouselItems} 
-            />
-          </div>
-        )}
 
         {/* ═══ FOOTER VIDEO ═══ */}
         {footerVideo && (
