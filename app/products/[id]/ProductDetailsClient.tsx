@@ -16,6 +16,7 @@ import dynamic from "next/dynamic";
 
 const CheckoutWebView = dynamic(() => import("@/components/CheckoutWebView"), { ssr: false });
 const OrderSuccess = dynamic(() => import("@/components/OrderSuccess"), { ssr: false });
+const QuickAddModal = dynamic(() => import("@/components/QuickAddModal"), { ssr: false });
 
 interface ShopSettings {
   showProductVideo: boolean;
@@ -56,6 +57,7 @@ export default function ProductDetailsClient({
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [isAdded, setIsAdded] = useState(false);
   const [[page, dragDirection], setPage] = useState([0, 0]);
+  const [quickAddProduct, setQuickAddProduct] = useState<ShopifyProduct | null>(null);
 
   const imageIndex = ((page % allImages.length) + allImages.length) % allImages.length;
   
@@ -584,33 +586,33 @@ export default function ProductDetailsClient({
               </div>
             )}
 
-                {/* Recommended Products - Premium Stark Editorial Overhaul */}
+            {/* Recommended Products - Curated Pairs Minimal Glass Overhaul */}
             {shuffledRecommended.length > 0 && (
-              <div className="mt-6 mb-4 -mx-1 border-y border-foreground/20 bg-background">
-                  <div className="flex items-center justify-between px-3 py-3 border-b border-foreground/20">
-                      <h2 className="text-[12px] font-bold tracking-[0.05em] uppercase text-foreground">
-                        YOU'D ALSO LIKE
+              <div className="mt-6 mb-4 -mx-1 border-y border-foreground/5 backdrop-blur-xl bg-background/30">
+                  <div className="flex items-center justify-between px-3 py-3 border-b border-foreground/5">
+                      <h2 className="text-[10px] font-heading font-bold tracking-[0.15em] uppercase text-foreground/80">
+                        CURATED PAIRS
                       </h2>
                       <div className="flex items-center gap-2">
                         <button 
-                          className="flex items-center justify-center p-1 active:scale-95 transition-transform"
+                          className="flex items-center justify-center p-1.5 active:scale-90 transition-all text-foreground/40 hover:text-foreground hover:bg-foreground/5 rounded-full"
                           onClick={() => {
                             if (curatedScrollRef.current) {
                               curatedScrollRef.current.scrollBy({ left: -300, behavior: 'smooth' });
                             }
                           }}
                         >
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="0.75" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
                         </button>
                         <button 
-                          className="flex items-center justify-center p-1 active:scale-95 transition-transform"
+                          className="flex items-center justify-center p-1.5 active:scale-90 transition-all text-foreground/40 hover:text-foreground hover:bg-foreground/5 rounded-full"
                           onClick={() => {
                             if (curatedScrollRef.current) {
                               curatedScrollRef.current.scrollBy({ left: 300, behavior: 'smooth' });
                             }
                           }}
                         >
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="0.75" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
                         </button>
                       </div>
                   </div>
@@ -634,7 +636,7 @@ export default function ProductDetailsClient({
                       return (
                         <div 
                           key={`stark-pair-${p.id}-${idx}`}
-                          className="min-w-[85vw] sm:min-w-[400px] flex-shrink-0 snap-center border-r border-foreground/20 flex flex-col group cursor-pointer"
+                          className="min-w-[85vw] sm:min-w-[400px] flex-shrink-0 snap-center border-r border-foreground/5 flex flex-col group cursor-pointer"
                           onClick={(e) => { 
                             if (isCuratedDragging) e.preventDefault(); 
                             else router.push(`/products/${p.handle}`);
@@ -654,18 +656,23 @@ export default function ProductDetailsClient({
                             <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                           </div>
                           
-                          {/* Bottom Details Grid */}
-                          <div className="grid grid-cols-[1fr_auto] border-t border-foreground/20 min-h-[50px]">
-                            <div className="p-3 border-r border-foreground/20 flex items-center">
-                              <span className="text-[10px] font-bold tracking-widest uppercase text-foreground line-clamp-2 leading-tight pr-2">
-                                {p.title}
-                              </span>
-                            </div>
-                            <div className="p-3 flex items-center justify-center min-w-[70px]">
-                              <span className="text-[11px] font-normal tracking-wide text-foreground">
-                                ₹{parseFloat(initialPrice).toLocaleString('en-IN')}
-                              </span>
-                            </div>
+                          {/* Bottom Details - Minimal Apple Glass Style */}
+                          <div className="flex flex-col p-2 border-t border-foreground/5 relative">
+                            <span className="text-[9px] font-extralight tracking-widest uppercase text-foreground/80 line-clamp-1 pr-6 leading-tight">
+                              {p.title}
+                            </span>
+                            <span className="text-[9px] font-light tracking-wide text-foreground/50 leading-tight">
+                              ₹{parseFloat(initialPrice).toLocaleString('en-IN')}
+                            </span>
+                            <button
+                              className="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-sm bg-transparent hover:bg-foreground/5 text-foreground/40 hover:text-foreground transition-all active:scale-90"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setQuickAddProduct(p);
+                              }}
+                            >
+                              <Plus className="w-3.5 h-3.5" strokeWidth={1.5} />
+                            </button>
                           </div>
                         </div>
                       )
@@ -797,6 +804,11 @@ export default function ProductDetailsClient({
           />
         )}
       </AnimatePresence>
+
+      {/* Quick-Add Modal for Curated Pairs */}
+      {quickAddProduct && (
+        <QuickAddModal product={quickAddProduct} onClose={() => setQuickAddProduct(null)} />
+      )}
     </>
   );
 }

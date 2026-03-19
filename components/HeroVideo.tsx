@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { VolumeX, Volume2 } from "lucide-react";
 
 interface HeroVideoProps {
@@ -10,7 +10,26 @@ interface HeroVideoProps {
 
 export default function HeroVideo({ src, showControlOnly = false }: HeroVideoProps) {
   const [isMuted, setIsMuted] = useState(true);
+  const [isInView, setIsInView] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsInView(entry.isIntersecting),
+      { threshold: 0.1 }
+    );
+    if (videoRef.current) observer.observe(videoRef.current);
+    return () => {
+      if (videoRef.current) observer.unobserve(videoRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      if (isInView) videoRef.current.play().catch(() => {});
+      else videoRef.current.pause();
+    }
+  }, [isInView]);
 
   const toggle = () => {
     const v = videoRef.current;
@@ -28,9 +47,8 @@ export default function HeroVideo({ src, showControlOnly = false }: HeroVideoPro
         <video
           ref={videoRef}
           src={src}
-          autoPlay
-          loop
           muted={isMuted}
+          loop
           playsInline
           className="w-full h-full object-cover transition-all duration-700"
         />

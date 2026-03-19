@@ -182,11 +182,11 @@ export default function OrdersPage() {
                   </div>
                 ) : (
                     <div className="mt-4 opacity-10 flex justify-end">
-                         <Link href={`/orders/${order.id}/confirmation`} className="text-[7px] font-black uppercase tracking-widest">View Order Confirmation</Link>
+                         <Link href={`/orders/${order.id}`} className="text-[7px] font-black uppercase tracking-widest">View Order Details</Link>
                     </div>
                 )}
                 
-                <Link href={`/orders/${order.id}/confirmation`} className="absolute inset-0 z-[1]" />
+                <Link href={`/orders/${order.id}`} className="absolute inset-0 z-[1]" />
               </motion.div>
             ))}
           </div>

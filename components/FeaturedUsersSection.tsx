@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import NextImage from "next/image";
-import { Star, MessageCircle, Heart } from "lucide-react";
+import { Star, MessageCircle, Heart, Upload } from "lucide-react";
 
 interface FeaturedUser {
   id: string;
@@ -17,12 +17,14 @@ export default function FeaturedUsersSection({
   showCommunity = true, 
   title = "FEATURED LOOKS", 
   subtitle = "COMMUNITY",
-  allFeatured = false
+  allFeatured = false,
+  onUploadClick
 }: { 
   showCommunity?: boolean;
   title?: string;
   subtitle?: string;
   allFeatured?: boolean;
+  onUploadClick?: () => void;
 }) {
   const [users, setUsers] = useState<FeaturedUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,17 +54,6 @@ export default function FeaturedUsersSection({
         </div>
       </section>
     );
-  }
-  if (users.length === 0) {
-    if (process.env.NODE_ENV === 'development') {
-      return (
-        <section className="py-4 px-4 text-center opacity-20">
-          <p className="text-[10px] uppercase tracking-widest">Featured Looks Standby</p>
-          <p className="text-[8px] mt-1">Add approved looks in Admin Dashboard</p>
-        </section>
-      );
-    }
-    return null;
   }
 
   return (
@@ -113,6 +104,26 @@ export default function FeaturedUsersSection({
               </div>
             );
           })}
+
+          {/* Upload / Add Yours Card */}
+          {onUploadClick && (
+            <div 
+              className="min-w-[260px] snap-center group cursor-pointer"
+              onClick={onUploadClick}
+            >
+              <div className="relative aspect-[3/4.2] rounded-[2rem] overflow-hidden bg-foreground/[0.03] border border-dashed border-foreground/15 flex flex-col items-center justify-center transition-all duration-500 hover:bg-foreground/[0.05] hover:border-foreground/30 active:scale-95">
+                <div className="w-16 h-16 rounded-full bg-foreground/5 flex items-center justify-center mb-4 transition-transform duration-500 group-hover:scale-110">
+                  <Upload className="w-7 h-7 text-foreground/40" />
+                </div>
+                <div className="text-center px-6">
+                  <p className="text-[12px] font-bold text-foreground/80 tracking-widest uppercase mb-1">Add Yours</p>
+                  <p className="text-[9px] text-foreground/40 font-medium leading-relaxed">
+                    Publish your look to the visual collective
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
         
       </div>

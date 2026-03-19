@@ -183,6 +183,7 @@ export default function CommunityPage() {
             title="The Visual Collective"
             subtitle="User Showcase"
             allFeatured={true}
+            onUploadClick={() => setShowSubForm(true)}
           />
         </div>
 

@@ -32,17 +32,18 @@ export default async function StorefrontFooter() {
     <footer className="w-full pb-6 pt-6 px-4 text-center mt-1 relative z-10 glass rounded-t-[2rem] border-t-0">
       <div className="max-w-md mx-auto px-4">
         {/* 3D GLB Logo */}
-        <div className="mb-3 flex justify-center pointer-events-none">
+        <div className="mb-3 flex justify-center cursor-pointer relative z-50">
           <div className="w-14 h-14">
             {/* @ts-expect-error model-viewer web component */}
             <model-viewer
               src="https://cdn.shopify.com/3d/models/e024b09e83a75c03/Zicabella-silver-logo.glb"
               alt="Zica Bella 3D Logo"
               auto-rotate
-              camera-controls={false}
+              camera-controls
+              interaction-prompt="none"
               shadow-intensity="0.5"
               loading="lazy"
-              style={{ width: "100%", height: "100%", background: "transparent" }}
+              style={{ width: "100%", height: "100%", background: "transparent", touchAction: "none" }}
             />
           </div>
         </div>

@@ -93,39 +93,52 @@ export const authOptions: AuthOptions = {
       },
       async authorize(credentials) {
         try {
-          if (!credentials?.phone || !credentials?.otp) return null;
+          if (!credentials?.phone || !credentials?.otp) {
+            console.warn("[AUTH] Missing phone or OTP in credentials");
+            return null;
+          }
           
           // Validate phone: must have at least 10 digits when stripped
           const phoneDigits = credentials.phone.replace(/\D/g, "");
           if (phoneDigits.length < 10) {
+            console.error(`[AUTH] Invalid phone number provided: ${credentials.phone}`);
             throw new Error("Invalid phone number. Must be at least 10 digits.");
           }
 
           // Mock OTP verification — replace with SMS provider (Twilio, etc.) in production
+          // User requested to keep this logic for now but make it "fully functional"
           if (credentials.otp !== "123456") {
+            console.warn(`[AUTH] Invalid OTP attempt for phone: ${credentials.phone}`);
             throw new Error("Invalid OTP");
           }
 
           // Normalize: extract last 10 digits for lookup
           const normalizedPhone = phoneDigits.slice(-10);
           // Keep the full international number for storage
-          const fullPhone = credentials.phone;
+          const fullPhone = credentials.phone.startsWith('+') ? credentials.phone : `+${phoneDigits}`;
 
-          const customer = await prisma.customer.findFirst({
+          console.log(`[AUTH] Attempting OTP login for phone: ${fullPhone} (normalized: ${normalizedPhone})`);
+
+          let customer = await prisma.customer.findFirst({
             where: { 
               OR: [
                 { phone: credentials.phone },
                 { phone: normalizedPhone },
                 { phone: `+91${normalizedPhone}` },
+                { phone: fullPhone },
               ]
             },
           });
 
           if (!customer) {
+            console.log(`[AUTH] Customer not found for ${fullPhone}. Creating new customer...`);
             const shop = await prisma.shop.findFirst();
-            if (!shop) throw new Error("No shop configured");
+            if (!shop) {
+              console.error("[AUTH] No shop configured in database!");
+              throw new Error("System configuration error: No shop found");
+            }
 
-            return await prisma.customer.create({
+            customer = await prisma.customer.create({
               data: {
                 phone: fullPhone,
                 shopId: shop.id,
@@ -133,14 +146,17 @@ export const authOptions: AuthOptions = {
                 name: "New User",
               },
             });
+            console.log(`[AUTH] New customer created: ${customer.id}`);
+          } else {
+            console.log(`[AUTH] Existing customer found: ${customer.id}`);
           }
 
           return {
             id: customer.id,
-            name: customer.name,
-            email: customer.email,
+            name: customer.name ?? "User",
+            email: customer.email ?? undefined,
             phone: customer.phone,
-            image: (customer as any).image,
+            image: (customer as any).image ?? undefined,
           };
         } catch (error: any) {
           console.error("[AUTH] OTP authorize error:", error);

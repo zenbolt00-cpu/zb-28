@@ -11,6 +11,7 @@ import HeroVideo from "@/components/HeroVideo";
 import FlipbookSection from "@/components/FlipbookSection";
 import RingCarouselSection from "@/components/RingCarouselSection";
 import SpotlightSection from "@/components/SpotlightSection";
+import LazyVideo from "@/components/LazyVideo";
 
 export const dynamic = "force-dynamic";
 
@@ -124,7 +125,7 @@ export default async function Home() {
         {/* ═══ ABOVE-COLLECTION MEDIA ═══ */}
         {collectionsMedia && (
           <section className="mb-2 relative w-full aspect-video rounded-[0.75rem] overflow-hidden bg-muted shadow-lg border border-foreground/5">
-            <video src={collectionsMedia} autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover opacity-80" />
+            <LazyVideo src={collectionsMedia} className="absolute inset-0 w-full h-full object-cover opacity-80" />
           </section>
         )}
 
@@ -173,9 +174,8 @@ export default async function Home() {
         {s?.showBlueprint && (
           <section className="mb-2 relative w-full aspect-[4/5] rounded-[1rem] overflow-hidden bg-muted border border-foreground/[0.03] group shadow-xl">
             {featuredMedia ? (
-              <video
+              <LazyVideo
                 src={featuredMedia}
-                autoPlay loop muted playsInline
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
               />
             ) : (
@@ -219,9 +219,8 @@ export default async function Home() {
         {/* ═══ FOOTER VIDEO ═══ */}
         {footerVideo && (
           <section className="mt-8 -mx-2 aspect-[9/16] sm:aspect-video rounded-[1.5rem] overflow-hidden bg-muted group shadow-2xl">
-            <video
+            <LazyVideo
               src={footerVideo}
-              autoPlay loop muted playsInline
               className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-1000"
             />
           </section>

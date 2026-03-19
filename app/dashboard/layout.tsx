@@ -58,7 +58,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const aestheticNav = [
     { name: "Storefront", href: "/dashboard/storefront", icon: Monitor },
-    { name: "Visuals", href: "/dashboard/3d-content", icon: Layers },
     { name: "Chat Management", href: "/dashboard/community/chat", icon: MessageSquare },
     { name: "Community", href: "/dashboard/community", icon: Users },
     { name: "Blogs", href: "/dashboard/blogs", icon: Newspaper },

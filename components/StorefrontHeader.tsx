@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import NextImage from "next/image";
 import { Bookmark, ShoppingBag, Plus, X, ChevronLeft } from "lucide-react";
@@ -11,6 +11,7 @@ import CartDrawer from "./CartDrawer";
 import BookmarkDrawer from "./BookmarkDrawer";
 import { useBookmarks } from "@/lib/bookmark-context";
 import { useRouter, usePathname } from "next/navigation";
+import { useShakeToCart } from "@/lib/hooks/useShakeToCart";
 
 export default function StorefrontHeader({ collections: initialCollections = [] }: { collections?: any[] }) {
   const router = useRouter();
@@ -20,6 +21,12 @@ export default function StorefrontHeader({ collections: initialCollections = [] 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [collections, setCollections] = useState(initialCollections);
+
+  // Shake-to-Cart: toggles cart drawer on device shake (iOS)
+  const toggleCart = useCallback(() => {
+    setIsCartOpen(prev => !prev);
+  }, []);
+  useShakeToCart(toggleCart);
 
   useEffect(() => {
     if (initialCollections.length === 0) {
@@ -40,7 +47,7 @@ export default function StorefrontHeader({ collections: initialCollections = [] 
   const getPageTitle = () => {
     if (!pathname) return "ZICA BELLA";
     if (isHome) return "ZICA BELLA";
-    const segments = pathname.split("/").filter(Boolean);
+    const segments = pathname?.split("/").filter(Boolean) || [];
     if (segments.length === 0) return "Zica Bella";
     let title = segments[segments.length - 1];
     // Convert slugs like "products-name" to "Products Name"

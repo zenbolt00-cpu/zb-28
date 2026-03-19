@@ -1,6 +1,6 @@
 "use client";
 
-import { X, User, Package, Info, Users, BookOpen, Handshake } from "lucide-react";
+import { X, User, Package, Info, Users, BookOpen, Handshake, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
@@ -68,91 +68,70 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-[90] bg-black/25 backdrop-blur-lg"
+            className="fixed inset-0 z-[90] bg-black/30 backdrop-blur-2xl"
           />
 
           {/* Floating Glass Drawer — Left */}
           <motion.div
-            initial={{ x: "-100%", opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: "-100%", opacity: 0 }}
-            transition={{ type: "spring", damping: 32, stiffness: 220, mass: 0.9 }}
-            className="fixed inset-y-3 left-3 w-[82vw] max-w-[340px] z-[100] flex flex-col rounded-[2rem] overflow-hidden pointer-events-auto"
+            initial={{ x: "-100%", opacity: 0, scale: 0.96 }}
+            animate={{ x: 0, opacity: 1, scale: 1 }}
+            exit={{ x: "-100%", opacity: 0, scale: 0.96 }}
+            transition={{ type: "spring", damping: 36, stiffness: 260, mass: 0.8 }}
+            className="fixed inset-y-3 left-3 w-[88vw] max-w-[340px] z-[100] flex flex-col rounded-[2rem] overflow-hidden pointer-events-auto"
             style={{
-              background: "hsla(var(--glass-bg), 0.72)",
-              backdropFilter: "blur(52px) saturate(230%) brightness(1.05)",
-              WebkitBackdropFilter: "blur(52px) saturate(230%) brightness(1.05)",
-              boxShadow: "inset 0 0 0 1px hsla(var(--glass-border), 0.12), inset 0 1px 0 rgba(255,255,255,0.07), 0 32px 80px -8px rgba(0,0,0,0.4)",
+              background: "rgba(8, 8, 8, 0.72)",
+              backdropFilter: "blur(60px) saturate(200%)",
+              WebkitBackdropFilter: "blur(60px) saturate(200%)",
+              border: "1px solid rgba(255, 255, 255, 0.04)",
+              boxShadow: "0 30px 60px -12px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255,255,255,0.03)",
             }}
           >
             {/* ─── TOP BAR ─────────────────────────── */}
-            <div className="flex items-center justify-between px-6 pt-5 pb-2 flex-shrink-0">
-              <span
-                className="text-[8px] tracking-[0.55em] uppercase opacity-15"
-                style={{ fontFamily: "ui-monospace, SF Mono, Menlo, monospace", fontWeight: 300 }}
-              >
-                ZB · MENU
+            <div className="flex items-center justify-between px-6 pt-6 pb-3 flex-shrink-0">
+              <span className="text-[6.5px] tracking-[0.6em] uppercase text-white/15 font-extralight">
+                ZICA BELLA
               </span>
               <button
                 onClick={onClose}
-                className="w-7 h-7 flex items-center justify-center rounded-full border border-foreground/[0.06] bg-foreground/[0.03] hover:bg-foreground/[0.08] transition-all active:scale-90"
+                className="w-7 h-7 flex items-center justify-center rounded-full bg-white/[0.04] hover:bg-white/[0.08] transition-all active:scale-90"
               >
-                <X className="w-3 h-3 text-foreground/30" />
+                <X className="w-3 h-3 text-white/25" strokeWidth={1.5} />
               </button>
             </div>
 
             {/* ─── ZONE A: Collections + Shop (TOP) ─── */}
-            <div className="flex flex-1 min-h-0 overflow-hidden">
-
-              {/* Collections — left col */}
-              <div className="flex-1 px-6 pt-3 pb-2 flex flex-col min-h-0 overflow-hidden">
-                <p
-                  className="text-[6px] tracking-[0.5em] uppercase text-foreground/15 mb-2 flex-shrink-0"
-                  style={{ fontFamily: "ui-monospace, monospace" }}
-                >
-                  Collections
-                </p>
-                <div className="flex flex-col min-h-0 overflow-hidden">
+            <div className="flex flex-1 min-h-0">
+              <div className="flex-1 px-6 pt-3 pb-2 flex flex-col min-h-0">
+                <p className="text-[5.5px] tracking-[0.5em] uppercase text-white/[0.08] mb-4 font-extralight">Collections</p>
+                <div className="flex flex-col gap-2.5 min-h-0 overflow-y-auto pr-2 custom-scrollbar">
                   {loading
                     ? [1, 2, 3, 4].map(i => (
-                        <div key={i} className="h-5 w-3/4 bg-foreground/[0.02] rounded-md animate-pulse mb-2" />
+                        <div key={i} className="h-3.5 w-3/4 bg-white/[0.02] rounded-md animate-pulse" />
                       ))
-                    : collections.slice(0, 7).map((c) => (
+                    : collections.map((c) => (
                         <Link
                           key={c.id}
                           href={`/collections/${c.handle}`}
                           onClick={onClose}
-                          className="group py-1"
+                          className="group flex items-center justify-between"
                         >
-                          <span
-                            className="text-[11px] leading-tight text-foreground/55 group-hover:text-foreground/95 transition-colors duration-200 uppercase"
-                            style={{ fontFamily: "system-ui, -apple-system, sans-serif", fontWeight: 400, letterSpacing: "0.05em" }}
-                          >
+                          <span className="text-[11px] text-white/35 group-hover:text-white/90 transition-colors duration-300 font-extralight uppercase tracking-[0.12em]">
                             {c.title}
                           </span>
+                          <ChevronRight className="w-2.5 h-2.5 text-white/0 group-hover:text-white/30 transition-all duration-300 group-hover:translate-x-0.5" strokeWidth={1} />
                         </Link>
                       ))}
                 </div>
               </div>
 
-              {/* Thin divider */}
-              <div className="w-[0.5px] bg-foreground/[0.04] my-4 flex-shrink-0" />
+              <div className="w-[1px] bg-white/[0.02] my-8" />
 
-              {/* Shop terms — right col */}
-              <div className="w-[42%] pt-3 pb-2 px-4 flex flex-col flex-shrink-0">
-                <p
-                  className="text-[6px] tracking-[0.5em] uppercase text-foreground/15 mb-2"
-                  style={{ fontFamily: "ui-monospace, monospace" }}
-                >
-                  Shop
-                </p>
-                <div className="flex flex-col gap-1">
+              <div className="w-[32%] pt-3 pb-2 px-4 flex flex-col">
+                <p className="text-[5.5px] tracking-[0.5em] uppercase text-white/[0.08] mb-4 font-extralight">Shop</p>
+                <div className="flex flex-col gap-2.5">
                   {SHOP_TERMS.map((term) => (
                     <Link key={term} href={`/search?q=${term}`} onClick={onClose} className="group">
-                      <span
-                        className="text-[10px] text-foreground/45 group-hover:text-foreground/85 transition-colors"
-                        style={{ fontFamily: "system-ui, -apple-system, sans-serif", fontWeight: 300 }}
-                      >
+                      <span className="text-[10px] text-white/25 group-hover:text-white/70 transition-colors font-extralight tracking-[0.08em]">
                         {term}
                       </span>
                     </Link>
@@ -161,68 +140,44 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
               </div>
             </div>
 
-            {/* ─── THIN SEPARATOR ──────────────────── */}
-            <div className="mx-5 h-[0.5px] bg-foreground/[0.05] flex-shrink-0" />
-
             {/* ─── ZONE B: Primary Nav (BOTTOM) ─────── */}
-            <nav className="px-6 pt-3 pb-2 flex flex-col flex-shrink-0">
-              <p
-                className="text-[6px] tracking-[0.5em] uppercase text-foreground/15 mb-2"
-                style={{ fontFamily: "ui-monospace, monospace" }}
-              >
-                Discover
-              </p>
-              {PRIMARY_NAV.map(({ title, url }, idx) => (
+            <nav className="px-6 pt-5 pb-3 flex flex-col border-t border-white/[0.02]">
+              {PRIMARY_NAV.map(({ title, url }) => (
                 <Link
                   key={title}
                   href={url}
                   onClick={onClose}
-                  className="group flex items-center justify-between py-0.5"
+                  className="group flex items-center justify-between py-1.5"
                 >
-                  <span
-                    className="text-[17px] leading-snug tracking-[0.02em] font-heading text-foreground/70 group-hover:text-foreground transition-all duration-300 uppercase"
-                  >
+                  <span className="text-[18px] font-extralight text-white/45 group-hover:text-white transition-all duration-500 uppercase tracking-tight">
                     {title}
                   </span>
-                  <span
-                    className="text-[7px] opacity-0 group-hover:opacity-60 text-foreground/40 transition-opacity duration-300 uppercase tracking-widest"
-                    style={{ fontFamily: "ui-monospace, monospace" }}
-                  >
-                    {String(idx + 1).padStart(2, "0")}
-                  </span>
+                  <div className="w-1 h-1 rounded-full bg-white/15 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 </Link>
               ))}
             </nav>
 
             {/* ─── ZONE C: Icon Dock (VERY BOTTOM) ──── */}
-            <div
-              className="mx-4 mb-3 mt-2 p-1.5 rounded-2xl flex items-center justify-around flex-shrink-0"
-              style={{
-                background: "hsla(var(--glass-bg), 0.25)",
-                border: "1px solid hsla(var(--glass-border), 0.07)",
-              }}
-            >
-              <Link href={session ? "/profile" : "/login"} onClick={onClose} className="group flex flex-col items-center gap-0.5 flex-1 py-1.5 rounded-2xl hover:bg-foreground/[0.04] transition-all">
+            <div className="mx-5 mb-5 mt-1 p-0.5 rounded-[1.5rem] flex items-center justify-around bg-white/[0.02] border border-white/[0.02]">
+              <Link href={session ? "/profile" : "/login"} onClick={onClose} className="group flex flex-col items-center gap-0.5 flex-1 py-2.5 rounded-[1.3rem] hover:bg-white/[0.04] transition-all">
                 {profileImage ? (
-                  <div className="w-[20px] h-[20px] rounded-full overflow-hidden border border-foreground/10 group-hover:border-foreground/30 transition-all shadow-sm">
+                  <div className="w-4 h-4 rounded-full overflow-hidden border border-white/10 group-hover:border-white/30 transition-all">
                     <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
                   </div>
                 ) : (
-                  <div className="w-[20px] h-[20px] rounded-full border border-foreground/5 flex items-center justify-center bg-foreground/[0.02]">
-                    <User className="w-3.5 h-3.5 text-foreground/20 group-hover:text-foreground/55 transition-colors" />
-                  </div>
+                  <User className="w-4 h-4 text-white/15 group-hover:text-white/50 transition-colors" strokeWidth={1} />
                 )}
-                <span className="text-[6.5px] font-black tracking-[0.2em] uppercase text-foreground/25 group-hover:text-foreground/50 transition-colors mt-0.5" style={{ fontFamily: "ui-monospace, monospace" }}>Profile</span>
+                <span className="text-[5.5px] font-extralight tracking-[0.3em] uppercase text-white/15 group-hover:text-white/40 transition-colors">Profile</span>
               </Link>
-              <div className="w-[0.5px] h-7 bg-foreground/[0.06]" />
-              <Link href="/orders" onClick={onClose} className="group flex flex-col items-center gap-0.5 flex-1 py-2 rounded-xl hover:bg-foreground/[0.04] transition-all">
-                <Package className="w-3.5 h-3.5 text-foreground/20 group-hover:text-foreground/55 transition-colors" />
-                <span className="text-[6px] tracking-widest uppercase text-foreground/18 group-hover:text-foreground/45" style={{ fontFamily: "ui-monospace, monospace" }}>Orders</span>
+              <div className="w-[1px] h-5 bg-white/[0.02]" />
+              <Link href="/orders" onClick={onClose} className="group flex flex-col items-center gap-0.5 flex-1 py-2.5 hover:bg-white/[0.04] rounded-[1.3rem] transition-all">
+                <Package className="w-4 h-4 text-white/15 group-hover:text-white/50 transition-colors" strokeWidth={1} />
+                <span className="text-[5.5px] font-extralight tracking-[0.3em] uppercase text-white/15 group-hover:text-white/40 transition-colors">Orders</span>
               </Link>
-              <div className="w-[0.5px] h-7 bg-foreground/[0.06]" />
-              <Link href="/story" onClick={onClose} className="group flex flex-col items-center gap-0.5 flex-1 py-2 rounded-xl hover:bg-foreground/[0.04] transition-all">
-                <Info className="w-3.5 h-3.5 text-foreground/20 group-hover:text-foreground/55 transition-colors" />
-                <span className="text-[6px] tracking-widest uppercase text-foreground/18 group-hover:text-foreground/45" style={{ fontFamily: "ui-monospace, monospace" }}>Story</span>
+              <div className="w-[1px] h-5 bg-white/[0.02]" />
+              <Link href="/story" onClick={onClose} className="group flex flex-col items-center gap-0.5 flex-1 py-2.5 hover:bg-white/[0.04] rounded-[1.3rem] transition-all">
+                <Info className="w-4 h-4 text-white/15 group-hover:text-white/50 transition-colors" strokeWidth={1} />
+                <span className="text-[5.5px] font-extralight tracking-[0.3em] uppercase text-white/15 group-hover:text-white/40 transition-colors">Story</span>
               </Link>
             </div>
 
