@@ -43,6 +43,19 @@ export async function POST(req: Request) {
       if (matchedProduct) break;
     }
 
+    if (mode === 'LOOKUP') {
+      if (matchedProduct && matchedVariant) {
+        return NextResponse.json({
+          success: true,
+          productName: `${matchedProduct.title} - ${matchedVariant.title}`,
+          sku: matchedVariant.sku,
+          barcode: matchedVariant.barcode,
+          currentQty: matchedVariant.inventory_quantity || 0,
+        });
+      }
+      return NextResponse.json({ error: 'Product Not Found' }, { status: 404 });
+    }
+
     let message = '';
     let productName = 'Unknown';
 
@@ -139,7 +152,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ 
         success: true, 
         message,
-        productName
+        productName,
+        sku: matchedVariant.sku,
+        barcode: matchedVariant.barcode
       });
     }
 

@@ -41,6 +41,7 @@ export default function InventoryScannerPage() {
   const [recentScans, setRecentScans] = useState<any[]>([]);
   const [showHelp, setShowHelp] = useState(false);
   const [manualBarcode, setManualBarcode] = useState('');
+  const [lookupResult, setLookupResult] = useState<{ productName: string; sku?: string; barcode?: string; currentQty?: number } | null>(null);
 
   const modes = [
     { id: 'STOCK_IN', label: 'Stock In', icon: Package, color: 'text-[#34C759]', bg: 'bg-[#34C759]/10' },
@@ -56,7 +57,27 @@ export default function InventoryScannerPage() {
     setScanResult(decodedText);
     setIsScanning(false);
     setQuantity(1);
-    setStatus('confirm');
+    setStatus('syncing');
+    setMessage('Identifying substrate signature...');
+
+    try {
+      const res = await fetch('/api/admin/inventory/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: decodedText, mode: 'LOOKUP' })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setLookupResult(data);
+        setStatus('confirm');
+        setMessage('');
+      } else {
+        throw new Error(data.error || 'Identity Mismatch');
+      }
+    } catch (e: any) {
+      setStatus('error');
+      setMessage(e.message || 'Signal Lost');
+    }
   };
 
   // Device connection & multiplexing hook
@@ -99,11 +120,12 @@ export default function InventoryScannerPage() {
           id: Date.now(),
           code,
           mode,
-          productName: data.productName || 'Unknown',
+          sku: data.sku || lookupResult?.sku,
+          productName: data.productName || lookupResult?.productName || 'Unknown',
           quantity,
           timestamp: new Date().toLocaleTimeString(),
           status: 'success'
-        }, ...prev].slice(0, 5));
+        }, ...prev].slice(0, 8));
         
         try { new Audio('/success.mp3').play(); } catch(e){}
       } else {
@@ -276,7 +298,20 @@ export default function InventoryScannerPage() {
                          <ScanLine className="w-10 h-10" strokeWidth={2} />
                       </div>
                       <h3 className="text-[14px] font-black uppercase tracking-[0.2em] mb-2 text-foreground dark:text-white">Verify Submission</h3>
-                      <p className="text-[12px] font-bold text-foreground/70 dark:text-foreground/50 dark:text-white/50 mb-6 whitespace-pre-wrap max-w-[80%] mx-auto block break-all">{scanResult}</p>
+                      
+                      <div className="mb-6 space-y-1">
+                        <p className="text-[14px] font-black text-foreground dark:text-white uppercase tracking-tight">
+                          {lookupResult?.productName || 'Unknown Item'}
+                        </p>
+                        <p className="text-[10px] font-bold text-foreground/50 dark:text-white/40 uppercase tracking-[0.2em]">
+                          SKU: {lookupResult?.sku || 'N/A'} • {scanResult}
+                        </p>
+                        {lookupResult?.currentQty !== undefined && (
+                          <p className="text-[10px] font-black text-[#007AFF] uppercase tracking-widest mt-2">
+                            Current Stock: {lookupResult.currentQty}
+                          </p>
+                        )}
+                      </div>
                       
                       {/* Quantity Selector */}
                       <div className="flex items-center gap-4 mb-8 bg-black/5 dark:bg-white/5 p-2 rounded-[1.5rem] border border-black/5 dark:border-white/5 shadow-inner">
@@ -510,12 +545,15 @@ export default function InventoryScannerPage() {
                                  {(() => {
                                     const m = modes.find(mod => mod.id === s.mode);
                                     const Icon = m?.icon || Box;
-                                    return <Icon className={`w-4 h-4 ${m?.color || 'text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40'}`} strokeWidth={2} />;
+                                    return <Icon className={`w-4 h-4 ${m?.color || 'text-foreground/80'}`} strokeWidth={2} />;
                                  })()}
                               </div>
                               <div>
                                  <p className="text-[12px] font-bold text-foreground dark:text-white capitalize tracking-tight leading-none mb-2 line-clamp-1">{s.productName}</p>
-                                 <p className="text-[10px] font-semibold text-foreground/70 dark:text-foreground/50 dark:text-white/50 uppercase tracking-widest leading-none font-mono">{s.code.substring(0, 16)}...</p>
+                                 <div className="flex items-center gap-2">
+                                   {s.sku && <span className="text-[9px] font-black text-[#007AFF] uppercase tracking-widest">{s.sku}</span>}
+                                   <p className="text-[9px] font-semibold text-foreground/50 dark:text-white/30 uppercase tracking-widest leading-none font-mono">{s.code.substring(0, 12)}</p>
+                                 </div>
                               </div>
                            </div>
                            <div className="text-right">

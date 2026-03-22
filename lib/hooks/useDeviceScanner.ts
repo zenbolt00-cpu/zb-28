@@ -181,9 +181,11 @@ export function useDeviceScanner({
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
     
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Skip if user is typing in an input, textarea, or editable element
+      // Skip if user is typing in an input, UNLESS it's a scanner input (optional logic)
       const el = document.activeElement;
       if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || (el as HTMLElement).isContentEditable)) {
+        // If it's an Enter key in an input, we usually let the form handle it.
+        // But if the scanner is fast, we might want to prevent default if it's NOT a deliberate Enter.
         return;
       }
 
@@ -203,6 +205,7 @@ export function useDeviceScanner({
             return current;
           });
           e.preventDefault();
+          e.stopPropagation();
         }
         return;
       }
@@ -215,7 +218,7 @@ export function useDeviceScanner({
         if (debounceTimer) clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
           kbBufferRef.current = '';
-        }, keyboardDebounceMs * 2); // Use a slightly more forgiving timeout
+        }, keyboardDebounceMs * 3); // Increased forgiving timeout for mobile/slower scanners
       }
     };
 
