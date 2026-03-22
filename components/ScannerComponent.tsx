@@ -1,71 +1,311 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { useLaserScanner } from '@/lib/hooks/useLaserScanner';
-import { Terminal, CheckCircle2 } from 'lucide-react';
+import { useRef, useState, useCallback, FormEvent } from 'react';
+import { useDeviceScanner, ScannerDevice } from '@/lib/hooks/useDeviceScanner';
+import {
+  ScanLine,
+  Usb,
+  Bluetooth,
+  Cable,
+  Keyboard,
+  PlugZap,
+  PlugZapIcon,
+  Unplug,
+  Trash2,
+  CheckCircle2,
+  CircleDot,
+  WifiOff,
+  Radio,
+  TriangleAlert,
+  ChevronRight,
+} from 'lucide-react';
 
 interface ScannerComponentProps {
   onScan: (data: string) => void;
-  scannerType?: 'inventory_receive' | 'order_pack' | 'return_process' | 'audit';
+  scannerType?: string;
 }
 
-export function ScannerComponent({ onScan, scannerType = 'inventory_receive' }: ScannerComponentProps) {
-  const [lastScanned, setLastScanned] = useState<string | null>(null);
+/** Play a short confirmation beep via Web Audio API. */
+function playBeep() {
+  try {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(1400, ctx.currentTime);
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.12);
+  } catch {
+    /* ignore if AudioContext unavailable */
+  }
+}
 
-  // Keyboard wedge / USB scanner hook
-  const { isConnected } = useLaserScanner({
-    onScan: (data) => handleScan(data),
-    minLength: 4
-  });
+// ─── Sub-components ──────────────────────────────────────────────────────────
 
-  const handleScan = (data: string) => {
-    setLastScanned(data);
-    onScan(data);
-    
-    // Play a success beep
-    const beep = new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU');
-    beep.play().catch(() => {}); // catch error if browser blocks autoplay
-  };
+function DeviceTypeIcon({ type, className }: { type: ScannerDevice['type']; className?: string }) {
+  if (type === 'hid') return <Usb className={className} />;
+  if (type === 'serial') return <Cable className={className} />;
+  return <Keyboard className={className} />;
+}
+
+function StatusDot({ connected }: { connected: boolean }) {
+  return connected ? (
+    <span className="relative flex h-2 w-2 flex-shrink-0">
+      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+    </span>
+  ) : (
+    <span className="h-2 w-2 rounded-full bg-foreground/15 flex-shrink-0" />
+  );
+}
+
+function DeviceRow({
+  device,
+  isSelected,
+  onSelect,
+  onRemove,
+}: {
+  device: ScannerDevice;
+  isSelected: boolean;
+  onSelect: () => void;
+  onRemove: () => void;
+}) {
+  const canRemove = device.type !== 'keyboard';
+  const timeSince = device.lastActivity
+    ? Math.round((Date.now() - device.lastActivity) / 1000)
+    : null;
 
   return (
-    <div className="w-full max-w-md mx-auto p-6 bg-white/80 backdrop-blur-xl border border-white/20 shadow-2xl rounded-2xl">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-gray-800 tracking-tight">
-          {scannerType === 'inventory_receive' && 'Receive Inventory'}
-          {scannerType === 'order_pack' && 'Pack Order'}
-          {scannerType === 'return_process' && 'Process Return'}
-          {scannerType === 'audit' && 'Stock Audit'}
-        </h2>
-        
-        <div className="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-full">
-          {isConnected ? (
-            <>
-              <CheckCircle2 size={14} className="text-emerald-500" />
-              <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Scanner Connected</span>
-            </>
-          ) : (
-            <>
-              <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Ready to Scan</span>
-            </>
-          )}
-        </div>
+    <div
+      onClick={onSelect}
+      className={`
+        flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-200
+        border group
+        ${isSelected
+          ? 'bg-foreground/[0.06] border-foreground/20 shadow-sm'
+          : 'bg-foreground/[0.01] border-foreground/[0.05] hover:bg-foreground/[0.03] hover:border-foreground/10'}
+      `}
+    >
+      {/* Status dot */}
+      <StatusDot connected={device.connected} />
+
+      {/* Icon */}
+      <DeviceTypeIcon
+        type={device.type}
+        className={`w-3.5 h-3.5 flex-shrink-0 ${device.connected ? 'text-foreground/70' : 'text-foreground/25'}`}
+      />
+
+      {/* Name & meta */}
+      <div className="flex-1 min-w-0">
+        <p className={`text-[11px] font-black uppercase tracking-tight leading-none truncate ${
+          isSelected ? 'text-foreground' : 'text-foreground/60'
+        }`}>
+          {device.name}
+        </p>
+        <p className="text-[8.5px] font-bold text-foreground/30 uppercase tracking-widest mt-1 leading-none">
+          {device.connected
+            ? timeSince !== null && timeSince < 10
+              ? 'Active now'
+              : 'Connected'
+            : device.type === 'keyboard'
+              ? 'No USB scanner detected'
+              : 'Disconnected'}
+        </p>
       </div>
 
-      <div className="transition-all duration-300">
-        <div className="h-48 flex flex-col items-center justify-center bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
-          <Terminal className="text-gray-400 mb-3" size={48} />
-          <p className="text-sm font-medium text-gray-600">Waiting for scanner input...</p>
-          <p className="text-xs text-gray-400 mt-1 uppercase tracking-widest font-bold">Input Layer Active</p>
+      {/* Right side */}
+      <div className="flex items-center gap-2 flex-shrink-0">
+        {isSelected && (
+          <span className="text-[7px] font-black text-foreground/50 bg-foreground/[0.06] px-2 py-0.5 rounded uppercase tracking-widest">
+            Active
+          </span>
+        )}
+        {canRemove && (
+          <button
+            onClick={e => { e.stopPropagation(); onRemove(); }}
+            className="p-1 rounded opacity-0 group-hover:opacity-100 hover:text-rose-500 text-foreground/30 transition-all"
+            title="Remove device"
+          >
+            <Trash2 className="w-3 h-3" />
+          </button>
+        )}
+        <ChevronRight className={`w-3 h-3 transition-colors ${isSelected ? 'text-foreground/50' : 'text-foreground/15'}`} />
+      </div>
+    </div>
+  );
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
+
+export function ScannerComponent({ onScan }: ScannerComponentProps) {
+  const [lastScanned, setLastScanned] = useState<string | null>(null);
+  const [lastDeviceId, setLastDeviceId] = useState<string | null>(null);
+  const [manualInput, setManualInput] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleScan = useCallback(
+    (data: string, deviceId: string) => {
+      const trimmed = data.trim();
+      if (!trimmed) return;
+      setLastScanned(trimmed);
+      setLastDeviceId(deviceId);
+      onScan(trimmed);
+      playBeep();
+    },
+    [onScan],
+  );
+
+  const {
+    devices,
+    selectedDeviceId,
+    selectDevice,
+    isConnected,
+    requestHIDDevice,
+    requestSerialDevice,
+    removeDevice,
+    hidSupported,
+    serialSupported,
+  } = useDeviceScanner({ onScan: handleScan });
+
+  const handleManualSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    const trimmed = manualInput.trim();
+    if (!trimmed) return;
+    handleScan(trimmed, 'manual');
+    setManualInput('');
+    inputRef.current?.focus();
+  };
+
+  const connectedCount = devices.filter(d => d.connected).length;
+
+  return (
+    <div className="w-full space-y-5">
+
+      {/* ── Devices panel ──────────────────────────────────────────────────── */}
+      <div className="bg-foreground/[0.02] border border-foreground/[0.05] rounded-xl overflow-hidden">
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-foreground/[0.04]">
+          <div className="flex items-center gap-2">
+            <Radio className="w-3.5 h-3.5 text-foreground/40" />
+            <span className="text-[9px] font-black text-foreground/60 uppercase tracking-widest">
+              Input Devices
+            </span>
+            <span className={`text-[7px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest ${
+              connectedCount > 0
+                ? 'bg-emerald-500/10 text-emerald-500'
+                : 'bg-foreground/[0.05] text-foreground/30'
+            }`}>
+              {connectedCount} connected
+            </span>
+          </div>
+
+          {/* Add device buttons */}
+          <div className="flex items-center gap-1.5">
+            {hidSupported && (
+              <button
+                onClick={requestHIDDevice}
+                title="Add USB/HID scanner"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 bg-foreground/[0.04] hover:bg-foreground/[0.07] border border-foreground/[0.06] rounded-lg text-[8px] font-black text-foreground/60 hover:text-foreground uppercase tracking-widest transition-all duration-150"
+              >
+                <Usb className="w-3 h-3" />
+                Add USB
+              </button>
+            )}
+            {serialSupported && (
+              <button
+                onClick={requestSerialDevice}
+                title="Add serial scanner"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 bg-foreground/[0.04] hover:bg-foreground/[0.07] border border-foreground/[0.06] rounded-lg text-[8px] font-black text-foreground/60 hover:text-foreground uppercase tracking-widest transition-all duration-150"
+              >
+                <Cable className="w-3 h-3" />
+                Add Serial
+              </button>
+            )}
+          </div>
         </div>
+
+        {/* Device list */}
+        <div className="p-3 space-y-1.5">
+          {devices.map(device => (
+            <DeviceRow
+              key={device.id}
+              device={device}
+              isSelected={selectedDeviceId === device.id}
+              onSelect={() => selectDevice(device.id)}
+              onRemove={() => removeDevice(device.id)}
+            />
+          ))}
+        </div>
+
+        {/* No-WebHID notice (Firefox etc.) */}
+        {!hidSupported && !serialSupported && (
+          <div className="px-4 pb-3 flex items-start gap-2">
+            <TriangleAlert className="w-3 h-3 text-amber-500 mt-0.5 flex-shrink-0" />
+            <p className="text-[8px] font-bold text-foreground/40 uppercase tracking-wider leading-relaxed">
+              USB device pairing requires Chrome or Edge. Use keyboard mode or manual entry below.
+            </p>
+          </div>
+        )}
       </div>
 
-      {lastScanned && (
-        <div className="mt-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl animate-in fade-in slide-in-from-bottom-2">
-          <p className="text-sm text-emerald-800 font-medium">Last Scanned:</p>
-          <p className="text-lg font-mono text-emerald-900 mt-1 break-all">{lastScanned}</p>
+      {/* ── Active scan area ────────────────────────────────────────────────── */}
+      <div className={`relative h-32 flex flex-col items-center justify-center rounded-xl border-2 border-dashed transition-all duration-500 ${
+        isConnected
+          ? 'border-emerald-500/30 bg-emerald-500/[0.03]'
+          : 'border-foreground/[0.07] bg-foreground/[0.01]'
+      }`}>
+        <ScanLine
+          className={`mb-2 transition-all duration-300 ${
+            isConnected ? 'text-emerald-500 scale-110' : 'text-foreground/15'
+          }`}
+          size={30}
+        />
+        <p className={`text-[9.5px] font-black uppercase tracking-[0.2em] transition-colors ${
+          isConnected ? 'text-emerald-500' : 'text-foreground/25'
+        }`}>
+          {isConnected ? 'Reading scan…' : 'Select & connect a device above'}
+        </p>
+
+        {lastScanned && (
+          <div className="mt-2.5 flex items-center gap-2 bg-foreground/[0.04] border border-foreground/[0.06] px-3 py-1.5 rounded-lg">
+            <CheckCircle2 className="w-3 h-3 text-emerald-500 flex-shrink-0" />
+            <p className="text-[10px] font-mono text-foreground/70">{lastScanned}</p>
+          </div>
+        )}
+      </div>
+
+      {/* ── Manual entry fallback ───────────────────────────────────────────── */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-1.5 px-0.5">
+          <Keyboard className="w-3 h-3 text-foreground/25" />
+          <span className="text-[8px] font-black text-foreground/30 uppercase tracking-[0.25em]">
+            Manual Entry
+          </span>
         </div>
-      )}
+        <form onSubmit={handleManualSubmit} className="flex gap-2">
+          <input
+            ref={inputRef}
+            type="text"
+            value={manualInput}
+            onChange={e => setManualInput(e.target.value)}
+            placeholder="Type or paste barcode / SKU…"
+            className="flex-1 bg-foreground/[0.03] border border-foreground/[0.07] rounded-lg px-3 py-2 text-[11px] font-medium text-foreground placeholder:text-foreground/20 focus:outline-none focus:ring-1 focus:ring-foreground/20 focus:border-foreground/20 transition-all"
+          />
+          <button
+            type="submit"
+            disabled={!manualInput.trim()}
+            className="px-4 py-2 bg-foreground text-background text-[9px] font-black uppercase tracking-widest rounded-lg transition-all duration-200 hover:opacity-80 disabled:opacity-20 disabled:cursor-not-allowed"
+          >
+            Submit
+          </button>
+        </form>
+      </div>
+
     </div>
   );
 }
