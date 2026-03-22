@@ -15,6 +15,14 @@ interface ScannedItem {
   message?: string;
 }
 
+interface PendingScan {
+  barcode: string;
+  productTitle: string;
+  sku: string;
+  stock: number;
+  mode: ScanMode;
+}
+
 const modeConfig: Record<ScanMode, { label: string; icon: React.ComponentType<any>; color: string; bg: string; actionLabel: string }> = {
   stock_in: {
     label: 'Stock In',
@@ -66,11 +74,16 @@ export default function ScannerPage() {
   const [isConnected, setIsConnected] = useState(false);
   const [lastScan, setLastScan] = useState<string | null>(null);
 
+  const [pendingScan, setPendingScan] = useState<PendingScan | null>(null);
+  const [quantityInput, setQuantityInput] = useState<string>('1');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleScan = async (data: string) => {
     if (data === lastScan) return;
     setLastScan(data);
     setTimeout(() => setLastScan(null), 1500);
 
+    // Initial item placeholder
     const newItem: ScannedItem = {
       barcode: data,
       time: new Date(),
@@ -81,12 +94,13 @@ export default function ScannerPage() {
     setScannedItems((prev) => [newItem, ...prev]);
 
     try {
+      // 1. Audit mode first to fetch info without actually pushing inventory to Shopify
       const res = await fetch('/api/scanner', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           barcode: data,
-          mode: activeTab,
+          mode: 'audit',
         }),
       });
 
@@ -102,34 +116,92 @@ export default function ScannerPage() {
         return;
       }
 
-      const productTitle = payload.product?.title || payload.product?.sku || 'Matched product';
-      const stock = payload.inventory && typeof payload.inventory.stockQuantity === 'number'
-        ? `Stock: ${payload.inventory.stockQuantity}`
-        : undefined;
-      const beforeAfter = payload.inventory?.beforeStock !== undefined
-        ? `(${payload.inventory.beforeStock} → ${payload.inventory.stockQuantity})`
-        : '';
-
+      // 2. We successfully got product info. Transition the log item to waiting and show the modal
       setScannedItems((prev) =>
         prev.map((item, idx) =>
-          idx === 0
-            ? {
-                ...item,
-                status: 'success',
-                product: stock ? `${productTitle} — ${stock} ${beforeAfter}` : productTitle,
-                message: undefined,
-              }
-            : item,
+          idx === 0 ? { ...item, status: 'processing', message: 'Waiting for quantity input...' } : item,
         ),
       );
+
+      setPendingScan({
+        barcode: data,
+        productTitle: payload.product?.title || payload.product?.sku || 'Matched Product',
+        sku: payload.product?.sku || '',
+        stock: payload.inventory?.stockQuantity || 0,
+        mode: activeTab,
+      });
+      setQuantityInput('1');
     } catch (err) {
       setScannedItems((prev) =>
         prev.map((item, idx) =>
           idx === 0
-            ? { ...item, status: 'error', message: 'Network error while processing scan' }
+            ? { ...item, status: 'error', message: 'Network error while fetching product data' }
             : item,
         ),
       );
+    }
+  };
+
+  const submitQuantity = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!pendingScan) return;
+    
+    const qty = parseInt(quantityInput, 10);
+    if (isNaN(qty) || qty < 1) return;
+
+    setIsSubmitting(true);
+
+    try {
+      // 3. Actually submit the inventory update
+      const res = await fetch('/api/scanner', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          barcode: pendingScan.barcode,
+          mode: pendingScan.mode,
+          quantity: qty,
+        }),
+      });
+
+      const payload = await res.json();
+
+      if (!res.ok || !payload.success) {
+        setScannedItems((prev) =>
+          prev.map((item, idx) =>
+            idx === 0 ? { ...item, status: 'error', message: payload.error || 'Adjustment failed' } : item,
+          ),
+        );
+      } else {
+        const productTitle = payload.product?.title || payload.product?.sku || 'Matched product';
+        const stock = payload.inventory && typeof payload.inventory.stockQuantity === 'number'
+          ? `Stock: ${payload.inventory.stockQuantity}`
+          : undefined;
+        const beforeAfter = payload.inventory?.beforeStock !== undefined
+          ? `(${payload.inventory.beforeStock} → ${payload.inventory.stockQuantity})`
+          : '';
+
+        setScannedItems((prev) =>
+          prev.map((item, idx) =>
+            idx === 0
+              ? {
+                  ...item,
+                  status: 'success',
+                  product: stock ? `${productTitle} — ${stock} ${beforeAfter}` : productTitle,
+                  message: undefined,
+                }
+              : item,
+          ),
+        );
+      }
+    } catch (err) {
+      setScannedItems((prev) =>
+        prev.map((item, idx) =>
+          idx === 0 ? { ...item, status: 'error', message: 'Network error while committing scan' } : item,
+        ),
+      );
+    } finally {
+      setIsSubmitting(false);
+      setPendingScan(null);
     }
   };
 
@@ -283,6 +355,75 @@ export default function ScannerPage() {
           </div>
         </div>
       </div>
+      {/* Quantity Confirmation Modal Overlay */}
+      {pendingScan && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-[#111] border border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl relative">
+            <button 
+              onClick={() => {
+                setPendingScan(null);
+                setScannedItems((prev) =>
+                  prev.map((item, idx) =>
+                    idx === 0 ? { ...item, status: 'error', message: 'Cancelled manually' } : item,
+                  ),
+                );
+              }}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+            >
+              <XCircle className="w-5 h-5" />
+            </button>
+            <h2 className="text-xl font-bold text-white mb-1">Confirm Quantity</h2>
+            <p className="text-sm text-gray-400 mb-6">Review item details before committing changes.</p>
+
+            <div className="space-y-4 mb-6">
+              <div className="bg-white/5 rounded-xl p-4 border border-white/5">
+                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Product Match</p>
+                <p className="text-sm font-semibold text-white">{pendingScan.productTitle}</p>
+                <div className="flex items-center gap-3 mt-2 text-xs text-gray-400 font-mono">
+                  <span>SKU: <span className="text-white">{pendingScan.sku || 'N/A'}</span></span>
+                  <span className="text-gray-600">•</span>
+                  <span>BC: <span className="text-white">{pendingScan.barcode}</span></span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between bg-white/5 border border-white/5 rounded-xl p-4">
+                <span className="text-sm text-gray-400 font-medium tracking-wide">Current Location Stock</span>
+                <span className="text-lg font-bold text-white">{pendingScan.stock}</span>
+              </div>
+            </div>
+
+            <form onSubmit={submitQuantity} className="space-y-5">
+              <div>
+                <label className="block text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-wide">
+                  Quantity for <span className={config.color}>{config.label}</span>
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  required
+                  autoFocus
+                  value={quantityInput}
+                  onChange={(e) => setQuantityInput(e.target.value)}
+                  className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-lg font-bold text-white focus:outline-none focus:ring-2 focus:ring-white/20 transition-shadow"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full bg-white text-black hover:bg-gray-200 py-3.5 rounded-xl text-sm font-bold tracking-wide transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="h-4 w-4 rounded-full border-2 border-black border-t-transparent animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  `Confirm ${config.label}`
+                )}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

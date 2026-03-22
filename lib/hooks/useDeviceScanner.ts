@@ -131,7 +131,7 @@ export function useDeviceScanner({
   const [devices, setDevices] = useState<ScannerDevice[]>([
     {
       id: KEYBOARD_DEVICE_ID,
-      name: 'USB / Bluetooth Scanner (Keyboard Mode)',
+      name: 'iOS / USB / Bluetooth Scanner (Default Keyboard)',
       type: 'keyboard',
       connected: true,
     },
