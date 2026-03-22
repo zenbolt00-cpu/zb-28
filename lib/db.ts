@@ -1,8 +1,4 @@
 import { PrismaClient } from '@prisma/client'
-import { Pool } from 'pg'
-import { PrismaPg } from '@prisma/adapter-pg'
-import Database from 'better-sqlite3'
-import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
 
 // Mock Prisma client for when database is unavailable
 const createMockPrismaClient = (reason: string) => {
@@ -60,28 +56,8 @@ const prismaClientSingleton = () => {
   }
 
   try {
-      // Local SQLite development
-      if (dbUrl.startsWith('file:')) {
-        const adapter = new PrismaBetterSqlite3({ url: dbUrl } as any);
-        return new PrismaClient({ adapter: adapter as any });
-      }
-
-      // Production / PostgreSQL with Driver Adapter
-      // Using direct POSTGRES_URL if available to avoid pooler SSL issues
-      const connectionString = process.env.POSTGRES_URL || dbUrl;
-      
-      if (process.env.NODE_ENV === 'production') {
-        process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-      }
-
-      const pool = new Pool({ 
-        connectionString,
-        ssl: { rejectUnauthorized: false }
-      }) as any
-      const adapter = new PrismaPg(pool)
-
+      // Create standard Prisma Client - it will use DATABASE_URL internally
       const client = new PrismaClient({
-        adapter,
         log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
       });
       
