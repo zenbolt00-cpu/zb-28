@@ -8,7 +8,7 @@ interface UseLaserScannerOptions {
 
 export function useLaserScanner({
   onScan,
-  debounceTime = 100,
+  debounceTime = 500, // Increased to 500ms for slower Bluetooth scanners
   minLength = 4,
 }: UseLaserScannerOptions) {
   const [scannedData, setScannedData] = useState<string>('');
@@ -29,8 +29,8 @@ export function useLaserScanner({
         bufferRef.current = '';
       }
 
-      // Barcode scanners usually end with an 'Enter' key press
-      if (e.key === 'Enter') {
+      // Barcode scanners usually end with an 'Enter' or 'Tab' key press
+      if (e.key === 'Enter' || e.key === 'Tab') {
         if (bufferRef.current.length >= minLength) {
           const barcode = bufferRef.current;
           setScannedData(barcode);

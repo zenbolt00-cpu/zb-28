@@ -21,7 +21,7 @@ export async function getShopConfig() {
       ['test_token', 'shpat_placeholder', 'shpat_required', 'shpat_env_token'].includes(accessToken) || 
       accessToken === '';
       
-    const isDefaultDomain = !dbDomain || dbDomain === '8tiahf-bk.myshopify.com';
+    const isDefaultDomain = !dbDomain || dbDomain === '8tiahf-bk.myshopify.com' || dbDomain === 'zica-bella.myshopify.com';
     
     const finalDomain = !isDefaultDomain
       ? (dbDomain as string)
