@@ -14,10 +14,13 @@ import {
   Trash2,
   CheckCircle2,
   CircleDot,
-  WifiOff,
   Radio,
   TriangleAlert,
   ChevronRight,
+  AlertOctagon,
+  X,
+  HelpCircle,
+  Info
 } from 'lucide-react';
 
 interface ScannerComponentProps {
@@ -102,12 +105,14 @@ function DeviceRow({
       {/* Name & meta */}
       <div className="flex-1 min-w-0">
         <p className={`text-[11px] font-black uppercase tracking-tight leading-none truncate ${
-          isSelected ? 'text-foreground' : 'text-foreground/60'
+          device.error ? 'text-rose-500' : isSelected ? 'text-foreground' : 'text-foreground/60'
         }`}>
           {device.name}
         </p>
-        <p className="text-[8.5px] font-bold text-foreground/30 uppercase tracking-widest mt-1 leading-none">
-          {device.connected
+        <p className={`text-[8.5px] font-bold uppercase tracking-widest mt-1 leading-none ${device.error ? 'text-rose-500/80' : 'text-foreground/30'}`}>
+          {device.error
+            ? device.error.code === 'ERR_DEVICE_LOCKED' ? 'Locked by another app' : 'Connection failed'
+            : device.connected
             ? timeSince !== null && timeSince < 10
               ? 'Active now'
               : 'Connected'
@@ -145,6 +150,7 @@ export function ScannerComponent({ onScan }: ScannerComponentProps) {
   const [lastScanned, setLastScanned] = useState<string | null>(null);
   const [lastDeviceId, setLastDeviceId] = useState<string | null>(null);
   const [manualInput, setManualInput] = useState('');
+  const [showTroubleshooting, setShowTroubleshooting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleScan = useCallback(
@@ -169,6 +175,8 @@ export function ScannerComponent({ onScan }: ScannerComponentProps) {
     removeDevice,
     hidSupported,
     serialSupported,
+    globalError,
+    clearError,
   } = useDeviceScanner({ onScan: handleScan });
 
   const handleManualSubmit = (e: FormEvent) => {
@@ -184,6 +192,29 @@ export function ScannerComponent({ onScan }: ScannerComponentProps) {
 
   return (
     <div className="w-full space-y-5">
+
+      {/* ── Global Error Banner ────────────────────────────────────────────── */}
+      {globalError && (
+        <div className="animate-in slide-in-from-top-2 fade-in relative flex items-start gap-3 p-3.5 bg-rose-500/[0.05] border border-rose-500/20 rounded-xl">
+          <AlertOctagon className="w-4 h-4 text-rose-500 flex-shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <h4 className="text-[10px] font-black text-rose-500 uppercase tracking-widest leading-none mb-1">
+              Connection Error
+            </h4>
+            <p className="text-[11px] font-medium text-rose-500/80 leading-snug">
+              {globalError.message}
+            </p>
+            {globalError.code === 'ERR_DEVICE_LOCKED' && (
+              <p className="text-[10px] font-medium text-rose-500/60 mt-1.5">
+                Tip: If the scanner is in "Keyboard Mode", you don't need to click Add USB—just scan directly!
+              </p>
+            )}
+          </div>
+          <button onClick={clearError} className="p-1 hover:bg-rose-500/10 rounded-md text-rose-500/50 hover:text-rose-500 transition-colors">
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
 
       {/* ── Devices panel ──────────────────────────────────────────────────── */}
       <div className="bg-foreground/[0.02] border border-foreground/[0.05] rounded-xl overflow-hidden">
@@ -251,6 +282,38 @@ export function ScannerComponent({ onScan }: ScannerComponentProps) {
             </p>
           </div>
         )}
+
+        {/* Troubleshooting Guide Toggle */}
+        <div className="border-t border-foreground/[0.04] bg-foreground/[0.01]">
+          <button
+            onClick={() => setShowTroubleshooting(!showTroubleshooting)}
+            className="w-full flex items-center justify-center gap-1.5 py-2 hover:bg-foreground/[0.02] transition-colors"
+          >
+            <HelpCircle className="w-3 h-3 text-foreground/30" />
+            <span className="text-[9px] font-black text-foreground/40 uppercase tracking-widest">
+              Connection Help
+            </span>
+          </button>
+          
+          {showTroubleshooting && (
+            <div className="p-4 pt-2 space-y-3 animate-in fade-in slide-in-from-top-1">
+              <div className="flex gap-2.5">
+                <Info className="w-3.5 h-3.5 text-blue-500 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="text-[10px] font-black text-foreground uppercase tracking-wider mb-1">Scanner is connected but not working?</h4>
+                  <p className="text-[10px] text-foreground/60 leading-relaxed">Most basic USB scanners act like keyboards. You don't need to click "Add USB" for these. Just select the <span className="font-bold text-foreground">Keyboard Mode</span> row above, make sure your cursor isn't in a text box, and scan a barcode.</p>
+                </div>
+              </div>
+              <div className="flex gap-2.5">
+                <AlertOctagon className="w-3.5 h-3.5 text-rose-500 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="text-[10px] font-black text-foreground uppercase tracking-wider mb-1">Getting a "Device Locked" error?</h4>
+                  <p className="text-[10px] text-foreground/60 leading-relaxed">If you try to "Add USB" and get a locked error, it means your scanner is exclusively in "Keyboard Wedge" mode. The browser cannot claim it via raw USB. Simply rely on the Keyboard Mode instead.</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* ── Active scan area ────────────────────────────────────────────────── */}

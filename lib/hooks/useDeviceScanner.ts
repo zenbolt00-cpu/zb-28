@@ -40,6 +40,20 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 
 export type DeviceType = 'keyboard' | 'hid' | 'serial';
 
+export type ScannerErrorCode =
+  | 'ERR_DEVICE_LOCKED'
+  | 'ERR_PERMISSION_DENIED'
+  | 'ERR_NOT_SUPPORTED'
+  | 'ERR_READ_FAILED'
+  | 'ERR_NO_DEVICES_FOUND'
+  | 'ERR_UNKNOWN';
+
+export interface ScannerError {
+  code: ScannerErrorCode;
+  message: string;
+  timestamp: number;
+}
+
 export interface ScannerDevice {
   id: string;
   name: string;
@@ -51,6 +65,8 @@ export interface ScannerDevice {
   hidDevice?: HIDDevice;
   /** Raw browser SerialPort handle */
   serialPort?: SerialPort;
+  /** Explicit error state if connection or reading failed */
+  error?: ScannerError;
 }
 
 interface UseDeviceScannerOptions {
@@ -78,6 +94,10 @@ interface UseDeviceScannerReturn {
   hidSupported: boolean;
   /** Whether the current browser supports WebSerial */
   serialSupported: boolean;
+  /** Global error state for connection attempts */
+  globalError: ScannerError | null;
+  /** Clear global error state */
+  clearError: () => void;
 }
 
 // ─── HID report decoder ───────────────────────────────────────────────────────
@@ -125,6 +145,24 @@ export function useDeviceScanner({
   const kbBufferRef = useRef('');
   const kbLastKeyTimeRef = useRef(0);
   const kbActivityTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const [globalError, setGlobalError] = useState<ScannerError | null>(null);
+
+  const showError = useCallback((code: ScannerErrorCode, message: string) => {
+    setGlobalError({ code, message, timestamp: Date.now() });
+    // Auto-clear global error after 6 seconds
+    setTimeout(() => {
+      setGlobalError(prev => (prev?.timestamp === undefined ? null : prev));
+    }, 6000);
+  }, []);
+
+  const clearError = useCallback(() => setGlobalError(null), []);
+
+  const setDeviceError = useCallback((id: string, code: ScannerErrorCode, message: string) => {
+    setDevices(prev =>
+      prev.map(d => (d.id === id ? { ...d, connected: false, error: { code, message, timestamp: Date.now() } } : d))
+    );
+  }, []);
 
   const markKeyboardActive = useCallback(() => {
     setDevices(prev =>
@@ -248,13 +286,24 @@ export function useDeviceScanner({
       };
       (navigator as any).hid.addEventListener('disconnect', disconnectHandler);
 
-    } catch (err) {
+    } catch (err: any) {
       console.warn('Failed to open HID device:', err);
-      setDevices(prev =>
-        prev.map(d => d.id === deviceId ? { ...d, connected: false } : d)
-      );
+      // Determine explicit reason
+      let code: ScannerErrorCode = 'ERR_UNKNOWN';
+      let msg = 'Failed to connect to the physical scanner.';
+
+      const errString = String(err).toLowerCase();
+      if (errString.includes('security') || errString.includes('permission')) {
+        code = 'ERR_PERMISSION_DENIED';
+        msg = 'Permission to access the scanner was denied by the browser or OS.';
+      } else if (errString.includes('busy') || errString.includes('locked') || errString.includes('access denied')) {
+        code = 'ERR_DEVICE_LOCKED';
+        msg = 'The scanner is locked. Close other apps or inventory windows using it.';
+      }
+
+      setDeviceError(deviceId, code, msg);
     }
-  }, [minBarcodeLength]);
+  }, [minBarcodeLength, setDeviceError]);
 
   const requestHIDDevice = useCallback(async () => {
     const hid = (navigator as any).hid as typeof navigator.hid | undefined;
@@ -280,10 +329,13 @@ export function useDeviceScanner({
         await openHIDDevice(device);
         setSelectedDeviceId(id);
       }
-    } catch {
-      // User cancelled picker — ignore
+    } catch (err: any) {
+      // User cancelled picker or permission error
+      if (err.name !== 'NotFoundError' && !String(err).includes('cancelled')) {
+        showError('ERR_PERMISSION_DENIED', 'Could not open the device picker or permission was explicitly denied.');
+      }
     }
-  }, [openHIDDevice]);
+  }, [openHIDDevice, showError]);
 
   // ── Serial device helpers ───────────────────────────────────────────────────
   const requestSerialDevice = useCallback(async () => {
@@ -291,7 +343,19 @@ export function useDeviceScanner({
     if (!serial) return;
     try {
       const port: SerialPort = await serial.requestPort({ filters: [] });
-      await port.open({ baudRate: 9600 });
+      try {
+        await port.open({ baudRate: 9600 });
+      } catch (err: any) {
+        const errStr = String(err).toLowerCase();
+        let code: ScannerErrorCode = 'ERR_UNKNOWN';
+        let msg = 'Could not open the serial port.';
+        if (errStr.includes('locked') || errStr.includes('busy') || errStr.includes('access denied')) {
+          code = 'ERR_DEVICE_LOCKED';
+          msg = 'Serial port is locked. Another terminal/app might be using it.';
+        }
+        showError(code, msg);
+        return;
+      }
 
       const id = `serial-${Date.now()}`;
       const reader = port.readable?.getReader();
@@ -330,8 +394,8 @@ export function useDeviceScanner({
               }
             }
           }
-        } catch {
-          setDevices(prev => prev.map(d => d.id === id ? { ...d, connected: false } : d));
+        } catch (err: any) {
+          setDeviceError(id, 'ERR_READ_FAILED', 'Connection lost while reading from serial port.');
         }
       };
       readLoop();
@@ -344,10 +408,13 @@ export function useDeviceScanner({
       };
       (navigator as any).serial.addEventListener('disconnect', disconnectHandler);
 
-    } catch {
-      // User cancelled picker — ignore
+    } catch (err: any) {
+      // User cancelled picker or permission error
+      if (err.name !== 'NotFoundError' && !String(err).includes('cancelled')) {
+        showError('ERR_PERMISSION_DENIED', 'Could not open the serial picker or permission denied.');
+      }
     }
-  }, [minBarcodeLength]);
+  }, [minBarcodeLength, showError, setDeviceError]);
 
   // ── Remove device ───────────────────────────────────────────────────────────
   const removeDevice = useCallback((id: string) => {
@@ -377,5 +444,7 @@ export function useDeviceScanner({
     removeDevice,
     hidSupported,
     serialSupported,
+    globalError,
+    clearError,
   };
 }
