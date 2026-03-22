@@ -40,6 +40,7 @@ export default function InventoryScannerPage() {
   const [mode, setMode] = useState<'STOCK_IN' | 'ORDER_OUT' | 'RETURN' | 'EXCHANGE' | 'RTO'>('STOCK_IN');
   const [recentScans, setRecentScans] = useState<any[]>([]);
   const [showHelp, setShowHelp] = useState(false);
+  const [manualBarcode, setManualBarcode] = useState('');
 
   const modes = [
     { id: 'STOCK_IN', label: 'Stock In', icon: Package, color: 'text-[#34C759]', bg: 'bg-[#34C759]/10' },
@@ -234,8 +235,37 @@ export default function InventoryScannerPage() {
                         {/* Scanning beam animation */}
                         <div className="absolute top-0 left-0 w-full h-0.5 bg-[#007AFF] animate-[scan_3s_ease-in-out_infinite] shadow-[0_0_15px_#007AFF]"></div>
                      </div>
-                     <p className="mt-8 text-[10px] font-black text-foreground/40 dark:text-foreground/20 dark:text-white/20 uppercase tracking-[0.5em]">Waiting for transmission</p>
-                  </div>
+                      <p className="mt-8 text-[10px] font-black text-foreground/40 dark:text-foreground/20 dark:text-white/20 uppercase tracking-[0.5em]">Waiting for transmission</p>
+
+                      {/* Manual Entry */}
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          const code = manualBarcode.trim();
+                          if (code.length >= 4) {
+                            onScanSuccess(code);
+                            setManualBarcode('');
+                          }
+                        }}
+                        className="mt-6 w-full max-w-sm mx-auto flex gap-2 px-4"
+                      >
+                        <input
+                          type="text"
+                          value={manualBarcode}
+                          onChange={(e) => setManualBarcode(e.target.value)}
+                          placeholder="Type or paste barcode / SKU…"
+                          data-scanner-input="true"
+                          className="flex-1 bg-white/10 dark:bg-white/5 border border-white/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm font-mono text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#007AFF]/40 transition-shadow"
+                        />
+                        <button
+                          type="submit"
+                          disabled={manualBarcode.trim().length < 4}
+                          className="px-5 py-3 bg-[#007AFF] hover:bg-[#0062CC] text-white text-[11px] font-black uppercase tracking-widest rounded-xl transition-colors shadow-lg shadow-[#007AFF]/20 disabled:opacity-40"
+                        >
+                          Submit
+                        </button>
+                      </form>
+                   </div>
                )}
 
               {!isScanning && (
