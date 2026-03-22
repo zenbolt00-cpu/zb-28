@@ -219,8 +219,8 @@ export default function InventoryPage() {
   if (loading && products.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-        <Loader2 className="w-5 h-5 text-foreground/40 animate-spin" />
-        <span className="text-[10px] font-medium uppercase tracking-widest text-foreground/40">Loading Inventory...</span>
+        <Loader2 className="w-5 h-5 text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 animate-spin" />
+        <span className="text-[10px] font-medium uppercase tracking-widest text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40">Loading Inventory...</span>
       </div>
     );
   }
@@ -252,7 +252,7 @@ export default function InventoryPage() {
           <h1 className="text-xl font-semibold text-foreground tracking-tight">
             Inventory
           </h1>
-          <p className="text-[11px] text-foreground/50 tracking-wide max-w-xl">
+          <p className="text-[11px] text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 tracking-wide max-w-xl">
             Track and adjust stock levels across variants. Click SKU to edit.
           </p>
         </div>
@@ -290,7 +290,7 @@ export default function InventoryPage() {
       <div className="space-y-4 relative z-10">
         {products.length === 0 ? (
           <div className="bg-background border border-foreground/[0.05] rounded-xl p-12 text-center shadow-sm">
-            <PackageSearch className="w-8 h-8 text-foreground/20 mx-auto mb-4" />
+            <PackageSearch className="w-8 h-8 text-foreground/40 dark:text-foreground/40 dark:text-foreground/20 mx-auto mb-4" />
              <h3 className="text-[12px] font-medium text-foreground tracking-tight">No Products Found</h3>
           </div>
         ) : (
@@ -317,12 +317,12 @@ export default function InventoryPage() {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <PackageSearch className="w-5 h-5 text-foreground/20" />
+                      <PackageSearch className="w-5 h-5 text-foreground/40 dark:text-foreground/40 dark:text-foreground/20" />
                     )}
                   </div>
                    <div>
                     <h3 className="text-[13px] font-semibold text-foreground tracking-tight mb-1">{product.title}</h3>
-                    <div className="flex items-center gap-3 text-[9px] font-medium text-foreground/50 uppercase tracking-widest">
+                    <div className="flex items-center gap-3 text-[9px] font-medium text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 uppercase tracking-widest">
                       <span>{product.variants.length} SKU{product.variants.length !== 1 ? "s" : ""}</span>
                       <div className="w-1 h-1 rounded-full bg-foreground/20" />
                       <span className={`flex items-center gap-1 ${totalStock < 10 ? "text-red-500" : ""}`}>
@@ -373,7 +373,7 @@ export default function InventoryPage() {
                                 <button 
                                   onClick={() => saveSku(variant.id, variant.sku || '')}
                                   disabled={isSavingSku}
-                                  className="text-foreground/40 hover:text-foreground"
+                                  className="text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 hover:text-foreground"
                                 >
                                   {isSavingSku ? <Loader2 className="w-2.5 h-2.5 animate-spin" /> : <Check className="w-2.5 h-2.5" />}
                                 </button>
@@ -381,7 +381,7 @@ export default function InventoryPage() {
                             ) : (
                               <p 
                                 onClick={() => handleSkuChange(variant.id, variant.sku || '')}
-                                className="text-[9px] text-foreground/40 font-mono cursor-edit hover:text-foreground transition-colors py-0.5"
+                                className="text-[9px] text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 font-mono cursor-edit hover:text-foreground transition-colors py-0.5"
                               >
                                 SKU: {variant.sku || 'NONE'}
                               </p>
@@ -395,7 +395,7 @@ export default function InventoryPage() {
                             <button
                               onClick={() => handleDelta(variant.id, -1)}
                               disabled={isLoading}
-                              className="w-7 h-7 flex items-center justify-center rounded-sm text-foreground/60 hover:bg-foreground/[0.02] hover:text-foreground disabled:opacity-50 transition-colors"
+                              className="w-7 h-7 flex items-center justify-center rounded-sm text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 hover:bg-foreground/[0.02] hover:text-foreground disabled:opacity-50 transition-colors"
                             >
                               <Minus className="w-3.5 h-3.5" />
                             </button>
@@ -409,7 +409,7 @@ export default function InventoryPage() {
                              <button
                               onClick={() => handleDelta(variant.id, 1)}
                               disabled={isLoading}
-                              className="w-7 h-7 flex items-center justify-center rounded-sm text-foreground/60 hover:bg-foreground/[0.02] hover:text-foreground disabled:opacity-50 transition-colors"
+                              className="w-7 h-7 flex items-center justify-center rounded-sm text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 hover:bg-foreground/[0.02] hover:text-foreground disabled:opacity-50 transition-colors"
                             >
                               <Plus className="w-3.5 h-3.5" />
                             </button>

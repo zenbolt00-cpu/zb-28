@@ -52,11 +52,11 @@ export default function ExchangesPage() {
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-2">
          <div className="space-y-1">
-          <div className="px-2 py-0.5 bg-foreground/[0.03] rounded-md text-[8px] font-black text-foreground/40 dark:text-white/30 uppercase tracking-[0.2em] w-fit mb-1">swap protocol</div>
+          <div className="px-2 py-0.5 bg-foreground/[0.03] rounded-md text-[8px] font-black text-foreground/80 dark:text-foreground/60 dark:text-foreground/40 dark:text-white/30 uppercase tracking-[0.2em] w-fit mb-1">swap protocol</div>
           <h1 className="text-xl font-black text-foreground uppercase tracking-tight mb-0.5 lowercase leading-none">
             Exchanges
           </h1>
-          <p className="text-[10px] text-foreground/40 dark:text-white/20 font-bold uppercase tracking-widest mt-1">
+          <p className="text-[10px] text-foreground/80 dark:text-foreground/60 dark:text-foreground/40 dark:text-white/20 font-bold uppercase tracking-widest mt-1">
             Manage size shifts and variant migrations.
           </p>
         </div>
@@ -64,13 +64,13 @@ export default function ExchangesPage() {
      <div className="grid grid-cols-1 gap-3">
         {loading ? (
           <div className="bg-white/50 dark:bg-white/[0.02] border border-foreground/[0.05] rounded-xl p-12 text-center flex justify-center shadow-sm">
-            <Loader2 className="w-6 h-6 animate-spin text-foreground/10" />
+            <Loader2 className="w-6 h-6 animate-spin text-foreground/30 dark:text-foreground/30 dark:text-foreground/10" />
           </div>
         ) : exchanges.length === 0 ? (
            <div className="bg-white/50 dark:bg-white/[0.02] border border-foreground/[0.05] rounded-xl p-8 text-center shadow-sm">
             <ArrowLeftRight className="w-8 h-8 text-foreground/5 mx-auto mb-3" />
             <h3 className="text-[11px] font-black text-foreground uppercase tracking-tight lowercase">Swap relay silent</h3>
-            <p className="text-[9px] text-foreground/20 font-black uppercase tracking-[0.2em] mt-1">No migration nodes detected.</p>
+            <p className="text-[9px] text-foreground/40 dark:text-foreground/40 dark:text-foreground/20 font-black uppercase tracking-[0.2em] mt-1">No migration nodes detected.</p>
           </div>
         ) : (
            exchanges.map(req => (
@@ -90,12 +90,12 @@ export default function ExchangesPage() {
                 </div>
                 
                  <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-tight mt-1">
-                  <div className="text-foreground/20 dark:text-white/10">
+                  <div className="text-foreground/40 dark:text-foreground/20 dark:text-white/10">
                     <span className="block text-[6px] tracking-[0.2em] mb-1 opacity-40">Source</span>
                     <span className="line-through decoration-foreground/10 lowercase">{req.originalProduct.title}</span>
                   </div>
-                  <ArrowLeftRight className="w-3 h-3 text-foreground/10 mx-1" />
-                  <div className="text-foreground/40 dark:text-white/30">
+                  <ArrowLeftRight className="w-3 h-3 text-foreground/30 dark:text-foreground/30 dark:text-foreground/10 mx-1" />
+                  <div className="text-foreground/80 dark:text-foreground/60 dark:text-foreground/40 dark:text-white/30">
                     <span className="block text-[6px] tracking-[0.2em] mb-1 opacity-40 text-emerald-500/50">Target Migration</span>
                     <span className="text-emerald-500/40 lowercase">{req.newProduct.title}</span>
                   </div>

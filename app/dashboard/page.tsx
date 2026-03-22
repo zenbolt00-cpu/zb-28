@@ -116,8 +116,8 @@ export default function DashboardOverview() {
    if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-        <Loader2 className="w-4 h-4 text-foreground/40 animate-spin" />
-        <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-foreground/40">Loading Data...</span>
+        <Loader2 className="w-4 h-4 text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 animate-spin" />
+        <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40">Loading Data...</span>
       </div>
     );
   }
@@ -157,7 +157,7 @@ export default function DashboardOverview() {
           <h1 className="text-2xl lg:text-3xl font-bold text-foreground uppercase tracking-tighter leading-none">
             Dashboard
           </h1>
-          <p className="text-[9px] lg:text-[10px] text-foreground/40 font-bold uppercase tracking-[0.3em] max-w-xl">
+          <p className="text-[9px] lg:text-[10px] text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 font-bold uppercase tracking-[0.3em] max-w-xl">
             Overview of store performance and active operations.
           </p>
         </div>
@@ -165,7 +165,7 @@ export default function DashboardOverview() {
           <button
             onClick={fetchStats}
             disabled={loading}
-            className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-4 lg:px-5 py-2 lg:py-2.5 bg-background dark:bg-white/[0.03] border border-foreground/[0.08] rounded-xl text-[9px] lg:text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/60 hover:bg-foreground/[0.02] hover:text-foreground transition-all disabled:opacity-50 active:scale-95 shadow-sm"
+            className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-4 lg:px-5 py-2 lg:py-2.5 bg-background dark:bg-white/[0.03] border border-foreground/[0.08] rounded-xl text-[9px] lg:text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 hover:bg-foreground/[0.02] hover:text-foreground transition-all disabled:opacity-50 active:scale-95 shadow-sm"
           >
             <RefreshCw className={`w-3 h-3 lg:w-3.5 lg:h-3.5 ${loading ? "animate-spin" : ""}`} strokeWidth={2} />
             Refresh
@@ -193,8 +193,8 @@ export default function DashboardOverview() {
               className="glass-card p-6 lg:p-10 relative overflow-hidden group rounded-[2rem] lg:rounded-[3rem]"
             >
               <div className="flex justify-between items-start mb-4 lg:mb-6">
-                <p className="text-[10px] lg:text-[11px] font-bold text-foreground/20 uppercase tracking-[0.4em]">{stat.name}</p>
-                <div className="w-9 h-9 lg:w-10 lg:h-10 rounded-xl lg:rounded-[1.2rem] bg-foreground/5 text-foreground/40 flex items-center justify-center group-hover:bg-foreground group-hover:text-background transition-all duration-700 border border-foreground/5 shadow-inner">
+                <p className="text-[10px] lg:text-[11px] font-bold text-foreground/40 dark:text-foreground/40 dark:text-foreground/20 uppercase tracking-[0.4em]">{stat.name}</p>
+                <div className="w-9 h-9 lg:w-10 lg:h-10 rounded-xl lg:rounded-[1.2rem] bg-foreground/5 text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 flex items-center justify-center group-hover:bg-foreground group-hover:text-background transition-all duration-700 border border-foreground/5 shadow-inner">
                   <Icon className="w-3.5 h-3.5 lg:w-4 lg:h-4" strokeWidth={1.5} />
                 </div>
               </div>
@@ -202,7 +202,7 @@ export default function DashboardOverview() {
                 <p className="text-2xl lg:text-4xl font-bold text-foreground tracking-tighter mb-1">{stat.value}</p>
                 <div className="flex items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-[8px] lg:text-[9px] font-bold text-foreground/20 uppercase tracking-widest">Real-time sync</span>
+                  <span className="text-[8px] lg:text-[9px] font-bold text-foreground/40 dark:text-foreground/40 dark:text-foreground/20 uppercase tracking-widest">Real-time sync</span>
                 </div>
               </div>
               
@@ -223,7 +223,7 @@ export default function DashboardOverview() {
         >
           <div className="px-6 lg:px-8 py-4 lg:py-6 border-b border-foreground/5 flex items-center justify-between bg-foreground/[0.01]">
              <h3 className="text-[10px] lg:text-[12px] font-bold text-foreground/80 uppercase tracking-[0.3em]">Recent Substrate</h3>
-             <button className="px-3 lg:px-4 py-1.5 lg:py-2 glass rounded-full text-[8px] lg:text-[9px] font-bold text-foreground/40 hover:text-foreground hover:bg-foreground/5 uppercase tracking-widest flex items-center gap-2 transition-all active:scale-95 border border-foreground/5">
+             <button className="px-3 lg:px-4 py-1.5 lg:py-2 glass rounded-full text-[8px] lg:text-[9px] font-bold text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 hover:text-foreground hover:bg-foreground/5 uppercase tracking-widest flex items-center gap-2 transition-all active:scale-95 border border-foreground/5">
                 Expand <ArrowUpRight className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
              </button>
           </div>
@@ -232,7 +232,7 @@ export default function DashboardOverview() {
             <div className="min-w-[600px] lg:min-w-0">
               {(stats?.recentOrders || []).length === 0 ? (
                 <div className="py-16 lg:py-20 flex flex-col items-center justify-center text-center">
-                   <p className="text-[10px] lg:text-[12px] font-bold text-foreground/20 uppercase tracking-[0.3em]">No recent transmissions</p>
+                   <p className="text-[10px] lg:text-[12px] font-bold text-foreground/40 dark:text-foreground/40 dark:text-foreground/20 uppercase tracking-[0.3em]">No recent transmissions</p>
                 </div>
               ) : (
                 <table className="w-full text-left whitespace-nowrap">
@@ -246,10 +246,10 @@ export default function DashboardOverview() {
                         <tr key={order.id} className="hover:bg-foreground/[0.01] transition-all group duration-500">
                           <td className="px-6 lg:px-8 py-3 lg:py-4">
                             <p className="text-[12px] lg:text-[13px] font-bold text-foreground tracking-tight leading-none uppercase">{order.name}</p>
-                            <p className="text-[8px] text-foreground/20 font-bold uppercase tracking-[0.2em] mt-1.5">Node ID: {order.id}</p>
+                            <p className="text-[8px] text-foreground/40 dark:text-foreground/40 dark:text-foreground/20 font-bold uppercase tracking-[0.2em] mt-1.5">Node ID: {order.id}</p>
                           </td>
                           <td className="px-6 lg:px-8 py-3 lg:py-4">
-                             <p className="text-[9px] lg:text-[10px] font-bold text-foreground/40 uppercase tracking-[0.2em]">{customerName}</p>
+                             <p className="text-[9px] lg:text-[10px] font-bold text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 uppercase tracking-[0.2em]">{customerName}</p>
                           </td>
                            <td className="px-6 lg:px-8 py-3 lg:py-4 text-right">
                             <span
@@ -286,7 +286,7 @@ export default function DashboardOverview() {
         >
           <div className="px-6 lg:px-10 py-5 lg:py-8 border-b border-foreground/5 flex items-center justify-between bg-foreground/[0.01]">
              <h3 className="text-[11px] lg:text-[13px] font-bold text-foreground/90 uppercase tracking-[0.3em]">Critical Inventory</h3>
-             <button className="px-4 lg:px-5 py-1.5 lg:py-2 glass rounded-full text-[8px] lg:text-[10px] font-bold text-foreground/40 hover:text-foreground hover:bg-foreground/5 uppercase tracking-widest flex items-center gap-2 transition-all active:scale-95 border border-foreground/5">
+             <button className="px-4 lg:px-5 py-1.5 lg:py-2 glass rounded-full text-[8px] lg:text-[10px] font-bold text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 hover:text-foreground hover:bg-foreground/5 uppercase tracking-widest flex items-center gap-2 transition-all active:scale-95 border border-foreground/5">
                 Manage <ArrowUpRight className="w-3 h-3 lg:w-4 lg:h-4" />
              </button>
           </div>
@@ -295,7 +295,7 @@ export default function DashboardOverview() {
             <div className="min-w-[500px] lg:min-w-0">
               {(stats?.lowStockProducts || []).length === 0 ? (
                  <div className="py-16 lg:py-20 flex flex-col items-center justify-center text-center">
-                   <p className="text-[10px] lg:text-[12px] font-bold text-foreground/20 uppercase tracking-[0.3em]">Inventory optimal</p>
+                   <p className="text-[10px] lg:text-[12px] font-bold text-foreground/40 dark:text-foreground/40 dark:text-foreground/20 uppercase tracking-[0.3em]">Inventory optimal</p>
                 </div>
               ) : (
                 <table className="w-full text-left whitespace-nowrap">
@@ -304,12 +304,12 @@ export default function DashboardOverview() {
                       <tr key={i} className="hover:bg-foreground/[0.01] transition-all group duration-500">
                         <td className="px-6 lg:px-10 py-4 lg:py-6 max-w-[200px] lg:max-w-[250px] truncate">
                            <p className="text-[13px] lg:text-[15px] font-bold text-foreground truncate leading-none uppercase">{item.title}</p>
-                           <p className="text-[9px] text-foreground/20 font-bold uppercase tracking-[0.2em] mt-1.5 italic transition-colors group-hover:text-foreground/40">{item.variant || "Standard Architecture"}</p>
+                           <p className="text-[9px] text-foreground/40 dark:text-foreground/40 dark:text-foreground/20 font-bold uppercase tracking-[0.2em] mt-1.5 italic transition-colors group-hover:text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40">{item.variant || "Standard Architecture"}</p>
                         </td>
                         <td className="px-6 lg:px-10 py-4 lg:py-6 max-w-[120px] lg:max-w-[150px] truncate">
                            <div className="flex items-center gap-2 px-2.5 lg:px-3 py-1 lg:py-1.5 bg-foreground/5 border border-foreground/10 rounded-lg w-fit">
-                              <PackageSearch className="w-2.5 h-2.5 lg:w-3 lg:h-3 text-foreground/30" />
-                              <p className="text-[9px] text-foreground/50 font-bold uppercase tracking-[0.2em] truncate">{item.sku || "UNASSIGNED"}</p>
+                              <PackageSearch className="w-2.5 h-2.5 lg:w-3 lg:h-3 text-foreground/50 dark:text-foreground/50 dark:text-foreground/30" />
+                              <p className="text-[9px] text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 font-bold uppercase tracking-[0.2em] truncate">{item.sku || "UNASSIGNED"}</p>
                            </div>
                         </td>
                         <td className="px-6 lg:px-10 py-4 lg:py-6 text-right">

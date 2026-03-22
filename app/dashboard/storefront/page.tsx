@@ -82,13 +82,13 @@ function SettingsRow({
     <div className="flex flex-col md:flex-row md:items-center justify-between py-5 border-b border-foreground/[0.05] last:border-0 gap-4 md:gap-0">
       <div className="flex items-center gap-4">
         {Icon && (
-          <div className="w-8 h-8 rounded-md bg-foreground/[0.02] flex items-center justify-center text-foreground/40 border border-foreground/[0.05]">
+          <div className="w-8 h-8 rounded-md bg-foreground/[0.02] flex items-center justify-center text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 border border-foreground/[0.05]">
             <Icon className="w-4 h-4" />
           </div>
         )}
         <div className="flex flex-col">
           <span className="text-[12px] font-medium text-foreground tracking-tight mb-0.5">{label}</span>
-          {description && <span className="text-[9px] text-foreground/50 uppercase tracking-widest">{description}</span>}
+          {description && <span className="text-[9px] text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 uppercase tracking-widest">{description}</span>}
         </div>
       </div>
       <div className="flex-1 w-full md:max-w-md flex justify-end">
@@ -115,7 +115,7 @@ function InputField({
       value={value || ''}
       onChange={e => onChange(e.target.value)}
       placeholder={placeholder}
-      className={`w-full bg-foreground/[0.02] px-3 py-2.5 rounded-md border border-foreground/[0.05] focus:border-foreground/20 text-right text-[11px] font-medium text-foreground placeholder:text-foreground/30 outline-none transition-colors ${className}`}
+      className={`w-full bg-foreground/[0.02] px-3 py-2.5 rounded-md border border-foreground/[0.05] focus:border-foreground/20 text-right text-[11px] font-medium text-foreground placeholder:text-foreground/50 dark:text-foreground/50 dark:text-foreground/30 outline-none transition-colors ${className}`}
     />
   );
 }
@@ -131,8 +131,8 @@ function SettingsGroup({ title, children, icon: Icon }: { title?: string; childr
     >
       {title && (
         <div className="flex items-center gap-2 px-6">
-           {Icon && <Icon className="w-3.5 h-3.5 text-foreground/40" />}
-           <h3 className="text-[9px] font-semibold uppercase tracking-widest text-foreground/50">{title}</h3>
+           {Icon && <Icon className="w-3.5 h-3.5 text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40" />}
+           <h3 className="text-[9px] font-semibold uppercase tracking-widest text-foreground/70 dark:text-foreground/70 dark:text-foreground/50">{title}</h3>
         </div>
       )}
       <div className="bg-background border border-foreground/[0.05] rounded-xl px-6 py-2 shadow-sm relative overflow-hidden">
@@ -211,13 +211,13 @@ function MediaPicker({
           value={value || ''}
           onChange={e => onChange(e.target.value)}
           placeholder={`https://... or upload ${type}`}
-          className="flex-1 bg-foreground/[0.02] px-3 py-2.5 rounded-md border border-foreground/[0.05] focus:border-foreground/20 text-right text-[11px] font-medium text-foreground placeholder:text-foreground/30 outline-none transition-colors"
+          className="flex-1 bg-foreground/[0.02] px-3 py-2.5 rounded-md border border-foreground/[0.05] focus:border-foreground/20 text-right text-[11px] font-medium text-foreground placeholder:text-foreground/50 dark:text-foreground/50 dark:text-foreground/30 outline-none transition-colors"
         />
         <label className="shrink-0 flex items-center justify-center w-10 h-10 rounded-md bg-foreground/5 border border-foreground/10 cursor-pointer hover:bg-foreground/10 transition-colors">
           {isUploading ? (
-            <RefreshCw className="w-4 h-4 animate-spin text-foreground/40" />
+            <RefreshCw className="w-4 h-4 animate-spin text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40" />
           ) : (
-            <Upload className="w-4 h-4 text-foreground/40" />
+            <Upload className="w-4 h-4 text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40" />
           )}
           <input type="file" className="hidden" accept={type === 'image' ? "image/*" : "video/*"} onChange={handleUpload} />
         </label>
@@ -324,8 +324,8 @@ export default function StorefrontSettingsPage() {
 
   if (loading) return (
     <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-      <Loader2 className="w-5 h-5 text-foreground/40 animate-spin" />
-      <span className="text-[10px] font-medium uppercase tracking-widest text-foreground/40">Loading Storefront...</span>
+      <Loader2 className="w-5 h-5 text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 animate-spin" />
+      <span className="text-[10px] font-medium uppercase tracking-widest text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40">Loading Storefront...</span>
     </div>
   );
 
@@ -343,7 +343,7 @@ export default function StorefrontSettingsPage() {
           <h1 className="text-xl font-semibold text-foreground tracking-tight">
             Storefront
           </h1>
-          <p className="text-[11px] text-foreground/50 tracking-wide max-w-xl">
+          <p className="text-[11px] text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 tracking-wide max-w-xl">
             Content curation and visual configuration.
           </p>
         </div>
@@ -400,7 +400,7 @@ export default function StorefrontSettingsPage() {
         {/* SPOTLIGHT SECTION */}
         <SettingsGroup title="Spotlight Section (Streetwear)" icon={Sparkles}>
           <div className="px-4 py-3 bg-foreground/[0.02] rounded-md border border-foreground/[0.05] flex items-center gap-3 mt-1">
-             <Info className="w-4 h-4 text-foreground/50 shrink-0" />
+             <Info className="w-4 h-4 text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 shrink-0" />
              <p className="text-[10px] font-medium text-foreground/70 uppercase tracking-widest">
                 Configure the "Authentic Streetwear" grid.
              </p>
@@ -431,7 +431,7 @@ export default function StorefrontSettingsPage() {
         {/* 3D PAPER TEAR (FLIPBOOK) */}
         <SettingsGroup title="Feature Section" icon={Sparkles}>
           <div className="px-4 py-3 bg-foreground/[0.02] rounded-md border border-foreground/[0.05] flex items-center gap-3 mt-1">
-             <Info className="w-4 h-4 text-foreground/50 shrink-0" />
+             <Info className="w-4 h-4 text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 shrink-0" />
              <p className="text-[10px] font-medium text-foreground/70 uppercase tracking-widest">
                 Configure the scroll reveal section.
              </p>
@@ -456,7 +456,7 @@ export default function StorefrontSettingsPage() {
         {/* RING CAROUSEL */}
         <SettingsGroup title="Ring Collection Carousel" icon={Sparkles}>
           <div className="px-4 py-3 bg-foreground/[0.02] rounded-md border border-foreground/[0.05] flex items-center gap-3 mt-1">
-             <Info className="w-4 h-4 text-foreground/50 shrink-0" />
+             <Info className="w-4 h-4 text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 shrink-0" />
              <p className="text-[10px] font-medium text-foreground/70 uppercase tracking-widest">
                 Configure the minimal ring carousel.
              </p>
@@ -503,8 +503,8 @@ export default function StorefrontSettingsPage() {
           <div className="pt-2 pb-4">
              <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                   <p className="text-[10px] font-semibold text-foreground/50 uppercase tracking-widest px-1">Selected Collections</p>
-                   <span className="text-[9px] font-semibold text-foreground/50 uppercase tracking-widest">{safeParseArray(settings.enabledCollectionsHeader).length} Collections</span>
+                   <p className="text-[10px] font-semibold text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 uppercase tracking-widest px-1">Selected Collections</p>
+                   <span className="text-[9px] font-semibold text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 uppercase tracking-widest">{safeParseArray(settings.enabledCollectionsHeader).length} Collections</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
                    {allCollections.map(c => {
@@ -517,7 +517,7 @@ export default function StorefrontSettingsPage() {
                                const next = active ? current.filter((h: any) => h !== c.handle) : [...current, c.handle];
                                set('enabledCollectionsHeader')(JSON.stringify(next));
                             }}
-                            className={`px-3 py-1.5 rounded-md text-[10px] font-semibold uppercase tracking-widest transition-colors border ${active ? 'bg-foreground text-background border-transparent' : 'bg-background text-foreground/50 border-foreground/[0.05] hover:border-foreground/20'}`}
+                            className={`px-3 py-1.5 rounded-md text-[10px] font-semibold uppercase tracking-widest transition-colors border ${active ? 'bg-foreground text-background border-transparent' : 'bg-background text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 border-foreground/[0.05] hover:border-foreground/20'}`}
                          >
                             {c.title}
                          </button>
@@ -533,7 +533,7 @@ export default function StorefrontSettingsPage() {
       <div className="text-center pt-8">
          <div className="inline-flex items-center gap-2 px-4 py-2 border border-foreground/[0.05] rounded-md bg-background shadow-sm">
             <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-[9px] font-semibold uppercase tracking-widest text-foreground/50">Storefront Active</span>
+            <span className="text-[9px] font-semibold uppercase tracking-widest text-foreground/70 dark:text-foreground/70 dark:text-foreground/50">Storefront Active</span>
          </div>
       </div>
     </motion.div>

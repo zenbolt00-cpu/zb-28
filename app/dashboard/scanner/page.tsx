@@ -167,7 +167,7 @@ export default function DashboardScannerPage() {
           <h1 className="text-2xl lg:text-3xl font-bold text-foreground uppercase tracking-tighter leading-none">
             Transmission Link
           </h1>
-          <p className="text-[9px] lg:text-[10px] text-foreground/40 font-bold uppercase tracking-[0.3em] max-w-xl">
+          <p className="text-[9px] lg:text-[10px] text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 font-bold uppercase tracking-[0.3em] max-w-xl">
             Real-time optical substrate analysis and synchronization.
           </p>
         </div>
@@ -200,7 +200,7 @@ export default function DashboardScannerPage() {
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all duration-200 border ${
                 isActive
                   ? 'bg-foreground text-background border-transparent shadow-lg shadow-foreground/5'
-                  : 'text-foreground/30 border-foreground/[0.05] hover:text-foreground hover:bg-foreground/[0.02] bg-transparent'
+                  : 'text-foreground/50 dark:text-foreground/50 dark:text-foreground/30 border-foreground/[0.05] hover:text-foreground hover:bg-foreground/[0.02] bg-transparent'
               }`}
             >
               <MIcon className="w-3.5 h-3.5" />
@@ -215,9 +215,9 @@ export default function DashboardScannerPage() {
          <div className="lg:col-span-2 space-y-4">
           <div className="bg-foreground/[0.02] border border-foreground/[0.05] rounded-xl p-6 shadow-sm overflow-hidden">
             <div className={`flex items-center gap-3 mb-6 px-4 py-2.5 rounded-lg border border-foreground/[0.02] ${config.bg.replace('400/10', '500/5')}`}>
-              <Icon className="w-4 h-4 text-foreground/40" />
+              <Icon className="w-4 h-4 text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40" />
               <div>
-                <p className="text-[7px] text-foreground/20 dark:text-white/10 font-black uppercase tracking-[0.2em] leading-none mb-1">
+                <p className="text-[7px] text-foreground/40 dark:text-foreground/20 dark:text-white/10 font-black uppercase tracking-[0.2em] leading-none mb-1">
                   Active Mode
                 </p>
                 <p className="text-[10px] font-black text-foreground uppercase tracking-tight leading-none lowercase">{config.actionLabel}</p>
@@ -227,19 +227,19 @@ export default function DashboardScannerPage() {
           </div>
 
           <div className="bg-foreground/[0.02] border border-foreground/[0.05] rounded-xl p-4 shadow-sm">
-            <p className="text-[8px] text-foreground/20 dark:text-white/20 font-black uppercase tracking-[0.3em] mb-4">
+            <p className="text-[8px] text-foreground/40 dark:text-foreground/20 dark:text-white/20 font-black uppercase tracking-[0.3em] mb-4">
               Metadata Analysis
             </p>
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-foreground/[0.02] rounded-lg p-3 border border-foreground/[0.02]">
                 <p className="text-xl font-black text-foreground leading-none">{scannedItems.length}</p>
-                <p className="text-[8px] font-black text-foreground/20 uppercase tracking-widest mt-1.5">Total Nodes</p>
+                <p className="text-[8px] font-black text-foreground/40 dark:text-foreground/40 dark:text-foreground/20 uppercase tracking-widest mt-1.5">Total Nodes</p>
               </div>
               <div className="bg-foreground/[0.02] rounded-lg p-3 border border-foreground/[0.02]">
                 <p className="text-xl font-black text-emerald-500 leading-none">
                   {scannedItems.filter((i) => i.status === 'success').length}
                 </p>
-                <p className="text-[8px] font-black text-foreground/20 uppercase tracking-widest mt-1.5">Processed OK</p>
+                <p className="text-[8px] font-black text-foreground/40 dark:text-foreground/40 dark:text-foreground/20 uppercase tracking-widest mt-1.5">Processed OK</p>
               </div>
             </div>
           </div>
@@ -249,16 +249,16 @@ export default function DashboardScannerPage() {
          <div className="lg:col-span-3 bg-foreground/[0.02] border border-foreground/[0.05] rounded-xl overflow-hidden flex flex-col max-h-[700px] shadow-sm">
           <div className="px-5 py-3 border-b border-foreground/[0.03] flex items-center justify-between flex-shrink-0 bg-foreground/[0.01]">
             <div className="flex items-center gap-2">
-              <ScanLine className="w-3.5 h-3.5 text-foreground/20" />
+              <ScanLine className="w-3.5 h-3.5 text-foreground/40 dark:text-foreground/40 dark:text-foreground/20" />
               <h3 className="text-[10px] font-black text-foreground uppercase tracking-widest">Scan Log</h3>
-              <span className="ml-1 bg-foreground/5 text-foreground/40 text-[8px] px-1.5 rounded font-black">
+              <span className="ml-1 bg-foreground/5 text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 text-[8px] px-1.5 rounded font-black">
                 {scannedItems.length}
               </span>
             </div>
             {scannedItems.length > 0 && (
               <button
                 onClick={clearAll}
-                className="flex items-center gap-1.5 text-[8px] font-black text-foreground/20 hover:text-rose-500 uppercase tracking-widest transition-colors"
+                className="flex items-center gap-1.5 text-[8px] font-black text-foreground/40 dark:text-foreground/40 dark:text-foreground/20 hover:text-rose-500 uppercase tracking-widest transition-colors"
               >
                 <Trash2 className="w-3 h-3" />
                 Clear Archives
@@ -290,7 +290,7 @@ export default function DashboardScannerPage() {
                           const MIcon = modeConfig[item.mode].icon;
                           return (
                             <MIcon
-                              className="w-3.5 h-3.5 text-foreground/30"
+                              className="w-3.5 h-3.5 text-foreground/50 dark:text-foreground/50 dark:text-foreground/30"
                             />
                           );
                         })()}
@@ -300,12 +300,12 @@ export default function DashboardScannerPage() {
                           {item.barcode}
                         </p>
                         {item.product && (
-                          <p className="text-[8.5px] font-black text-foreground/40 dark:text-white/20 mt-1.5 uppercase tracking-widest">{item.product}</p>
+                          <p className="text-[8.5px] font-black text-foreground/80 dark:text-foreground/60 dark:text-foreground/40 dark:text-white/20 mt-1.5 uppercase tracking-widest">{item.product}</p>
                         )}
                         {item.message && (
                           <p className="text-[8.5px] font-black text-rose-500 mt-1.5 uppercase tracking-widest">{item.message}</p>
                         )}
-                        <p className="text-[7px] font-black text-foreground/10 uppercase tracking-[0.2em] mt-2">
+                        <p className="text-[7px] font-black text-foreground/30 dark:text-foreground/30 dark:text-foreground/10 uppercase tracking-[0.2em] mt-2">
                           {item.time.toLocaleTimeString()}
                         </p>
                       </div>

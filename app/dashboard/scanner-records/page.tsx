@@ -202,7 +202,7 @@ export default function ScannerRecordsPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right whitespace-nowrap font-mono">
-                      <div className={`font-bold ${record.quantity > 0 && record.actionType !== 'ORDER_OUT' ? 'text-emerald-500' : record.actionType === 'ORDER_OUT' ? 'text-red-500' : 'text-foreground/50'}`}>
+                      <div className={`font-bold ${record.quantity > 0 && record.actionType !== 'ORDER_OUT' ? 'text-emerald-500' : record.actionType === 'ORDER_OUT' ? 'text-red-500' : 'text-foreground/70 dark:text-foreground/70 dark:text-foreground/50'}`}>
                         {record.actionType === 'ORDER_OUT' ? '-' : record.quantity > 0 && record.actionType !== 'AUDIT' ? '+' : ''}{record.quantity || 0}
                       </div>
                     </td>

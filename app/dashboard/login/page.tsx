@@ -77,7 +77,7 @@ export default function DashboardLoginPage() {
           </div>
           <div className="text-center mt-2">
             <h1 className="text-[16px] font-black text-foreground tracking-tighter lowercase leading-none">infrastructure</h1>
-            <p className="text-[8px] uppercase tracking-[0.5em] text-foreground/20 font-black mt-2">Authorization Portal</p>
+            <p className="text-[8px] uppercase tracking-[0.5em] text-foreground/40 dark:text-foreground/40 dark:text-foreground/20 font-black mt-2">Authorization Portal</p>
           </div>
         </div>
 
@@ -114,7 +114,7 @@ export default function DashboardLoginPage() {
                  <button
                   type="button"
                   onClick={() => setShow(v => !v)}
-                  className="absolute right-4 p-1 text-foreground/20 hover:text-foreground/40 transition-colors"
+                  className="absolute right-4 p-1 text-foreground/40 dark:text-foreground/40 dark:text-foreground/20 hover:text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 transition-colors"
                 >
                   {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>

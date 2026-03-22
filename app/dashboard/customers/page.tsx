@@ -73,8 +73,8 @@ export default function CustomersPage() {
   if (loading && customers.length === 0) {
      return (
         <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-          <Loader2 className="w-4 h-4 text-foreground/40 animate-spin" />
-          <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-foreground/40">Loading Customers...</span>
+          <Loader2 className="w-4 h-4 text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 animate-spin" />
+          <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40">Loading Customers...</span>
         </div>
       );
   }
@@ -92,7 +92,7 @@ export default function CustomersPage() {
           <h1 className="text-xl font-semibold text-foreground tracking-tight">
             Customers
           </h1>
-          <p className="text-[11px] text-foreground/50 tracking-wide max-w-xl">
+          <p className="text-[11px] text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 tracking-wide max-w-xl">
             Manage customer identities and monitor purchase logic.
           </p>
         </div>
@@ -125,7 +125,7 @@ export default function CustomersPage() {
       <div className="space-y-3 relative z-10">
         {customers.length === 0 ? (
           <div className="bg-background border border-foreground/[0.05] rounded-xl p-12 text-center shadow-sm">
-            <Users className="w-8 h-8 text-foreground/20 mx-auto mb-4" />
+            <Users className="w-8 h-8 text-foreground/40 dark:text-foreground/40 dark:text-foreground/20 mx-auto mb-4" />
             <h3 className="text-[12px] font-medium text-foreground tracking-tight">No Customers Found</h3>
           </div>
         ) : (
@@ -153,7 +153,7 @@ export default function CustomersPage() {
                       <h3 className="text-[13px] font-semibold text-foreground tracking-tight">
                         {fullName}
                       </h3>
-                      <div className="flex items-center gap-3 mt-1 text-[10px] text-foreground/50">
+                      <div className="flex items-center gap-3 mt-1 text-[10px] text-foreground/70 dark:text-foreground/70 dark:text-foreground/50">
                         {customer.email && (
                           <span className="flex items-center gap-1.5">
                             <Mail className="w-3 h-3" /> {customer.email}
@@ -170,18 +170,18 @@ export default function CustomersPage() {
 
                   <div className="flex items-center gap-8 px-2 md:px-0">
                     <div className="text-right">
-                      <p className="text-[9px] text-foreground/40 font-semibold uppercase tracking-widest mb-1">Orders</p>
+                      <p className="text-[9px] text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 font-semibold uppercase tracking-widest mb-1">Orders</p>
                       <p className="text-[12px] font-semibold text-foreground">{customer.totalOrders}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-[9px] text-foreground/40 font-semibold uppercase tracking-widest mb-1">Lifetime</p>
+                      <p className="text-[9px] text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 font-semibold uppercase tracking-widest mb-1">Lifetime</p>
                       <p className="text-[12px] font-semibold text-foreground">₹{customer.totalSpent.toLocaleString("en-IN")}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-[9px] text-foreground/40 font-semibold uppercase tracking-widest mb-1">Joined</p>
-                      <p className="text-[11px] font-medium text-foreground/60">{new Date(customer.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</p>
+                      <p className="text-[9px] text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 font-semibold uppercase tracking-widest mb-1">Joined</p>
+                      <p className="text-[11px] font-medium text-foreground/80 dark:text-foreground/80 dark:text-foreground/60">{new Date(customer.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</p>
                     </div>
-                    <div className="pl-2 text-foreground/40">
+                    <div className="pl-2 text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40">
                       {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                     </div>
                   </div>
@@ -196,14 +196,14 @@ export default function CustomersPage() {
                       className="p-5 bg-foreground/[0.01]"
                     >
                       <div className="space-y-3">
-                         <h4 className="text-[9px] font-semibold uppercase tracking-widest text-foreground/40 mb-2">Order History</h4>
+                         <h4 className="text-[9px] font-semibold uppercase tracking-widest text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 mb-2">Order History</h4>
                         {customer.orders.map((order) => (
                           <div
                             key={order.id}
                             className="flex items-center justify-between gap-4 bg-background border border-foreground/[0.05] rounded-md px-4 py-3"
                           >
                             <div className="flex items-center gap-3">
-                               <ShoppingCart className="w-3.5 h-3.5 text-foreground/40" />
+                               <ShoppingCart className="w-3.5 h-3.5 text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40" />
                               <p className="text-[11px] font-semibold text-foreground">
                                 #{order.shopifyOrderId}
                               </p>
@@ -217,7 +217,7 @@ export default function CustomersPage() {
                             </div>
                             
                             <div className="flex items-center gap-6">
-                               <p className="text-[10px] font-medium text-foreground/50 hidden sm:block">
+                               <p className="text-[10px] font-medium text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 hidden sm:block">
                                 {new Date(order.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                               </p>
                               <div className="flex items-center gap-4 border-l border-foreground/[0.05] pl-6">

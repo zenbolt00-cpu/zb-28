@@ -121,7 +121,7 @@ export default function InventoryScannerPage() {
               </span>
             </div>
           </div>
-          <p className="text-[9px] lg:text-[10px] text-foreground/40 font-bold uppercase tracking-[0.3em] max-w-xl">
+          <p className="text-[9px] lg:text-[10px] text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 font-bold uppercase tracking-[0.3em] max-w-xl">
             Advanced inventory reconciliation and substrate tracking.
           </p>
         </div>
@@ -138,7 +138,7 @@ export default function InventoryScannerPage() {
                 className={`relative flex items-center gap-2.5 px-5 py-3 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all whitespace-nowrap z-10 overflow-hidden ${
                   isActive 
                     ? 'text-foreground dark:text-white shadow-[0_2px_8px_rgba(0,0,0,0.08)]' 
-                    : 'text-foreground/40 dark:text-white/40 hover:text-foreground/70 dark:hover:text-white/70 hover:bg-black/5 dark:hover:bg-white/10'
+                    : 'text-foreground/80 dark:text-foreground/60 dark:text-foreground/40 dark:text-white/40 hover:text-foreground/70 dark:hover:text-white/70 hover:bg-black/5 dark:hover:bg-white/10'
                 }`}
               >
                 {isActive && (
@@ -178,7 +178,7 @@ export default function InventoryScannerPage() {
                         {/* Scanning beam animation */}
                         <div className="absolute top-0 left-0 w-full h-0.5 bg-[#007AFF] animate-[scan_3s_ease-in-out_infinite] shadow-[0_0_15px_#007AFF]"></div>
                      </div>
-                     <p className="mt-8 text-[10px] font-black text-foreground/20 dark:text-white/20 uppercase tracking-[0.5em]">Waiting for transmission</p>
+                     <p className="mt-8 text-[10px] font-black text-foreground/40 dark:text-foreground/20 dark:text-white/20 uppercase tracking-[0.5em]">Waiting for transmission</p>
                   </div>
                )}
 
@@ -190,7 +190,7 @@ export default function InventoryScannerPage() {
                          <ScanLine className="w-10 h-10" strokeWidth={2} />
                       </div>
                       <h3 className="text-[14px] font-black uppercase tracking-[0.2em] mb-2 text-foreground dark:text-white">Verify Submission</h3>
-                      <p className="text-[12px] font-bold text-foreground/50 dark:text-white/50 mb-6 whitespace-pre-wrap max-w-[80%] mx-auto block break-all">{scanResult}</p>
+                      <p className="text-[12px] font-bold text-foreground/70 dark:text-foreground/50 dark:text-white/50 mb-6 whitespace-pre-wrap max-w-[80%] mx-auto block break-all">{scanResult}</p>
                       
                       {/* Quantity Selector */}
                       <div className="flex items-center gap-4 mb-8 bg-black/5 dark:bg-white/5 p-2 rounded-[1.5rem] border border-black/5 dark:border-white/5 shadow-inner">
@@ -202,7 +202,7 @@ export default function InventoryScannerPage() {
                         </button>
                         <div className="w-16 flex flex-col items-center justify-center">
                           <span className="text-2xl font-black text-foreground dark:text-white tracking-tighter leading-none">{quantity}</span>
-                          <span className="text-[8px] font-black text-foreground/40 dark:text-white/40 uppercase tracking-widest mt-1">Units</span>
+                          <span className="text-[8px] font-black text-foreground/80 dark:text-foreground/60 dark:text-foreground/40 dark:text-white/40 uppercase tracking-widest mt-1">Units</span>
                         </div>
                         <button 
                           onClick={() => setQuantity(quantity + 1)} 
@@ -215,7 +215,7 @@ export default function InventoryScannerPage() {
                       <div className="flex gap-3">
                         <button 
                           onClick={resetScanner} 
-                          className="px-6 py-4 rounded-2xl text-[12px] font-bold uppercase tracking-[0.1em] text-foreground/50 dark:text-white/50 hover:bg-black/5 dark:hover:bg-white/5 hover:text-foreground dark:hover:text-white transition-colors"
+                          className="px-6 py-4 rounded-2xl text-[12px] font-bold uppercase tracking-[0.1em] text-foreground/70 dark:text-foreground/50 dark:text-white/50 hover:bg-black/5 dark:hover:bg-white/5 hover:text-foreground dark:hover:text-white transition-colors"
                         >
                           Cancel
                         </button>
@@ -240,7 +240,7 @@ export default function InventoryScannerPage() {
                       <h3 className="text-[14px] font-black uppercase tracking-[0.2em] mb-2 text-foreground dark:text-white">
                         {status === 'success' ? 'Terminal State Achieved' : status === 'error' ? 'Transmission Failed' : 'Signal Decoded'}
                       </h3>
-                      <p className="text-[12px] font-bold text-foreground/50 dark:text-white/50 mb-8 whitespace-pre-wrap max-w-[80%] mx-auto flex flex-col items-center">
+                      <p className="text-[12px] font-bold text-foreground/70 dark:text-foreground/50 dark:text-white/50 mb-8 whitespace-pre-wrap max-w-[80%] mx-auto flex flex-col items-center">
                         <span className="text-[10px] uppercase tracking-widest opacity-60 mb-2 block">{scanResult}</span>
                         {message}
                       </p>
@@ -268,7 +268,7 @@ export default function InventoryScannerPage() {
             <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-transparent dark:from-white/5 pointer-events-none z-0" />
             
             <div className="relative z-10 flex flex-col h-full">
-               <h2 className="text-[11px] font-black uppercase tracking-[0.25em] text-foreground/40 dark:text-white/40 mb-6 flex items-center gap-2">
+               <h2 className="text-[11px] font-black uppercase tracking-[0.25em] text-foreground/80 dark:text-foreground/60 dark:text-foreground/40 dark:text-white/40 mb-6 flex items-center gap-2">
                   <ActivityLine /> Activity Feed
                </h2>
                
@@ -283,7 +283,7 @@ export default function InventoryScannerPage() {
                      status === 'success' ? 'bg-[#34C759]/5 text-[#34C759] border-[#34C759]/20' :
                      status === 'error' ? 'bg-[#FF3B30]/5 text-[#FF3B30] border-[#FF3B30]/20' :
                      status === 'syncing' ? 'bg-[#007AFF]/5 text-[#007AFF] border-[#007AFF]/20' :
-                     'bg-black/5 dark:bg-white/5 text-foreground/60 dark:text-white/60 border-black/5 dark:border-white/10'
+                     'bg-black/5 dark:bg-white/5 text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-white/60 border-black/5 dark:border-white/10'
                    }`}
                  >
                    <div className={`p-3 rounded-xl flex items-center justify-center ${
@@ -331,21 +331,21 @@ export default function InventoryScannerPage() {
                                  {(() => {
                                     const m = modes.find(mod => mod.id === s.mode);
                                     const Icon = m?.icon || Box;
-                                    return <Icon className={`w-4 h-4 ${m?.color || 'text-foreground/40'}`} strokeWidth={2} />;
+                                    return <Icon className={`w-4 h-4 ${m?.color || 'text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40'}`} strokeWidth={2} />;
                                  })()}
                               </div>
                               <div>
                                  <p className="text-[12px] font-bold text-foreground dark:text-white capitalize tracking-tight leading-none mb-2 line-clamp-1">{s.productName}</p>
-                                 <p className="text-[10px] font-semibold text-foreground/50 dark:text-white/50 uppercase tracking-widest leading-none font-mono">{s.code.substring(0, 16)}...</p>
+                                 <p className="text-[10px] font-semibold text-foreground/70 dark:text-foreground/50 dark:text-white/50 uppercase tracking-widest leading-none font-mono">{s.code.substring(0, 16)}...</p>
                               </div>
                            </div>
                            <div className="text-right">
                               <span className="text-[9px] font-black px-2.5 py-1.5 rounded-lg bg-black/10 dark:bg-white/10 text-foreground/70 dark:text-white/70 uppercase tracking-[0.15em]">{s.mode} {s.quantity > 1 ? `x${s.quantity}` : ''}</span>
-                              <p className="text-[9px] font-bold text-foreground/40 dark:text-white/40 mt-2 uppercase tracking-widest">{s.timestamp}</p>
+                              <p className="text-[9px] font-bold text-foreground/80 dark:text-foreground/60 dark:text-foreground/40 dark:text-white/40 mt-2 uppercase tracking-widest">{s.timestamp}</p>
                            </div>
                          </motion.div>
                        )) : (
-                         <div className="h-40 border border-dashed border-black/10 dark:border-white/10 rounded-2xl flex flex-col items-center justify-center text-foreground/30 dark:text-white/30">
+                         <div className="h-40 border border-dashed border-black/10 dark:border-white/10 rounded-2xl flex flex-col items-center justify-center text-foreground/50 dark:text-foreground/30 dark:text-white/30">
                             <ClipboardList className="w-8 h-8 mb-3 opacity-50" strokeWidth={1.5} />
                             <span className="text-[10px] font-bold uppercase tracking-widest">No Signals Captured</span>
                          </div>
