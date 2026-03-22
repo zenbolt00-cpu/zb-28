@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
-import { useDeviceScanner, ScannerDevice } from "@/lib/hooks/useDeviceScanner";
+import { useEffect, useState, useRef, useCallback, type ChangeEvent } from "react";
+import { useDeviceScanner } from "@/lib/hooks/useDeviceScanner";
+import { useBarcodeCamera } from "@/lib/hooks/useBarcodeCamera";
 import { 
   ScanLine, 
-  ArrowLeft, 
   RefreshCcw, 
   CheckCircle2, 
   AlertCircle,
@@ -20,15 +20,12 @@ import {
   Minus,
   Terminal,
   Usb,
-  Cable,
-  Keyboard,
+  Camera,
   AlertOctagon,
   Trash2,
   Info,
-  ChevronRight,
   CircleDot
 } from "lucide-react";
-import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function InventoryScannerPage() {
@@ -43,6 +40,26 @@ export default function InventoryScannerPage() {
   const [manualBarcode, setManualBarcode] = useState('');
   const [lookupResult, setLookupResult] = useState<{ productName: string; sku?: string; barcode?: string; currentQty?: number } | null>(null);
   const scanInputRef = useRef<HTMLInputElement>(null);
+  const statusRef = useRef(status);
+  const scanningRef = useRef(isScanning);
+  const fieldIdleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fieldBurstStartRef = useRef(0);
+  const stopCameraRef = useRef<() => void>(() => {});
+  const onScanSuccessRef = useRef<(code: string) => void>(() => {});
+
+  useEffect(() => {
+    statusRef.current = status;
+  }, [status]);
+  useEffect(() => {
+    scanningRef.current = isScanning;
+  }, [isScanning]);
+
+  const clearFieldIdleTimer = useCallback(() => {
+    if (fieldIdleTimerRef.current) {
+      clearTimeout(fieldIdleTimerRef.current);
+      fieldIdleTimerRef.current = null;
+    }
+  }, []);
 
   const modes = [
     { id: 'STOCK_IN', label: 'Stock In', icon: Package, color: 'text-[#34C759]', bg: 'bg-[#34C759]/10' },
@@ -53,34 +70,51 @@ export default function InventoryScannerPage() {
   ];
 
   const onScanSuccess = useCallback(async (decodedText: string) => {
-    if (status === 'syncing' || status === 'confirm') return;
+    if (statusRef.current !== "idle") return;
+    clearFieldIdleTimer();
+    stopCameraRef.current();
 
-    setManualBarcode('');
+    setManualBarcode("");
     setScanResult(decodedText);
     setIsScanning(false);
     setQuantity(1);
-    setStatus('syncing');
-    setMessage('Identifying substrate signature...');
+    setStatus("syncing");
+    setMessage("Identifying product…");
 
     try {
-      const res = await fetch('/api/admin/inventory/sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: decodedText, mode: 'LOOKUP' })
+      const res = await fetch("/api/admin/inventory/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: decodedText, mode: "LOOKUP" }),
       });
       const data = await res.json();
       if (res.ok) {
         setLookupResult(data);
-        setStatus('confirm');
-        setMessage('');
+        setStatus("confirm");
+        setMessage("");
       } else {
-        throw new Error(data.error || 'Identity Mismatch');
+        throw new Error(data.error || "Product not found");
       }
-    } catch (e: any) {
-      setStatus('error');
-      setMessage(e.message || 'Signal Lost');
+    } catch (e: unknown) {
+      setStatus("error");
+      setMessage(e instanceof Error ? e.message : "Lookup failed");
     }
-  }, [status]);
+  }, [clearFieldIdleTimer]);
+
+  onScanSuccessRef.current = (code: string) => {
+    void onScanSuccess(code);
+  };
+
+  const camera = useBarcodeCamera(
+    useCallback((raw: string) => {
+      if (statusRef.current !== "idle" || !scanningRef.current) return;
+      onScanSuccessRef.current(raw);
+    }, [])
+  );
+
+  useEffect(() => {
+    stopCameraRef.current = camera.stop;
+  }, [camera.stop]);
 
   const onDeviceScan = useCallback(
     (code: string, _deviceId: string) => {
@@ -105,7 +139,8 @@ export default function InventoryScannerPage() {
     clearError,
   } = useDeviceScanner({
     onScan: onDeviceScan,
-    minBarcodeLength: 4
+    minBarcodeLength: 1,
+    keyboardDebounceMs: 100,
   });
 
   useEffect(() => {
@@ -156,12 +191,36 @@ export default function InventoryScannerPage() {
   };
 
   const resetScanner = () => {
+    stopCameraRef.current();
+    clearFieldIdleTimer();
     setScanResult(null);
-    setStatus('idle');
-    setMessage('');
+    setLookupResult(null);
+    setStatus("idle");
+    setMessage("");
     setQuantity(1);
     setIsScanning(true);
+    setManualBarcode("");
   };
+
+  const onManualScanFieldChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const v = e.target.value;
+      if (v.length === 1) fieldBurstStartRef.current = Date.now();
+      setManualBarcode(v);
+      clearFieldIdleTimer();
+      if (!v.trim()) return;
+      fieldIdleTimerRef.current = setTimeout(() => {
+        fieldIdleTimerRef.current = null;
+        const el = scanInputRef.current;
+        const t = (el?.value ?? v).trim();
+        if (t.length < 1) return;
+        if (statusRef.current !== "idle" || !scanningRef.current) return;
+        if (Date.now() - fieldBurstStartRef.current > 4500) return;
+        onScanSuccessRef.current(t);
+      }, 140);
+    },
+    [clearFieldIdleTimer]
+  );
 
    return (
     <motion.div 
@@ -282,9 +341,9 @@ export default function InventoryScannerPage() {
                         onSubmit={(e) => {
                           e.preventDefault();
                           const code = manualBarcode.trim();
-                          if (code.length >= 4) {
-                            onScanSuccess(code);
-                            setManualBarcode('');
+                          if (code.length >= 1) {
+                            void onScanSuccess(code);
+                            setManualBarcode("");
                           }
                         }}
                         className="mt-6 w-full max-w-sm mx-auto flex gap-2 px-4"
@@ -293,8 +352,8 @@ export default function InventoryScannerPage() {
                           ref={scanInputRef}
                           type="text"
                           value={manualBarcode}
-                          onChange={(e) => setManualBarcode(e.target.value)}
-                          placeholder="Type or paste barcode / SKU…"
+                          onChange={onManualScanFieldChange}
+                          placeholder="Aim scanner here — barcode or QR text"
                           data-scanner-input="true"
                           autoComplete="off"
                           spellCheck={false}
@@ -302,12 +361,52 @@ export default function InventoryScannerPage() {
                         />
                         <button
                           type="submit"
-                          disabled={manualBarcode.trim().length < 4}
+                          disabled={manualBarcode.trim().length < 1}
                           className="px-5 py-3 bg-[#007AFF] hover:bg-[#0062CC] text-white text-[11px] font-black uppercase tracking-widest rounded-xl transition-colors shadow-lg shadow-[#007AFF]/20 disabled:opacity-40"
                         >
                           Submit
                         </button>
                       </form>
+
+                      <div className="mt-5 w-full max-w-md mx-auto px-4 space-y-2">
+                        {camera.supported ? (
+                          <>
+                            {camera.error && (
+                              <p className="text-[10px] font-bold text-amber-400/90 text-center">{camera.error}</p>
+                            )}
+                            {!camera.active ? (
+                              <button
+                                type="button"
+                                onClick={() => void camera.start()}
+                                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-white/15 bg-white/5 text-white text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-colors"
+                              >
+                                <Camera className="w-4 h-4 opacity-80" />
+                                Use device camera (QR &amp; barcode)
+                              </button>
+                            ) : (
+                              <div className="space-y-2">
+                                <video
+                                  ref={camera.videoRef}
+                                  className="w-full max-h-52 rounded-xl border border-white/10 bg-black object-cover"
+                                  playsInline
+                                  muted
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => camera.stop()}
+                                  className="w-full py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-white/70 hover:bg-white/10 border border-white/10"
+                                >
+                                  Stop camera
+                                </button>
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <p className="text-[9px] font-bold text-white/35 text-center uppercase tracking-widest leading-relaxed">
+                            Camera decode needs Chrome or Edge over HTTPS. USB scanners work in any browser.
+                          </p>
+                        )}
+                      </div>
                    </div>
                )}
 
@@ -318,14 +417,25 @@ export default function InventoryScannerPage() {
                       <div className="w-20 h-20 rounded-[2rem] flex items-center justify-center mb-6 shadow-2xl bg-[#007AFF]/10 text-[#007AFF] shadow-[#007AFF]/20">
                          <ScanLine className="w-10 h-10" strokeWidth={2} />
                       </div>
-                      <h3 className="text-[14px] font-black uppercase tracking-[0.2em] mb-2 text-foreground dark:text-white">Verify Submission</h3>
+                      <h3 className="text-[14px] font-black uppercase tracking-[0.2em] mb-2 text-foreground dark:text-white">Verify submission</h3>
+
+                      {scanResult && (
+                        <div className="mb-5 w-full max-w-md mx-auto rounded-2xl border border-[#007AFF]/25 bg-[#007AFF]/5 px-4 py-3 text-center">
+                          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#007AFF]/80 block mb-1.5">
+                            Scanned code
+                          </span>
+                          <p className="text-[13px] font-mono font-bold text-foreground dark:text-white break-all leading-snug">
+                            {scanResult}
+                          </p>
+                        </div>
+                      )}
                       
                       <div className="mb-6 space-y-1">
                         <p className="text-[14px] font-black text-foreground dark:text-white uppercase tracking-tight">
                           {lookupResult?.productName || 'Unknown Item'}
                         </p>
                         <p className="text-[10px] font-bold text-foreground/50 dark:text-white/40 uppercase tracking-[0.2em]">
-                          SKU: {lookupResult?.sku || 'N/A'} • {scanResult}
+                          SKU: {lookupResult?.sku || 'N/A'}
                         </p>
                         {lookupResult?.currentQty !== undefined && (
                           <p className="text-[10px] font-black text-[#007AFF] uppercase tracking-widest mt-2">
@@ -486,7 +596,7 @@ export default function InventoryScannerPage() {
                         <div className="pt-4 space-y-3">
                            <div className="p-3 bg-black/5 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/5">
                               <h4 className="text-[9.5px] font-black uppercase tracking-widest mb-1">Standard Scanner (Keyboard Mode)</h4>
-                              <p className="text-[10px] text-foreground/60 leading-relaxed font-medium">Most plug-and-play barcode scanners emulate a typing keyboard. Just verify "USB/Bluetooth Scanner (Keyboard Mode)" is selected above and scan. You don't need to add the USB connection explicitly.</p>
+                              <p className="text-[10px] text-foreground/60 leading-relaxed font-medium">Most USB and Bluetooth scanners type into the page like a keyboard. Keep the cursor in the scan box (it focuses automatically). You can highlight any row in Hardware Link — keyboard scans still work. Only use Add USB/COM if your device manual says to use serial or raw HID.</p>
                            </div>
                            <div className="p-3 bg-[#007AFF]/5 rounded-xl border border-[#007AFF]/20">
                               <h4 className="text-[9.5px] font-black uppercase tracking-widest mb-1 text-[#007AFF]">Advanced Scanners (Web HID/COM)</h4>

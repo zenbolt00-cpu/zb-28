@@ -73,7 +73,7 @@ interface UseDeviceScannerOptions {
   onScan: (barcode: string, deviceId: string) => void;
   /** ms between keystrokes to be treated as scanner (not manual typing). Default 80 */
   keyboardDebounceMs?: number;
-  /** min barcode length to accept from keyboard wedge. Default 4 */
+  /** min barcode length to accept from keyboard wedge. Default 1 (suffix Enter/Tab or fast burst). */
   minBarcodeLength?: number;
 }
 
@@ -117,10 +117,16 @@ function decodeHIDReport(data: DataView): string {
 
 // ─── Hook ──────────────────────────────────────────────────────────────────────
 
+function isScanTerminatorKey(e: KeyboardEvent): boolean {
+  if (e.key === 'Enter' || e.key === 'Tab') return true;
+  if (e.code === 'NumpadEnter') return true;
+  return false;
+}
+
 export function useDeviceScanner({
   onScan,
   keyboardDebounceMs = 80,
-  minBarcodeLength = 4,
+  minBarcodeLength = 1,
 }: UseDeviceScannerOptions): UseDeviceScannerReturn {
 
   const KEYBOARD_DEVICE_ID = 'keyboard-wedge';
@@ -137,11 +143,6 @@ export function useDeviceScanner({
 
   const onScanRef = useRef(onScan);
   useEffect(() => { onScanRef.current = onScan; }, [onScan]);
-
-  const selectedDeviceIdRef = useRef(selectedDeviceId);
-  useEffect(() => {
-    selectedDeviceIdRef.current = selectedDeviceId;
-  }, [selectedDeviceId]);
 
   // ── Keyboard wedge state ────────────────────────────────────────────────────
   const kbBufferRef = useRef('');
@@ -171,23 +172,23 @@ export function useDeviceScanner({
     );
   }, []);
 
-  const shouldAcceptKeyboardWedge = useCallback(() => {
-    const cur = selectedDeviceIdRef.current;
-    return cur === KEYBOARD_DEVICE_ID || cur === null;
-  }, []);
-
-  const dispatchKeyboardWedgeScan = useCallback(
-    (raw: string, e: KeyboardEvent) => {
+  /**
+   * Keyboard wedge must always be honored: most USB/Bluetooth scanners only emulate a keyboard.
+   * Selecting USB HID/COM in the UI must not block those keystrokes (common misconfiguration).
+   */
+  const flushKeyboardWedgeScan = useCallback(
+    (raw: string, e?: KeyboardEvent) => {
       const barcode = raw.trim();
       if (barcode.length < minBarcodeLength) return;
-      if (!shouldAcceptKeyboardWedge()) return;
       markKeyboardActive();
       kbBufferRef.current = '';
       onScanRef.current(barcode, KEYBOARD_DEVICE_ID);
-      e.preventDefault();
-      e.stopPropagation();
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
     },
-    [markKeyboardActive, minBarcodeLength, shouldAcceptKeyboardWedge]
+    [markKeyboardActive, minBarcodeLength]
   );
 
   function isScannerCaptureElement(el: EventTarget | null): el is HTMLInputElement | HTMLTextAreaElement {
@@ -198,9 +199,38 @@ export function useDeviceScanner({
   // Keyboard-wedge listener — capture phase so we handle Enter before form submit / other handlers
   useEffect(() => {
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
-    const bufferIdleMs = Math.max(500, keyboardDebounceMs * 6);
+    let idleFlushTimer: ReturnType<typeof setTimeout> | null = null;
+    const bufferIdleMs = Math.max(550, keyboardDebounceMs * 7);
+    /** Scanners finish a code in a short wall-clock window; slow typing should require Enter. */
+    const maxBurstMs = 4500;
+    const scanIdleGapMs = Math.max(85, Math.min(160, keyboardDebounceMs + 35));
+    const burstStartRef = { current: 0 };
+
+    const clearIdleFlush = () => {
+      if (idleFlushTimer) {
+        clearTimeout(idleFlushTimer);
+        idleFlushTimer = null;
+      }
+    };
+
+    const scheduleIdleFlush = () => {
+      clearIdleFlush();
+      idleFlushTimer = setTimeout(() => {
+        idleFlushTimer = null;
+        const barcode = kbBufferRef.current.trim();
+        if (barcode.length < minBarcodeLength) return;
+        const burstMs = Date.now() - burstStartRef.current;
+        if (burstMs <= maxBurstMs) {
+          flushKeyboardWedgeScan(barcode);
+        } else {
+          kbBufferRef.current = '';
+        }
+      }, scanIdleGapMs);
+    };
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.isComposing) return;
+
       const el = document.activeElement;
       const inGenericField =
         el &&
@@ -208,12 +238,13 @@ export function useDeviceScanner({
 
       // Dedicated capture field: scanner types here; on Enter/Tab read value (keyboard wedge).
       if (inGenericField && isScannerCaptureElement(el)) {
-        if (e.key === 'Enter' || e.key === 'Tab') {
+        if (isScanTerminatorKey(e)) {
           if (debounceTimer) clearTimeout(debounceTimer);
+          clearIdleFlush();
           const input = el as HTMLInputElement;
           const barcode = (input.value || '').trim();
           if (barcode.length >= minBarcodeLength) {
-            dispatchKeyboardWedgeScan(barcode, e);
+            flushKeyboardWedgeScan(barcode, e);
           }
         }
         return;
@@ -222,25 +253,28 @@ export function useDeviceScanner({
       // Other inputs: don't steal keystrokes from manual typing
       if (inGenericField) return;
 
-      // Scanner terminates with Enter or Tab
-      if (e.key === 'Enter' || e.key === 'Tab') {
+      // Scanner terminates with Enter or Tab (incl. numpad enter)
+      if (isScanTerminatorKey(e)) {
         if (debounceTimer) clearTimeout(debounceTimer);
+        clearIdleFlush();
         const barcode = kbBufferRef.current.trim();
         kbBufferRef.current = '';
         if (barcode.length >= minBarcodeLength) {
-          dispatchKeyboardWedgeScan(barcode, e);
+          flushKeyboardWedgeScan(barcode, e);
         }
         return;
       }
 
       // Accumulate printable characters only
       if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        if (kbBufferRef.current.length === 0) burstStartRef.current = Date.now();
         kbBufferRef.current += e.key;
 
         if (debounceTimer) clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
           kbBufferRef.current = '';
         }, bufferIdleMs);
+        scheduleIdleFlush();
       }
     };
 
@@ -248,9 +282,10 @@ export function useDeviceScanner({
     return () => {
       window.removeEventListener('keydown', handleKeyDown, true);
       if (debounceTimer) clearTimeout(debounceTimer);
+      clearIdleFlush();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [keyboardDebounceMs, minBarcodeLength, dispatchKeyboardWedgeScan]);
+  }, [keyboardDebounceMs, minBarcodeLength, flushKeyboardWedgeScan]);
 
   // ── Restore previously paired HID devices on mount ──────────────────────────
   useEffect(() => {
@@ -292,9 +327,7 @@ export function useDeviceScanner({
           setDevices(prev =>
             prev.map(d => d.id === deviceId ? { ...d, connected: true, lastActivity: Date.now() } : d)
           );
-          if (selectedDeviceIdRef.current === deviceId) {
-            onScanRef.current(barcode, deviceId);
-          }
+          onScanRef.current(barcode, deviceId);
         }
       };
 
@@ -414,7 +447,7 @@ export function useDeviceScanner({
             buffer = lines.pop() ?? '';
             for (const line of lines) {
               const barcode = line.trim();
-              if (barcode.length >= minBarcodeLength && selectedDeviceIdRef.current === id) {
+              if (barcode.length >= minBarcodeLength) {
                 onScanRef.current(barcode, id);
               }
             }

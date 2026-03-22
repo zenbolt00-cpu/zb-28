@@ -179,7 +179,7 @@ export function ScannerComponent(props: ScannerComponentProps) {
     serialSupported,
     globalError,
     clearError,
-  } = useDeviceScanner({ onScan: handleScan });
+  } = useDeviceScanner({ onScan: handleScan, minBarcodeLength: 1, keyboardDebounceMs: 100 });
 
   useEffect(() => {
     if (props.onConnectionChange) {
