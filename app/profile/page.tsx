@@ -22,7 +22,6 @@ import {
   Clock,
 } from "lucide-react";
 import Link from "next/link";
-import StorefrontNav from "@/components/StorefrontNav";
 import { useBookmarks } from "@/lib/bookmark-context";
 
 export default function ProfilePage() {
@@ -184,7 +183,10 @@ export default function ProfilePage() {
             {/* Info */}
             <div className="flex-1 min-w-0">
               <h1 className="text-[17px] font-bold tracking-tight text-foreground truncate leading-tight">{name}</h1>
-              <div className="flex items-center gap-3 mt-1">
+              {email && (
+                <p className="text-[10px] text-foreground/50 truncate tracking-wide mt-0.5">{email}</p>
+              )}
+              <div className="flex items-center gap-3 mt-1.5">
                 <div className="flex items-center gap-1">
                   <span className="text-[11px] font-bold text-foreground">{customer?.followersCount || 0}</span>
                   <span className="text-[10px] text-foreground/35 font-medium">Followers</span>
@@ -314,7 +316,7 @@ export default function ProfilePage() {
                     <Link key={item.id} href={`/products/${item.handle}`}>
                       <div className="aspect-[4/5] rounded-[1.25rem] overflow-hidden relative group" style={{ border: "1px solid rgba(255,255,255,0.05)" }}>
                         <img
-                          src={item.image?.src || "/placeholder.png"}
+                          src={item.image?.src || "/zb-logo-220px.png"}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                           alt={item.title}
                         />
@@ -399,7 +401,7 @@ export default function ProfilePage() {
         </AnimatePresence>
       </main>
 
-      <StorefrontNav />
+
     </div>
   );
 }

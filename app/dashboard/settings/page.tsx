@@ -131,7 +131,8 @@ export default function AdminSettingsPage() {
     const adminKeys: (keyof SettingsData)[] = [
         'shopDomain', 'accessToken', 'delhiveryApiKey',
         'razorpayKeyId', 'razorpayKeySecret',
-        'shiprocketEmail', 'shiprocketToken', 'webhookSecret'
+        'shiprocketEmail', 'shiprocketToken', 'webhookSecret',
+        'ringCarouselItems'
     ];
 
     const partialUpdate: any = { shopId: settings.id };
@@ -237,6 +238,13 @@ export default function AdminSettingsPage() {
         <SettingsGroup title="Webhooks" icon={Webhook}>
            <SettingsRow label="Webhook Secret" icon={Webhook} description="HMAC SHA256 validation">
               <InputField value={settings.webhookSecret!} onChange={set('webhookSecret')} secret />
+           </SettingsRow>
+        </SettingsGroup>
+
+        {/* Homepage Presentation */}
+        <SettingsGroup title="Homepage Presentation" icon={Eye}>
+           <SettingsRow label="Accessory Collection" icon={Store} description="Shopify collection handle for the homepage carousel (default: accessories)">
+              <InputField value={settings.ringCarouselItems === "[]" ? "" : settings.ringCarouselItems || ""} onChange={set('ringCarouselItems')} placeholder="accessories" />
            </SettingsRow>
         </SettingsGroup>
 

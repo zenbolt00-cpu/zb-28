@@ -12,13 +12,21 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const customer = await prisma.customer.findFirst({
-      where: {
-        OR: [
-          { email: session.user.email || "" },
-          { id: (session.user as any).id || "" }
-        ]
-      },
+    const whereClause: any = { OR: [] };
+    if (session.user.email) {
+      whereClause.OR.push({ email: session.user.email });
+    }
+    const userId = (session.user as any).id;
+    if (userId) {
+      whereClause.OR.push({ id: userId });
+    }
+
+    if (whereClause.OR.length === 0) {
+      return NextResponse.json({ error: "No valid user identifier" }, { status: 400 });
+    }
+
+    let customer = await prisma.customer.findFirst({
+      where: whereClause,
       include: {
         orders: {
           include: { items: true },
@@ -28,6 +36,31 @@ export async function GET() {
         communityMember: true
       }
     });
+
+    // If customer has no name or orders, try a quick sync from Shopify
+    if (customer && (!customer.name || customer.name === 'New User') && customer.phone) {
+      try {
+        const { searchCustomerByPhone } = await import('@/lib/shopify-admin');
+        const shopifyCustomer = await searchCustomerByPhone(customer.phone);
+        if (shopifyCustomer) {
+          customer = await prisma.customer.update({
+            where: { id: customer.id },
+            data: {
+              name: `${shopifyCustomer.first_name || ""} ${shopifyCustomer.last_name || ""}`.trim() || undefined,
+              email: shopifyCustomer.email || undefined,
+              ordersCount: shopifyCustomer.orders_count,
+              totalSpent: parseFloat(shopifyCustomer.total_spent || "0"),
+            },
+            include: {
+              orders: { include: { items: true }, orderBy: { createdAt: "desc" }, take: 5 },
+              communityMember: true
+            }
+          });
+        }
+      } catch (e) {
+        console.error("Profile sync-on-get error:", e);
+      }
+    }
 
     if (!customer) {
       return NextResponse.json({ error: "Customer not found" }, { status: 404 });
@@ -50,13 +83,21 @@ export async function PATCH(req: Request) {
     const body = await req.json();
     const { name, region, image } = body;
 
+    const whereClause: any = { OR: [] };
+    if (session.user.email) {
+      whereClause.OR.push({ email: session.user.email });
+    }
+    const userId = (session.user as any).id;
+    if (userId) {
+      whereClause.OR.push({ id: userId });
+    }
+
+    if (whereClause.OR.length === 0) {
+      return NextResponse.json({ error: "No valid user identifier" }, { status: 400 });
+    }
+
     const customer = await prisma.customer.findFirst({
-      where: {
-        OR: [
-          { email: session.user.email || "" },
-          { id: (session.user as any).id || "" }
-        ]
-      }
+      where: whereClause
     });
 
     if (!customer) {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Html5QrcodeScanner } from "html5-qrcode";
+import { useLaserScanner } from "@/lib/hooks/useLaserScanner";
 import { 
   ScanLine, 
   ArrowLeft, 
@@ -17,7 +17,8 @@ import {
   XCircle,
   ClipboardList,
   Plus,
-  Minus
+  Minus,
+  Terminal
 } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -30,7 +31,6 @@ export default function InventoryScannerPage() {
   const [message, setMessage] = useState('');
   const [mode, setMode] = useState<'STOCK_IN' | 'ORDER_OUT' | 'RETURN' | 'EXCHANGE' | 'RTO'>('STOCK_IN');
   const [recentScans, setRecentScans] = useState<any[]>([]);
-  const scannerRef = useRef<Html5QrcodeScanner | null>(null);
 
   const modes = [
     { id: 'STOCK_IN', label: 'Stock In', icon: Package, color: 'text-[#34C759]', bg: 'bg-[#34C759]/10' },
@@ -39,25 +39,6 @@ export default function InventoryScannerPage() {
     { id: 'EXCHANGE', label: 'Exchange', icon: ArrowRightLeft, color: 'text-[#AF52DE]', bg: 'bg-[#AF52DE]/10' },
     { id: 'RTO', label: 'RTO', icon: XCircle, color: 'text-[#FF3B30]', bg: 'bg-[#FF3B30]/10' },
   ];
-
-  useEffect(() => {
-    if (isScanning) {
-      const scanner = new Html5QrcodeScanner(
-        "reader",
-        { fps: 10, qrbox: { width: 280, height: 280 } },
-        /* verbose= */ false
-      );
-
-      scanner.render(onScanSuccess, onScanFailure);
-      scannerRef.current = scanner;
-    }
-
-    return () => {
-      if (scannerRef.current) {
-        scannerRef.current.clear().catch(e => console.error("Failed to clear scanner", e));
-      }
-    };
-  }, [isScanning]);
 
   const onScanSuccess = async (decodedText: string) => {
     if (status === 'syncing' || status === 'confirm') return;
@@ -68,9 +49,11 @@ export default function InventoryScannerPage() {
     setStatus('confirm');
   };
 
-  const onScanFailure = (error: any) => {
-    // Suppress noise
-  };
+  // Keyboard wedge / USB scanner hook
+  const { isConnected } = useLaserScanner({
+    onScan: onScanSuccess,
+    minLength: 4
+  });
 
   const handleSync = async () => {
     if (!scanResult) return;
@@ -128,9 +111,16 @@ export default function InventoryScannerPage() {
       {/* Siri Header */}
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 lg:gap-6 mb-8 lg:mb-12 relative z-10">
         <div className="space-y-1 lg:space-y-2">
-          <h1 className="text-2xl lg:text-3xl font-bold text-foreground uppercase tracking-tighter leading-none">
-            Logistics Scanner
-          </h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl lg:text-3xl font-bold text-foreground uppercase tracking-tighter leading-none">
+              Logistics Scanner
+            </h1>
+            <div className={`px-3 py-1 rounded-full border transition-all duration-500 ${isConnected ? 'bg-[#34C759]/10 border-[#34C759]/20 text-[#34C759]' : 'bg-amber-400/10 border-amber-400/20 text-amber-500'}`}>
+              <span className="text-[9px] font-black uppercase tracking-widest leading-none">
+                {isConnected ? 'Scanner Active' : 'Waiting...'}
+              </span>
+            </div>
+          </div>
           <p className="text-[9px] lg:text-[10px] text-foreground/40 font-bold uppercase tracking-[0.3em] max-w-xl">
             Advanced inventory reconciliation and substrate tracking.
           </p>
@@ -175,17 +165,20 @@ export default function InventoryScannerPage() {
             <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-transparent dark:from-white/5 pointer-events-none z-0" />
             
             <div className={`relative z-10 w-full h-[400px] md:h-full min-h-[400px] rounded-[1.5rem] overflow-hidden border border-black/5 dark:border-white/5 bg-black/5 dark:bg-black/20 ${isScanning ? 'shadow-inner' : ''}`}>
-               <div id="reader" className="w-full h-full object-cover scan-region-highlight" style={{ border: 'none' }}></div>
-               
                {isScanning && (
-                  <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center">
-                     <div className="w-64 h-64 border-2 border-[#007AFF]/50 rounded-2xl relative">
-                        <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-[#007AFF] rounded-tl-2xl"></div>
-                        <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-[#007AFF] rounded-tr-2xl"></div>
-                        <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-[#007AFF] rounded-bl-2xl"></div>
-                        <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-[#007AFF] rounded-br-2xl"></div>
-                        <div className="absolute top-0 left-0 w-full h-0.5 bg-[#007AFF] animate-[scan_2s_ease-in-out_infinite] shadow-[0_0_15px_#007AFF]"></div>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/5 dark:bg-black/10">
+                     <div className="w-64 h-64 border-2 border-[#007AFF]/20 rounded-[2.5rem] flex flex-col items-center justify-center bg-black/20 backdrop-blur-md relative overflow-hidden group">
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#007AFF]/10 to-transparent"></div>
+                        <Terminal className="w-16 h-16 text-[#007AFF]/40 mb-4 animate-pulse" strokeWidth={1.5} />
+                        <div className="relative z-10 text-center px-6">
+                           <p className="text-[12px] font-black text-white uppercase tracking-[0.2em] mb-2 leading-none">Ready to Scan</p>
+                           <p className="text-[8px] font-bold text-white/40 uppercase tracking-[0.1em] leading-tight">USB Optical Interface Active</p>
+                        </div>
+                        
+                        {/* Scanning beam animation */}
+                        <div className="absolute top-0 left-0 w-full h-0.5 bg-[#007AFF] animate-[scan_3s_ease-in-out_infinite] shadow-[0_0_15px_#007AFF]"></div>
                      </div>
+                     <p className="mt-8 text-[10px] font-black text-foreground/20 dark:text-white/20 uppercase tracking-[0.5em]">Waiting for transmission</p>
                   </div>
                )}
 
@@ -294,10 +287,10 @@ export default function InventoryScannerPage() {
                    }`}
                  >
                    <div className={`p-3 rounded-xl flex items-center justify-center ${
-                        status === 'success' ? 'bg-[#34C759]/10' :
-                        status === 'error' ? 'bg-[#FF3B30]/10' :
-                        status === 'syncing' ? 'bg-[#007AFF]/10' :
-                        'bg-black/5 dark:bg-white/10'
+                         status === 'success' ? 'bg-[#34C759]/10' :
+                         status === 'error' ? 'bg-[#FF3B30]/10' :
+                         status === 'syncing' ? 'bg-[#007AFF]/10' :
+                         'bg-black/5 dark:bg-white/10'
                    }`}>
                      {status === 'success' ? <CheckCircle2 className="w-6 h-6" strokeWidth={2.5} /> :
                       status === 'error' ? <AlertCircle className="w-6 h-6" strokeWidth={2.5} /> :
@@ -315,8 +308,8 @@ export default function InventoryScannerPage() {
                      <p className="text-[12px] font-bold opacity-90 mb-3">{status === 'idle' ? `Awaiting ${mode.toLowerCase().replace('_', ' ')} signal` : message}</p>
                      <p className="text-[10px] font-medium opacity-60 uppercase tracking-wide leading-relaxed">
                        {status === 'idle' ? 'Align optical link with target matrix QR cluster.' : 
-                        status === 'syncing' ? 'Injecting transaction into the distributed ledger...' :
-                        status === 'success' ? 'Terminal state achieved. Valid block captured.' : 'Signal failure detected in transmission.'}
+                         status === 'syncing' ? 'Injecting transaction into the distributed ledger...' :
+                         status === 'success' ? 'Terminal state achieved. Valid block captured.' : 'Signal failure detected in transmission.'}
                      </p>
                    </div>
                  </motion.div>

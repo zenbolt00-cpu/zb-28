@@ -12,7 +12,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/lib/cart-context";
 import { useBookmarks } from "@/lib/bookmark-context";
 import { useRecentlyViewed } from "@/lib/recently-viewed-context";
+import { handleImageError } from "@/components/ImagePlaceholder";
 import dynamic from "next/dynamic";
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 
 const CheckoutWebView = dynamic(() => import("@/components/CheckoutWebView"), { ssr: false });
 const OrderSuccess = dynamic(() => import("@/components/OrderSuccess"), { ssr: false });
@@ -142,7 +144,7 @@ export default function ProductDetailsClient({
       title: product.title,
       size: selectedSize,
       price: variant.price,
-      image: product.image?.src || product.images[0]?.src || "/placeholder.png"
+      image: product.image?.src || product.images[0]?.src || "/zb-logo-220px.png"
     });
 
     setIsAdded(true);
@@ -174,7 +176,7 @@ export default function ProductDetailsClient({
       title: product.title,
       size: selectedSize,
       price: variant.price,
-      image: product.image?.src || product.images[0]?.src || "/placeholder.png"
+      image: product.image?.src || product.images[0]?.src || "/zb-logo-220px.png"
     });
 
     router.push("/checkout");
@@ -270,7 +272,7 @@ export default function ProductDetailsClient({
               className="absolute inset-0"
             >
               <Image
-                src={allImages[imageIndex]?.src}
+                src={allImages[imageIndex]?.src || "/zb-logo-220px.png"}
                 alt={product.title}
                 fill
                 className="object-cover"
@@ -278,6 +280,7 @@ export default function ProductDetailsClient({
                 sizes="100vw"
                 quality={100}
                 draggable={false}
+                onError={handleImageError}
               />
             </motion.div>
           </AnimatePresence>
@@ -299,7 +302,8 @@ export default function ProductDetailsClient({
         {/* Transparent Gesture & Spacer Layer - FEATHER TOUCH READY */}
         <div className="relative h-[85dvh] w-full group">
           <motion.div 
-            className="absolute inset-0 z-0 touch-pan-y"
+            className="absolute inset-0 z-0 touch-pan-y cursor-zoom-in"
+            onClick={() => setIsGalleryOpen(true)}
             drag="x"
             dragConstraints={{ left: 0, right: 0 }}
             dragElastic={0.9}
@@ -334,13 +338,14 @@ export default function ProductDetailsClient({
               >
                 <div className="absolute inset-0 bg-black/5 z-10 pointer-events-none" />
                 <Image 
-                  src={img.src} 
+                  src={img.src || "/zb-logo-220px.png"} 
                   alt="variant" 
                   fill 
                   className="object-cover transition-transform duration-700" 
                   sizes="120px" 
                   quality={100} 
                   priority={i < 4}
+                  onError={handleImageError}
                 />
               </button>
             ))}
@@ -643,14 +648,16 @@ export default function ProductDetailsClient({
                           }}
                         >
                           {/* Large Image Container */}
-                          <div className="relative w-full aspect-[3/4.5] overflow-hidden bg-background">
+                          <div className="relative w-full aspect-[3/4.5] overflow-hidden bg-foreground/[0.03]">
                             <Image 
-                              src={p.image?.src || p.images?.[0]?.src || "/placeholder.png"} 
+                              src={p.image?.src || p.images?.[0]?.src || "/zb-logo-220px.png"} 
                               alt={p.title} 
                               fill 
                               className="object-cover transition-transform duration-[1500ms] ease-out group-hover:scale-[1.03]" 
                               sizes="(max-width: 600px) 100vw, 400px" 
                               quality={100} 
+                              onError={handleImageError}
+                              style={(p.image?.src || p.images?.[0]?.src || "/zb-logo-220px.png") === "/zb-logo-220px.png" ? { objectFit: "contain", padding: "25%", opacity: 0.3 } : {}}
                             />
                             {/* In-stock overlay hover effect optionally */}
                             <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
@@ -705,7 +712,16 @@ export default function ProductDetailsClient({
               <span className="text-[8px] font-bold uppercase tracking-widest text-foreground/40">Sizing Reference</span>
               <button onClick={() => setShowSizeChart(false)} className="px-4 py-1.5 rounded-full bg-foreground/5 text-[7px] uppercase tracking-widest font-bold">Dismiss</button>
             </div>
-            <img src={sizeChartImageUrl} alt="Size Guide" className="w-full rounded-2xl shadow-inner border border-foreground/5" />
+            <div className="aspect-square w-full overflow-auto rounded-2xl bg-foreground/[0.03] border border-foreground/5 hide-scrollbar overscroll-none">
+              <div className="min-w-full min-h-full flex items-center justify-center">
+                <img 
+                  src={sizeChartImageUrl} 
+                  alt="Size Guide" 
+                  className="max-w-none w-auto h-auto" 
+                  style={{ minWidth: '100%', minHeight: '100%' }}
+                />
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -752,17 +768,28 @@ export default function ProductDetailsClient({
                 }}
               >
                 {allImages.map((img, i) => (
-                  <div key={`gallery-${img.src}`} className="w-full h-full flex-shrink-0 snap-start flex items-center justify-center p-2">
-                    <div className="relative w-full h-[80dvh]">
-                      <Image 
-                        src={img.src} 
-                        alt={product.title} 
-                        fill 
-                        className="object-contain" 
-                        sizes="100vw"
-                        priority={i === activeImg}
-                      />
-                    </div>
+                  <div key={`gallery-${img.src}`} className="w-full h-full flex-shrink-0 snap-center flex items-center justify-center p-2">
+                    <TransformWrapper
+                      initialScale={1}
+                      minScale={1}
+                      maxScale={4}
+                      doubleClick={{ step: 1.5 }}
+                      wheel={{ wheelDisabled: false }}
+                    >
+                      <TransformComponent wrapperClass="!w-full !h-full flex items-center justify-center" contentClass="!w-full !h-full flex items-center justify-center">
+                        <div className="relative w-full h-[80dvh] cursor-zoom-in">
+                          <Image 
+                            src={img.src || "/zb-logo-220px.png"} 
+                            alt={product.title} 
+                            fill 
+                            className="object-contain" 
+                            sizes="100vw"
+                            priority={i === activeImg}
+                            onError={handleImageError}
+                          />
+                        </div>
+                      </TransformComponent>
+                    </TransformWrapper>
                   </div>
                 ))}
               </div>

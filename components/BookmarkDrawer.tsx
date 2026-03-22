@@ -8,6 +8,7 @@ import { useBookmarks } from "@/lib/bookmark-context";
 import { useCart } from "@/lib/cart-context";
 import dynamic from "next/dynamic";
 import { useState } from "react";
+import { handleImageError } from "./ImagePlaceholder";
 
 const QuickAddModal = dynamic(() => import("./QuickAddModal"), { ssr: false });
 
@@ -92,10 +93,11 @@ export default function BookmarkDrawer({ isOpen, onClose }: BookmarkDrawerProps)
                       <Link href={`/products/${product.handle}`} onClick={onClose} className="shrink-0">
                         <div className="relative w-20 h-24 rounded-xl overflow-hidden shadow-sm">
                           <Image 
-                            src={product.image?.src || product.images?.[0]?.src || "/placeholder.png"} 
+                            src={product.image?.src || product.images?.[0]?.src || "/zb-logo-220px.png"} 
                             alt={product.title} 
                             fill 
                             className="object-cover group-hover:scale-105 transition-transform duration-500" 
+                            onError={handleImageError}
                           />
                         </div>
                       </Link>

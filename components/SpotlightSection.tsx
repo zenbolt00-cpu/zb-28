@@ -5,33 +5,33 @@ import Link from "next/link";
 import NextImage from "next/image";
 import { ShopifyProduct } from "@/lib/shopify-admin";
 
-const AUTHENTIC_HEADINGS = [
-  "ROGUE WINTER",
-  "BLUE DOMINION",
-  "VINTAGE DUSK",
-  "URBAN ARMOUR",
-  "ZIPCORE DENIM",
-  "GRAPHIC SOUL"
-];
-
 export default function SpotlightSection({ 
   title = "AUTHENTIC STREETWEAR", 
-  subtitle = "Luxury Indian streetwear for modern men. Redefining bold everyday style." 
+  subtitle = "Luxury Indian streetwear for modern men. Redefining bold everyday style.",
+  collection = "tshirts",
+  productIds = ""
 }: { 
   title?: string; 
   subtitle?: string; 
+  collection?: string;
+  productIds?: string;
 }) {
   const [products, setProducts] = useState<ShopifyProduct[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/shopify/products?pageSize=6&collection=tshirts")
+    // If specific product IDs are provided, fetch them; otherwise fetch by collection
+    const url = productIds && productIds.trim() 
+      ? `/api/shopify/products?ids=${encodeURIComponent(productIds)}`
+      : `/api/shopify/products?pageSize=6&collection=${collection || 'tshirts'}`;
+
+    fetch(url)
       .then(res => res.json())
       .then(data => {
         if (data.products) setProducts(data.products);
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [collection, productIds]);
 
   if (loading) {
     return (
@@ -77,11 +77,10 @@ export default function SpotlightSection({
                   <span className="text-[7px] text-muted-foreground/20 uppercase tracking-[0.3em] font-light">ZB Studio</span>
                 </div>
               )}
-              {/* Subtle overlay removed for clarity in light mode */}
             </div>
-            <div className="flex flex-col items-center gap-1.5 px-1">
-              <span className="text-[8px] font-bold tracking-[0.25em] text-foreground/80 uppercase group-hover/item:text-foreground transition-colors text-center line-clamp-1">
-                {AUTHENTIC_HEADINGS[idx] || product?.title || "ZICA BELLA"}
+            <div className="flex flex-col items-center gap-1.5 px-1 w-full text-center">
+              <span className="text-[8px] font-bold tracking-[0.25em] text-foreground/80 uppercase group-hover/item:text-foreground transition-colors line-clamp-1">
+                {product?.title || "ZICA BELLA"}
               </span>
               <div className="h-[1px] w-0 group-hover/item:w-full bg-foreground/20 transition-all duration-700 ease-out" />
             </div>

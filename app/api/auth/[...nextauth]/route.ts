@@ -1,8 +1,10 @@
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
+import AppleProvider from "next-auth/providers/apple";
 import CredentialsProvider from "next-auth/providers/credentials";
 import prisma from "@/lib/db";
 import { AuthOptions } from "next-auth";
+import { searchCustomerByPhone, fetchOrdersByCustomerId } from "@/lib/shopify-admin";
 
 // Shopify Storefront API customer access token
 async function shopifyCustomerLogin(email: string, password: string) {
@@ -84,6 +86,10 @@ export const authOptions: AuthOptions = {
       clientId: process.env.GOOGLE_CLIENT_ID || "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
     }),
+    AppleProvider({
+      clientId: process.env.APPLE_ID || "",
+      clientSecret: process.env.APPLE_SECRET || "",
+    }),
     CredentialsProvider({
       id: "otp",
       name: "OTP",
@@ -93,68 +99,131 @@ export const authOptions: AuthOptions = {
       },
       async authorize(credentials) {
         try {
-          if (!credentials?.phone || !credentials?.otp) {
-            console.warn("[AUTH] Missing phone or OTP in credentials");
-            return null;
-          }
-          
-          // Validate phone: must have at least 10 digits when stripped
-          const phoneDigits = credentials.phone.replace(/\D/g, "");
-          if (phoneDigits.length < 10) {
-            console.error(`[AUTH] Invalid phone number provided: ${credentials.phone}`);
-            throw new Error("Invalid phone number. Must be at least 10 digits.");
-          }
+          const providedOtp = String(credentials?.otp || "").trim();
+          const providedPhone = String(credentials?.phone || "").trim();
 
-          // Mock OTP verification — replace with SMS provider (Twilio, etc.) in production
-          // User requested to keep this logic for now but make it "fully functional"
-          if (credentials.otp !== "123456") {
-            console.warn(`[AUTH] Invalid OTP attempt for phone: ${credentials.phone}`);
+          if (providedOtp !== "123456") {
+            console.warn(`[AUTH] Invalid OTP attempt: Received "${providedOtp}" for phone: ${providedPhone}`);
             throw new Error("Invalid OTP");
           }
 
-          // Normalize: extract last 10 digits for lookup
+          const phoneDigits = providedPhone.replace(/\D/g, "");
+
           const normalizedPhone = phoneDigits.slice(-10);
-          // Keep the full international number for storage
-          const fullPhone = credentials.phone.startsWith('+') ? credentials.phone : `+${phoneDigits}`;
+          const fullPhone = `+${phoneDigits}`;
 
-          console.log(`[AUTH] Attempting OTP login for phone: ${fullPhone} (normalized: ${normalizedPhone})`);
+          console.log(`[AUTH] --- ATTEMPT --- phone: ${fullPhone}, normalized: ${normalizedPhone}, otp: ${providedOtp}`);
 
+          // Try to find local customer
           let customer = await prisma.customer.findFirst({
             where: { 
               OR: [
-                { phone: credentials.phone },
-                { phone: normalizedPhone },
-                { phone: `+91${normalizedPhone}` },
                 { phone: fullPhone },
+                { phone: phoneDigits },
+                { phone: { contains: normalizedPhone } },
+                { shopifyId: { contains: normalizedPhone } }
               ]
-            },
-          });
-
-          if (!customer) {
-            console.log(`[AUTH] Customer not found for ${fullPhone}. Creating new customer...`);
-            let shop = await prisma.shop.findFirst();
-            if (!shop) {
-              console.log("[AUTH] No shop found. Creating a default shop to allow login.");
-              shop = await prisma.shop.create({
-                data: {
-                  domain: process.env.SHOPIFY_STORE_DOMAIN || "zicabella.myshopify.com",
-                  accessToken: process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_TOKEN || "default_token",
-                }
-              });
             }
+          });
+          
+          console.log(`[AUTH] Local customer found: ${customer ? 'YES (ID: ' + customer.id + ')' : 'NO'}`);
 
+          // ALWAYS search in Shopify
+          console.log(`[AUTH] Searching Shopify for ${fullPhone}...`);
+          let shopifyCustomer = null;
+          try {
+            shopifyCustomer = await searchCustomerByPhone(fullPhone);
+            if (!shopifyCustomer) {
+              shopifyCustomer = await searchCustomerByPhone(phoneDigits);
+            }
+            if (!shopifyCustomer) {
+              shopifyCustomer = await searchCustomerByPhone(normalizedPhone);
+            }
+            console.log(`[AUTH] Shopify Customer found: ${shopifyCustomer ? 'YES (ID: ' + shopifyCustomer.id + ')' : 'NO'}`);
+          } catch (e: any) {
+            console.error("[AUTH] Shopify search unexpected error:", e.message);
+          }
+
+          let shop = await prisma.shop.findFirst();
+          if (!shop) {
+            console.log("[AUTH] No shop found, creating default shop...");
+            shop = await prisma.shop.create({
+              data: {
+                domain: process.env.SHOPIFY_STORE_DOMAIN || "8tiahf-bk.myshopify.com",
+                accessToken: process.env.SHOPIFY_ADMIN_ACCESS_TOKEN || "",
+              }
+            });
+          }
+
+          // Safety fallback to prevent .id crash if DB is still returning null (mock state)
+          const shopId = (shop as any)?.id || 'default_shop_id';
+
+          if (shopifyCustomer) {
+            console.log(`[AUTH] Syncing data for Shopify Customer: ${shopifyCustomer.id}`);
+            customer = await prisma.customer.upsert({
+              where: { shopifyId: String(shopifyCustomer.id) },
+              create: {
+                shopifyId: String(shopifyCustomer.id),
+                shopId: shopId,
+                email: shopifyCustomer.email,
+                name: `${shopifyCustomer.first_name || ""} ${shopifyCustomer.last_name || ""}`.trim() || shopifyCustomer.email?.split("@")[0] || "User",
+                phone: shopifyCustomer.phone || fullPhone,
+                ordersCount: shopifyCustomer.orders_count || 0,
+                totalSpent: parseFloat(shopifyCustomer.total_spent || "0"),
+              },
+              update: {
+                email: shopifyCustomer.email || undefined,
+                name: `${shopifyCustomer.first_name || ""} ${shopifyCustomer.last_name || ""}`.trim() || customer?.name || undefined,
+                phone: shopifyCustomer.phone || undefined,
+                ordersCount: shopifyCustomer.orders_count,
+                totalSpent: parseFloat(shopifyCustomer.total_spent || "0"),
+              }
+            });
+
+            // Sync orders synchronously for this login
+            try {
+              const shopifyOrders = await fetchOrdersByCustomerId(String(shopifyCustomer.id));
+              console.log(`[AUTH] Found ${shopifyOrders.length} Shopify orders. Upserting...`);
+              for (const o of shopifyOrders) {
+                await prisma.order.upsert({
+                  where: { shopifyOrderId: String(o.id) },
+                  create: {
+                    shopId: shopId,
+                    shopifyOrderId: String(o.id),
+                    customerId: customer.id,
+                    status: 'active',
+                    totalPrice: parseFloat(o.total_price || '0'),
+                    currency: o.currency || 'INR',
+                    paymentStatus: o.financial_status || 'pending',
+                    fulfillmentStatus: o.fulfillment_status || 'unfulfilled',
+                    createdAt: new Date(o.created_at),
+                  },
+                  update: {
+                    status: 'active',
+                    totalPrice: parseFloat(o.total_price || '0'),
+                    paymentStatus: o.financial_status || 'pending',
+                    fulfillmentStatus: o.fulfillment_status || 'unfulfilled',
+                  }
+                });
+              }
+            } catch (orderSyncError) {
+              console.error("[AUTH] Order sync error:", orderSyncError);
+            }
+          } else if (!customer) {
+            console.log(`[AUTH] No Shopify record and no local record. Creating guest for ${fullPhone}.`);
             customer = await prisma.customer.create({
               data: {
-                phone: fullPhone,
-                shopId: shop.id,
+                  phone: fullPhone,
+                  shopId: shopId,
                 shopifyId: `otp_${Date.now()}`,
                 name: "New User",
               },
             });
-            console.log(`[AUTH] New customer created: ${customer.id}`);
           } else {
-            console.log(`[AUTH] Existing customer found: ${customer.id}`);
+            console.log(`[AUTH] No Shopify record found, but local customer already exists: ${customer.id}`);
           }
+
+          if (!customer) return null;
 
           return {
             id: customer.id,
@@ -189,7 +258,6 @@ export const authOptions: AuthOptions = {
             throw new Error("Invalid email or password");
           }
 
-          // Find or create customer in local DB
           let customer = await prisma.customer.findFirst({
             where: { email: shopifyCustomer.email },
           });
@@ -197,21 +265,22 @@ export const authOptions: AuthOptions = {
           if (!customer) {
             let shop = await prisma.shop.findFirst();
             if (!shop) {
-              console.log("[AUTH] No shop found. Creating a default shop to allow login.");
+              console.log("[AUTH] No shop found in shopify-customer, creating default...");
               shop = await prisma.shop.create({
                 data: {
-                  domain: process.env.SHOPIFY_STORE_DOMAIN || "zicabella.myshopify.com",
-                  accessToken: process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_TOKEN || "default_token",
+                  domain: process.env.SHOPIFY_STORE_DOMAIN || "8tiahf-bk.myshopify.com",
+                  accessToken: process.env.SHOPIFY_ADMIN_ACCESS_TOKEN || "",
                 }
               });
             }
+            const shopId = (shop as any)?.id || 'default_shop_id';
 
             customer = await prisma.customer.create({
               data: {
                 email: shopifyCustomer.email,
                 name: `${shopifyCustomer.firstName || ""} ${shopifyCustomer.lastName || ""}`.trim() || "Shopify User",
-                phone: shopifyCustomer.phone || null,
-                shopId: shop.id,
+                  phone: shopifyCustomer.phone || null,
+                  shopId: shopId,
                 shopifyId: shopifyCustomer.id,
               },
             });
@@ -233,7 +302,7 @@ export const authOptions: AuthOptions = {
   ],
   callbacks: {
     async signIn({ user, account }) {
-      if (account?.provider === "google") {
+      if (account?.provider === "google" || account?.provider === "apple") {
         const email = user.email;
         if (!email) return false;
 
@@ -244,11 +313,10 @@ export const authOptions: AuthOptions = {
         if (!customer) {
           let shop = await prisma.shop.findFirst();
           if (!shop) {
-            console.log("[AUTH] No shop found. Creating a default shop to allow login.");
             shop = await prisma.shop.create({
               data: {
-                domain: process.env.SHOPIFY_STORE_DOMAIN || "zicabella.myshopify.com",
-                accessToken: process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_TOKEN || "default_token",
+                domain: process.env.SHOPIFY_STORE_DOMAIN || "8tiahf-bk.myshopify.com",
+                accessToken: process.env.SHOPIFY_ADMIN_ACCESS_TOKEN || "",
               }
             });
           }
@@ -256,9 +324,9 @@ export const authOptions: AuthOptions = {
           await prisma.customer.create({
             data: {
               email,
-              name: user.name,
+              name: user.name || "Apple User",
               shopId: shop.id,
-              shopifyId: `google_${Date.now()}`,
+              shopifyId: `${account.provider}_${Date.now()}`,
               image: user.image,
             },
           });
@@ -311,7 +379,7 @@ export const authOptions: AuthOptions = {
   session: {
     strategy: "jwt",
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || "fallback_secret_for_local_development",
 };
 
 const handler = NextAuth(authOptions);

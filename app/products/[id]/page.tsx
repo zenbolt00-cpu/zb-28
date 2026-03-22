@@ -42,7 +42,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
     );
   }
 
-  const images = product.images?.length > 0 ? product.images : [{ src: "/placeholder.png" }];
+  const images = product.images?.length > 0 ? product.images : [{ src: "/zb-logo-220px.png" }];
   const initialPrice = product.variants?.[0]?.price || "0.00";
   const comparePrice = product.variants?.[0]?.compare_at_price;
 

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import {
   Save, CheckCircle, RefreshCw,
   Layout, ImageIcon, Video, Monitor, Globe, Navigation,
-  Sparkles, Layers, MessageSquare, Info, Loader2
+  Sparkles, Layers, MessageSquare, Info, Loader2, Upload, X
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -51,6 +51,8 @@ interface SettingsData {
   communitySubtitle: string;
   spotlightTitle: string;
   spotlightSubtitle: string;
+  spotlightCollection: string;
+  spotlightProducts: string;
   kineticMeshTitle: string;
   enabledCollectionsHeader: string;
   enabledCollectionsPage: string;
@@ -162,6 +164,83 @@ function ToggleField({
   );
 }
 
+function MediaPicker({
+  value,
+  onChange,
+  label,
+  type = 'image'
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  label: string;
+  type?: 'image' | 'video';
+}) {
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.url) {
+        onChange(data.url);
+      } else {
+        alert(data.error || 'Upload failed');
+      }
+    } catch (err) {
+      alert('Upload failed');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-2 w-full">
+      <div className="flex items-center gap-2">
+        <input
+          type="text"
+          value={value || ''}
+          onChange={e => onChange(e.target.value)}
+          placeholder={`https://... or upload ${type}`}
+          className="flex-1 bg-foreground/[0.02] px-3 py-2.5 rounded-md border border-foreground/[0.05] focus:border-foreground/20 text-right text-[11px] font-medium text-foreground placeholder:text-foreground/30 outline-none transition-colors"
+        />
+        <label className="shrink-0 flex items-center justify-center w-10 h-10 rounded-md bg-foreground/5 border border-foreground/10 cursor-pointer hover:bg-foreground/10 transition-colors">
+          {isUploading ? (
+            <RefreshCw className="w-4 h-4 animate-spin text-foreground/40" />
+          ) : (
+            <Upload className="w-4 h-4 text-foreground/40" />
+          )}
+          <input type="file" className="hidden" accept={type === 'image' ? "image/*" : "video/*"} onChange={handleUpload} />
+        </label>
+      </div>
+      {value && (
+        <div className="relative aspect-video w-full rounded-md overflow-hidden bg-foreground/[0.03] border border-foreground/[0.05]">
+          {type === 'image' ? (
+            <img src={value} alt={label} className="w-full h-full object-cover" />
+          ) : (
+            <video src={value} className="w-full h-full object-cover" muted />
+          )}
+          <button 
+            onClick={() => onChange('')}
+            className="absolute top-1 right-1 p-1 rounded-full bg-black/50 text-white hover:bg-red-500 transition-colors"
+          >
+            <X className="w-3 h-3" />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 const safeParseArray = (val: any) => {
   if (!val) return [];
   if (Array.isArray(val)) return val;
@@ -213,6 +292,7 @@ export default function StorefrontSettingsPage() {
         'featuredMedia', 'featuredMediaImage', 'collectionsMedia', 'footerVideo',
         'mainMenuHandle', 'secondaryMenuHandle', 'showTreeText', 'showCommunity',
         'communityTitle', 'communitySubtitle', 'spotlightTitle', 'spotlightSubtitle',
+        'spotlightCollection', 'spotlightProducts',
         'kineticMeshTitle', 'kineticMeshProducts', 'enabledCollectionsHeader', 
         'enabledCollectionsPage', 'enabledCollectionsMenu',
         'flipbookImage', 'flipbookVideo', 'flipbookTitle', 'flipbookTag', 'flipbookDesc',
@@ -291,13 +371,13 @@ export default function StorefrontSettingsPage() {
         {/* Cinematic Assets */}
         <SettingsGroup title="Media Assets" icon={Layers}>
           <SettingsRow label="Hero Image" icon={ImageIcon} description="Main landing image link">
-             <InputField value={settings.heroImage!} onChange={set('heroImage')} placeholder="https://..." />
+             <MediaPicker value={settings.heroImage!} onChange={set('heroImage')} label="Hero Image" type="image" />
           </SettingsRow>
           <SettingsRow label="Hero Video" icon={Video} description="Hero background MP4 link">
-             <InputField value={settings.heroVideo!} onChange={set('heroVideo')} placeholder="https://..." />
+             <MediaPicker value={settings.heroVideo!} onChange={set('heroVideo')} label="Hero Video" type="video" />
           </SettingsRow>
           <SettingsRow label="Footer Video" icon={Monitor} description="Footer video background">
-             <InputField value={settings.footerVideo!} onChange={set('footerVideo')} placeholder="https://..." />
+             <MediaPicker value={settings.footerVideo!} onChange={set('footerVideo')} label="Footer Video" type="video" />
           </SettingsRow>
         </SettingsGroup>
 
@@ -317,6 +397,37 @@ export default function StorefrontSettingsPage() {
           </SettingsRow>
         </SettingsGroup>
 
+        {/* SPOTLIGHT SECTION */}
+        <SettingsGroup title="Spotlight Section (Streetwear)" icon={Sparkles}>
+          <div className="px-4 py-3 bg-foreground/[0.02] rounded-md border border-foreground/[0.05] flex items-center gap-3 mt-1">
+             <Info className="w-4 h-4 text-foreground/50 shrink-0" />
+             <p className="text-[10px] font-medium text-foreground/70 uppercase tracking-widest">
+                Configure the "Authentic Streetwear" grid.
+             </p>
+          </div>
+          <SettingsRow label="Section Title">
+             <InputField value={settings.spotlightTitle!} onChange={set('spotlightTitle')} placeholder="e.g. AUTHENTIC STREETWEAR" />
+          </SettingsRow>
+          <SettingsRow label="Subtitle">
+             <InputField value={settings.spotlightSubtitle!} onChange={set('spotlightSubtitle')} placeholder="Supporting text..." />
+          </SettingsRow>
+          <SettingsRow label="Collection Handle" description="Shopify collection to show (e.g. tshirts)">
+             <select 
+               value={settings.spotlightCollection || ''} 
+               onChange={e => set('spotlightCollection')(e.target.value)}
+               className="w-full bg-foreground/[0.02] px-3 py-2.5 rounded-md border border-foreground/[0.05] focus:border-foreground/20 text-right text-[11px] font-medium text-foreground outline-none transition-colors"
+             >
+               <option value="">Select a collection</option>
+               {allCollections.map(c => (
+                 <option key={c.id} value={c.handle}>{c.title}</option>
+               ))}
+             </select>
+          </SettingsRow>
+          <SettingsRow label="Specific Products" description="Optional: Comma-separated Shopify IDs">
+             <InputField value={settings.spotlightProducts!} onChange={set('spotlightProducts')} placeholder="GID1, GID2..." />
+          </SettingsRow>
+        </SettingsGroup>
+
         {/* 3D PAPER TEAR (FLIPBOOK) */}
         <SettingsGroup title="Feature Section" icon={Sparkles}>
           <div className="px-4 py-3 bg-foreground/[0.02] rounded-md border border-foreground/[0.05] flex items-center gap-3 mt-1">
@@ -326,10 +437,10 @@ export default function StorefrontSettingsPage() {
              </p>
           </div>
           <SettingsRow label="Image URL" icon={ImageIcon} description="Main revealing image (used if no video)">
-             <InputField value={settings.flipbookImage!} onChange={set('flipbookImage')} placeholder="https://..." />
+             <MediaPicker value={settings.flipbookImage!} onChange={set('flipbookImage')} label="Flipbook Image" type="image" />
           </SettingsRow>
           <SettingsRow label="Video URL" icon={Video} description="MP4 video for reveal (overrides image)">
-             <InputField value={settings.flipbookVideo!} onChange={set('flipbookVideo')} placeholder="https://...video.mp4" />
+             <MediaPicker value={settings.flipbookVideo!} onChange={set('flipbookVideo')} label="Flipbook Video" type="video" />
           </SettingsRow>
           <SettingsRow label="Label Tag" description="Small tag above title">
              <InputField value={settings.flipbookTag!} onChange={set('flipbookTag')} placeholder="e.g. Core Manifest" />

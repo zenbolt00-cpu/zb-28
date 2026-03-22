@@ -77,7 +77,7 @@ export default async function CollectionPage({
   return (
     <div className="min-h-screen">
 
-      <div className="relative z-10 max-w-md mx-auto px-2 pb-32 pt-header">
+      <div className="relative z-10 max-w-md mx-auto px-2 pb-safe-nav pt-header">
 
         {/* Back navigation */}
         <div className="mb-5">

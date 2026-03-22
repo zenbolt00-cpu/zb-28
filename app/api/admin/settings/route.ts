@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
-import { clearShopConfigCache } from '@/lib/shopify-admin';
 
 export const dynamic = 'force-dynamic';
 
@@ -60,6 +59,8 @@ function envSettings() {
     communitySubtitle: 'Community',
     spotlightTitle: 'AUTHENTIC STREETWEAR',
     spotlightSubtitle: 'Luxury Indian streetwear for modern men. Redefining bold everyday style.',
+    spotlightCollection: 'tshirts',
+    spotlightProducts: '',
     kineticMeshTitle: 'ARCHIVE EDITION',
     kineticMeshProducts: '',
     enabledCollectionsHeader: '[]',
@@ -169,6 +170,8 @@ export async function GET(req: Request) {
       communitySubtitle: s.communitySubtitle || 'Community',
       spotlightTitle: s.spotlightTitle || 'AUTHENTIC STREETWEAR',
       spotlightSubtitle: s.spotlightSubtitle || 'Luxury Indian streetwear for modern men. Redefining bold everyday style.',
+      spotlightCollection: s.spotlightCollection || 'tshirts',
+      spotlightProducts: s.spotlightProducts || '',
       kineticMeshTitle: s.kineticMeshTitle || 'ARCHIVE EDITION',
       kineticMeshProducts: s.kineticMeshProducts || '',
       enabledCollectionsHeader: s.enabledCollectionsHeader || '[]',
@@ -254,7 +257,7 @@ export async function PATCH(req: Request) {
       'featuredMedia', 'featuredMediaImage', 'collectionsMedia', 'kineticMeshProducts',
       'footerVideo', 'mainMenuHandle', 'secondaryMenuHandle', 'showTreeText',
       'showCommunity', 'communityTitle', 'communitySubtitle', 'spotlightTitle',
-      'spotlightSubtitle', 'kineticMeshTitle', 'enabledCollectionsHeader',
+      'spotlightSubtitle', 'spotlightCollection', 'spotlightProducts', 'kineticMeshTitle', 'enabledCollectionsHeader',
       'enabledCollectionsPage', 'enabledCollectionsMenu', 'flipbookConfig',
       'flipbookImage', 'flipbookVideo', 'flipbookTitle', 'flipbookTag', 'flipbookDesc',
       'communityMinOrders', 'communityAgeRestricted', 'communityWhatsAppEnabled',
@@ -279,12 +282,40 @@ export async function PATCH(req: Request) {
 
     if (bodyDomain && !data.domain) data.domain = bodyDomain;
 
-    const updatedShop = await prisma.shop.update({
-      where: { id: shop.id },
-      data,
+    // Filter data to only include columns that actually exist in the production DB
+    const actualColumns = [
+      'id', 'domain', 'accessToken', 'installedAt', 'updatedAt', 'delhiveryApiKey',
+      'razorpayKeyId', 'razorpayKeySecret', 'shiprocketEmail', 'shiprocketToken',
+      'webhookSecret', 'heroImage', 'heroVideo', 'heroTitle', 'heroSubtitle',
+      'heroButtonText', 'latestCurationTitle', 'latestCurationSubtitle',
+      'archiveTitle', 'archiveSubtitle', 'blueprintTitle', 'blueprintSubtitle',
+      'showHeroText', 'showLatestCuration', 'showArchive', 'showBlueprint',
+      'showProductVideo', 'showSizeChart', 'showBrand', 'showShippingReturn',
+      'showCare', 'showSizeFit', 'showDetails', 'pdpBackground', 'instagramUrl',
+      'appleUrl', 'spotifyUrl', 'youtubeUrl', 'featuredMedia', 'collectionsMedia',
+      'footerVideo', 'mainMenuHandle', 'secondaryMenuHandle', 'showTreeText',
+      'enabledCollectionsHeader', 'enabledCollectionsPage', 'enabledCollectionsMenu',
+      'featuredMediaImage', 'kineticMeshProducts', 'communitySubtitle',
+      'communityTitle', 'kineticMeshTitle', 'showCommunity', 'spotlightSubtitle',
+      'spotlightTitle', 'chatAccessMode', 'communityAgeRestricted',
+      'communityMinOrders', 'communityWhatsAppEnabled', 'flipbookConfig',
+      'flipbookDesc', 'flipbookImage', 'flipbookTag', 'flipbookTitle',
+      'flipbookVideo', 'ringCarouselItems', 'ringCarouselTitle', 'showRingCarousel'
+    ];
+
+    const safeData: any = {};
+    Object.keys(data).forEach(key => {
+      if (actualColumns.includes(key)) {
+        safeData[key] = data[key];
+      } else {
+        console.warn(`[Settings API] Skipping non-existent column: ${key}`);
+      }
     });
 
-    clearShopConfigCache();
+    const updatedShop = await prisma.shop.update({
+      where: { id: shop.id },
+      data: safeData,
+    });
 
     console.log(`[Settings API] Saved settings for ${updatedShop.domain}`);
     return NextResponse.json({ success: true, shopDomain: updatedShop.domain });

@@ -16,7 +16,7 @@ import {
   Loader2
 } from "lucide-react";
 import Link from "next/link";
-import StorefrontNav from "@/components/StorefrontNav";
+
 
 type Address = {
   name: string;
@@ -32,7 +32,7 @@ type Address = {
 type PaymentMethod = "UPI" | "CARD" | "COD";
 
 export default function CheckoutPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const { items, subtotal, clear } = useCart();
   const router = useRouter();
 
@@ -63,7 +63,7 @@ export default function CheckoutPage() {
     } else if (items.length === 0 && step !== 4) {
       router.push("/cart");
     }
-  }, [items, step, router, status]);
+  }, [items, step, router, status, session]);
 
   // Auto-fetch previous order address if available
   useEffect(() => {
@@ -172,7 +172,7 @@ export default function CheckoutPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
+    <div className="min-h-screen bg-background text-foreground relative">
       <script src="https://checkout.razorpay.com/v1/checkout.js" async></script>
       
       {/* Ambient Orbs */}
@@ -181,7 +181,7 @@ export default function CheckoutPage() {
         <div className="absolute -bottom-[10%] -left-[10%] w-[50vw] h-[50vw] rounded-full glow-orb-1 opacity-5 dark:opacity-10" />
       </div>
 
-      <div className="relative z-10 max-w-md mx-auto px-4 pt-20 pb-40">
+      <div className="relative z-10 max-w-md mx-auto px-4 pt-20 pb-safe-nav">
         {/* Page Title - Unified Style */}
         <div className="mb-8">
           <p className="text-[7px] font-extralight uppercase tracking-[0.55em] text-muted-foreground/35 mb-0.5 ml-0.5">Your</p>
@@ -386,7 +386,6 @@ export default function CheckoutPage() {
         </AnimatePresence>
       </div>
 
-      <StorefrontNav />
     </div>
   );
 }

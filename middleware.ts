@@ -14,6 +14,9 @@ export function middleware(request: NextRequest) {
   if (pathname === '/dashboard/login') return NextResponse.next();
   if (pathname === '/api/admin/login') return NextResponse.next();
 
+  // Allow public API routes for the React Native app (no admin session needed)
+  if (pathname.startsWith('/api/app/')) return NextResponse.next();
+
   // Paths to protect — dashboard pages and admin API
   const isAdminPath = pathname.startsWith('/dashboard');
   const isAdminApi  = pathname.startsWith('/api/admin');

@@ -1,0 +1,23 @@
+import { create } from 'zustand';
+
+interface UIStore {
+  isLoading: boolean;
+  isOffline: boolean;
+  isTabBarVisible: boolean;
+  isCartOpen: boolean;
+  setLoading: (loading: boolean) => void;
+  setOffline: (offline: boolean) => void;
+  setTabBarVisible: (visible: boolean) => void;
+  setCartOpen: (open: boolean) => void;
+}
+
+export const useUIStore = create<UIStore>((set) => ({
+  isLoading: false,
+  isOffline: false,
+  isTabBarVisible: true,
+  isCartOpen: false,
+  setLoading: (loading) => set({ isLoading: loading }),
+  setOffline: (offline) => set({ isOffline: offline }),
+  setTabBarVisible: (visible) => set({ isTabBarVisible: visible }),
+  setCartOpen: (open) => set({ isCartOpen: open }),
+}));

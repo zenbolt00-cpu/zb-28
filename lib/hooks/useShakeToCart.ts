@@ -11,12 +11,13 @@ import { useEffect, useRef, useCallback } from "react";
  */
 export function useShakeToCart(onShake: () => void) {
   const lastShake = useRef(0);
-  const shakeThreshold = 25; // m/s² — tuned for a deliberate shake
-  const cooldown = 1200; // ms between triggers
+  const shakeThreshold = 15; // m/s² — lowered for reliable iOS shake detection
+  const cooldown = 1500; // ms between triggers — prevents accidental double-trigger
 
   const handleMotion = useCallback(
     (e: DeviceMotionEvent) => {
-      const acc = e.accelerationIncludingGravity;
+      // Use acceleration (without gravity) when available — gives cleaner shake signal
+      const acc = e.acceleration || e.accelerationIncludingGravity;
       if (!acc) return;
 
       const total = Math.abs(acc.x || 0) + Math.abs(acc.y || 0) + Math.abs(acc.z || 0);
@@ -53,14 +54,14 @@ export function useShakeToCart(onShake: () => void) {
     // On iOS we need to attach to a user gesture first
     const onFirstTouch = () => {
       requestPermission();
-      window.removeEventListener("touchstart", onFirstTouch);
+      // Don't remove listener — allow re-requesting if permission was denied
     };
 
     // Try to add immediately (works on Android & desktop dev)
     const DME = DeviceMotionEvent as any;
     if (typeof DME.requestPermission === "function") {
-      // iOS — wait for user touch
-      window.addEventListener("touchstart", onFirstTouch, { once: true, passive: true });
+      // iOS — wait for user touch, keep listening for subsequent touches
+      window.addEventListener("touchstart", onFirstTouch, { passive: true });
     } else {
       // Non-iOS — add directly
       window.addEventListener("devicemotion", handleMotion, { passive: true });

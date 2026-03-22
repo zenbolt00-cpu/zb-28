@@ -1,0 +1,462 @@
+import React, { useState, useEffect } from 'react';
+import {
+  View, Text, StyleSheet, ScrollView, TouchableOpacity,
+  Image, TextInput, Alert, ActivityIndicator,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
+
+import { BlurView } from 'expo-blur';
+import { useColors } from '../constants/colors';
+import { useAuth } from '../hooks/useAuth';
+import { config } from '../constants/config';
+import { Typography } from '../components/Typography';
+import CommunitySection from '../components/CommunitySection';
+import { haptics } from '../utils/haptics';
+import { useThemeStore } from '../store/themeStore';
+
+export default function CommunityScreen() {
+  const insets = useSafeAreaInsets();
+  const navigation = useNavigation<any>();
+  const colors = useColors();
+  const { user, isAuthenticated } = useAuth();
+  const theme = useThemeStore(s => s.theme);
+
+  const [updates, setUpdates] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  
+  const [form, setForm] = useState({
+    name: user?.name || '',
+    email: user?.email || '',
+    imageUrl: '',
+    instagramUrl: '',
+    quote: '',
+  });
+  const [isUploading, setIsUploading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    fetchUpdates();
+  }, []);
+
+  const fetchUpdates = async () => {
+    try {
+      const res = await fetch(`${config.appUrl}/api/community/updates`);
+      const data = await res.json();
+      setUpdates(data.updates || []);
+    } catch (e) {
+      console.error("Fetch updates error:", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const pickImage = async () => {
+    try {
+      // Dynamic require to prevent boot-time crash if native module is missing
+      const ImagePicker = require('expo-image-picker');
+      
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [4, 5],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0].uri) {
+        uploadImage(result.assets[0].uri);
+      }
+    } catch (e: any) {
+      console.error("ImagePicker Error:", e);
+      if (e.message?.includes('native module') || e.message?.includes('not found')) {
+        Alert.alert(
+          'Rebuild Required',
+          "The 'expo-image-picker' native module is not present in this build. Please run 'npx expo run:ios' or 'npx expo run:android' to rebuild your development client.",
+          [{ text: 'OK' }]
+        );
+      } else {
+        Alert.alert('Error', 'Could not open image library');
+      }
+    }
+  };
+
+  const uploadImage = async (uri: string) => {
+    setIsUploading(true);
+    const formData = new FormData();
+    // @ts-ignore
+    formData.append('file', {
+      uri,
+      name: 'look.jpg',
+      type: 'image/jpeg',
+    });
+
+    try {
+      const res = await fetch(`${config.appUrl}/api/upload`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      const data = await res.json();
+      if (data.success) {
+        setForm((prev: any) => ({ ...prev, imageUrl: data.url }));
+        haptics.success();
+      } else {
+        Alert.alert('Upload Failed', data.error);
+      }
+    } catch (e) {
+      Alert.alert('Error', 'Failed to upload image');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleSubmission = async () => {
+    if (!form.imageUrl || !form.name || !form.quote) {
+      Alert.alert('Missing Info', 'Please provide a photo, name, and style narrative.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const res = await fetch(`${config.appUrl}/api/admin/featured-users`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          imageUrl: form.imageUrl,
+          instagramUrl: form.instagramUrl,
+          styleDescription: form.quote,
+          status: 'PENDING'
+        }),
+      });
+
+      if (res.ok) {
+        haptics.success();
+        Alert.alert('Success', 'Your fit has been queued for moderation.');
+        setShowForm(false);
+        setForm({ ...form, imageUrl: '', quote: '' });
+      } else {
+        Alert.alert('Error', 'Submission failed.');
+      }
+    } catch (e) {
+      Alert.alert('Error', 'Network error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      {/* Header */}
+      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+        <TouchableOpacity 
+          onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Main')} 
+          style={[styles.backBtn, { backgroundColor: colors.surface }]}
+        >
+          <Ionicons name="chevron-back" size={20} color={colors.text} />
+        </TouchableOpacity>
+        <Typography heading weight="700" size={12} color={colors.text} style={styles.headerTitle}>COMMUNITY</Typography>
+        <View style={{ width: 36 }} />
+      </View>
+
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        {/* Announcement Banner */}
+        <View style={[styles.banner, { backgroundColor: colors.foreground }]}>
+          <Typography heading size={8} weight="700" color={colors.background} style={styles.bannerLabel}>DROP ALERT</Typography>
+          <Typography heading size={18} weight="700" color={colors.background} style={styles.bannerTitle}>New season arriving soon</Typography>
+          <Typography size={11} color={colors.background} style={styles.bannerSub}>Be the first to know</Typography>
+        </View>
+
+        {/* Featured Button */}
+        <TouchableOpacity 
+          style={[styles.featuredBtn, { backgroundColor: colors.foreground }]}
+          onPress={() => isAuthenticated ? setShowForm(true) : navigation.navigate('ProfileTab')}
+          activeOpacity={0.85}
+        >
+          <Ionicons name="cloud-upload-outline" size={18} color={colors.background} />
+          <Typography heading weight="700" size={9} color={colors.background}>PUBLISH YOUR LOOK</Typography>
+        </TouchableOpacity>
+
+        {/* Featured Users Section */}
+        <View style={{ marginBottom: 24 }}>
+          <CommunitySection />
+        </View>
+
+        {/* Updates Section */}
+        {updates.length > 0 && (
+          <View style={styles.section}>
+            <Typography heading size={8} color={colors.textLight} style={styles.sectionLabel}>LIVE UPDATES</Typography>
+            {updates.map((update: any, idx: number) => (
+              <View key={update.id || idx} style={[styles.updateCard, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}>
+                <View style={styles.updateBadge}>
+                   <Typography heading size={7} weight="700" color={update.type === 'EVENT' ? colors.primary : '#34C759'}>{update.type}</Typography>
+                </View>
+                <Typography heading size={14} color={colors.text} style={{ marginBottom: 4 }}>{update.title}</Typography>
+                <Typography size={11} color={colors.textSecondary}>{update.description}</Typography>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* Form Overlay */}
+        {showForm && (
+          <View style={StyleSheet.absoluteFill}>
+             <BlurView intensity={100} tint="dark" style={StyleSheet.absoluteFill} />
+             <ScrollView style={styles.formContainer} contentContainerStyle={{ padding: 24, paddingBottom: 100 }}>
+                <View style={styles.formHeader}>
+                   <Typography heading size={18} color="#FFF">Publish Look</Typography>
+                   <TouchableOpacity onPress={() => setShowForm(false)}>
+                      <Ionicons name="close-circle" size={24} color="rgba(255,255,255,0.5)" />
+                   </TouchableOpacity>
+                </View>
+                <Typography size={10} color="rgba(255,255,255,0.5)" style={{ marginBottom: 24 }}>Share your fit with the community</Typography>
+
+                {/* Image Upload */}
+                <TouchableOpacity 
+                   style={[styles.uploadZone, { borderColor: 'rgba(255,255,255,0.1)' }]} 
+                   onPress={pickImage}
+                   disabled={isUploading}
+                >
+                   {form.imageUrl ? (
+                     <Image source={{ uri: form.imageUrl }} style={styles.previewImage} />
+                   ) : (
+                     <View style={styles.uploadPlaceholder}>
+                        <Ionicons name="camera-outline" size={32} color="rgba(255,255,255,0.3)" />
+                        <Typography size={10} color="rgba(255,255,255,0.3)">{isUploading ? 'UPLOADING...' : 'TAP TO UPLOAD PHOTO'}</Typography>
+                     </View>
+                   )}
+                </TouchableOpacity>
+
+                <View style={styles.inputGroup}>
+                   <Typography heading size={7} color="rgba(255,255,255,0.4)" style={styles.inputLabel}>NAME</Typography>
+                   <TextInput 
+                      value={form.name}
+                      onChangeText={(t) => setForm({...form, name: t})}
+                      placeholder="Your Name"
+                      placeholderTextColor="rgba(255,255,255,0.2)"
+                      style={styles.formInput}
+                   />
+                </View>
+
+                <View style={styles.inputGroup}>
+                   <Typography heading size={7} color="rgba(255,255,255,0.4)" style={styles.inputLabel}>INSTAGRAM URL (OPTIONAL)</Typography>
+                   <TextInput 
+                      value={form.instagramUrl}
+                      onChangeText={(t) => setForm({...form, instagramUrl: t})}
+                      placeholder="https://instagram.com/p/..."
+                      placeholderTextColor="rgba(255,255,255,0.2)"
+                      style={styles.formInput}
+                   />
+                </View>
+
+                <View style={styles.inputGroup}>
+                   <Typography heading size={7} color="rgba(255,255,255,0.4)" style={styles.inputLabel}>STYLE NARRATIVE</Typography>
+                   <TextInput 
+                      value={form.quote}
+                      onChangeText={(t) => setForm({...form, quote: t})}
+                      placeholder="Describe your curation..."
+                      placeholderTextColor="rgba(255,255,255,0.2)"
+                      style={[styles.formInput, { height: 100, textAlignVertical: 'top' }]}
+                      multiline
+                   />
+                </View>
+
+                <TouchableOpacity 
+                   style={[styles.submitBtn, { backgroundColor: '#FFF' }]} 
+                   onPress={handleSubmission}
+                   disabled={isSubmitting || !form.imageUrl}
+                >
+                   <Typography heading weight="700" size={10} color="#000">
+                      {isSubmitting ? 'SUBMITTING...' : 'SUBMIT TO EDITOR'}
+                   </Typography>
+                </TouchableOpacity>
+             </ScrollView>
+          </View>
+        )}
+
+        {/* Coming Soon if no updates */}
+        {updates.length === 0 && !loading && !showForm && (
+          <View style={styles.comingSoon}>
+            <Ionicons name="people-outline" size={48} color={colors.borderLight} />
+            <Typography heading weight="700" size={16} color={colors.text} style={styles.comingSoonTitle}>Inner Circle</Typography>
+            <Typography size={12} color={colors.textMuted} style={styles.comingSoonText}>
+              Exclusive access for verified Zica Bella customers. Connect, share, and get early access.
+            </Typography>
+          </View>
+        )}
+
+        <View style={{ height: 120 + insets.bottom }} />
+      </ScrollView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+  },
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 3,
+    textTransform: 'uppercase',
+  },
+  scrollContent: {
+    paddingHorizontal: 16,
+  },
+  banner: {
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 20,
+  },
+  bannerLabel: {
+    fontSize: 8,
+    fontWeight: '700',
+    letterSpacing: 3,
+    textTransform: 'uppercase',
+    marginBottom: 8,
+  },
+  bannerTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    letterSpacing: -0.3,
+    marginBottom: 4,
+  },
+  bannerSub: {
+    fontSize: 11,
+    fontWeight: '400',
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 32,
+  },
+  statItem: {
+    flex: 1,
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+  },
+  statValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    letterSpacing: -0.5,
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 8,
+    fontWeight: '500',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  comingSoon: {
+    alignItems: 'center',
+    paddingTop: 40,
+    gap: 12,
+  },
+  comingSoonTitle: {
+    marginTop: 8,
+  },
+  comingSoonText: {
+    textAlign: 'center',
+    maxWidth: 280,
+    lineHeight: 18,
+  },
+  featuredBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    paddingVertical: 16,
+    borderRadius: 16,
+    marginBottom: 32,
+  },
+  section: {
+    marginBottom: 32,
+  },
+  sectionLabel: {
+    letterSpacing: 2,
+    marginBottom: 16,
+    opacity: 0.6,
+  },
+  updateCard: {
+    padding: 24,
+    borderRadius: 20,
+    borderWidth: 1,
+    marginBottom: 12,
+  },
+  updateBadge: {
+    marginBottom: 8,
+  },
+  formContainer: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#000',
+  },
+  formHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  uploadZone: {
+    height: 300,
+    borderRadius: 24,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    marginBottom: 24,
+    overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.03)',
+  },
+  previewImage: {
+    width: '100%',
+    height: '100%',
+  },
+  uploadPlaceholder: {
+    alignItems: 'center',
+    gap: 12,
+  },
+  inputGroup: {
+    marginBottom: 20,
+  },
+  inputLabel: {
+    letterSpacing: 2,
+    marginBottom: 10,
+    marginLeft: 4,
+  },
+  formInput: {
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 16,
+    padding: 16,
+    color: '#FFF',
+    fontSize: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  submitBtn: {
+    paddingVertical: 18,
+    borderRadius: 16,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+});

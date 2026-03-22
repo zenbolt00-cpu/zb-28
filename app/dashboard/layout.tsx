@@ -23,6 +23,7 @@ import {
   Menu,
   FileText,
   MessageSquare,
+  Smartphone,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -53,7 +54,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: "Scanner Records", href: "/dashboard/scanner-records", icon: FileText },
     { name: "Returns", href: "/dashboard/returns", icon: Undo2 },
     { name: "Exchanges", href: "/dashboard/exchanges", icon: ArrowLeftRight },
-    { name: "Accessories", href: "/dashboard/accessories", icon: ShoppingBag },
   ];
 
   const aestheticNav = [
@@ -61,6 +61,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: "Chat Management", href: "/dashboard/community/chat", icon: MessageSquare },
     { name: "Community", href: "/dashboard/community", icon: Users },
     { name: "Blogs", href: "/dashboard/blogs", icon: Newspaper },
+  ];
+
+  const integrationNav = [
+    { name: "App Integration", href: "/dashboard/app-integration", icon: Smartphone },
   ];
 
   const NavLink = ({ item }: { item: any }) => {
@@ -168,6 +172,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </div>
               <div className="space-y-0.5">
                 {[...aestheticNav].map(item => <NavLink key={item.name} item={item} />)}
+              </div>
+            </div>
+             
+            <div>
+              <div className="mb-3 px-4">
+                 <span className="text-[10px] font-semibold text-foreground/30 font-inter">Integration</span>
+              </div>
+              <div className="space-y-0.5">
+                {[...integrationNav].map(item => <NavLink key={item.name} item={item} />)}
               </div>
             </div>
           </div>

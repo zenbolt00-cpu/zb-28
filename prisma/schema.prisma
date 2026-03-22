@@ -63,6 +63,8 @@ model Shop {
   showCommunity            Boolean    @default(true)
   spotlightSubtitle        String?    @default("Luxury Indian streetwear for modern men. Redefining bold everyday style.")
   spotlightTitle           String?    @default("AUTHENTIC STREETWEAR")
+  spotlightCollection      String?    @default("tshirts")
+  spotlightProducts        String?    @default("")
   chatAccessMode           String     @default("open")
   communityAgeRestricted   Boolean    @default(true)
   communityMinOrders       Int        @default(1)

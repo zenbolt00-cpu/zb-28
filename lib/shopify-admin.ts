@@ -9,78 +9,16 @@ import { parseShopifyRichText } from './utils';
 
 export { parseShopifyRichText };
 
-const API_VERSION = '2025-07';
+import { 
+  getShopConfig, 
+  shopifyFetch, 
+  adminUrl, 
+  headers,
+  API_VERSION,
+  clearShopConfigCache
+} from './shopify-client';
 
-export async function getShopConfig() {
-  let shop = null;
-  
-  try {
-    // Basic in-memory cache for the life of the serverless function execution
-    if ((global as any)._cachedShopConfig) return (global as any)._cachedShopConfig;
-
-    shop = await prisma.shop.findFirst();
-  } catch (error) {
-    console.warn('[Shopify Admin] Database access failed during config fetch:', error);
-  }
-  
-  let accessToken = shop?.accessToken;
-  const dbDomain = shop?.domain;
-
-  // Check if DB token is a placeholder
-  const isDbTokenPlaceholder = !accessToken || 
-    ['test_token', 'shpat_placeholder', 'shpat_required', 'shpat_env_token'].includes(accessToken) || 
-    accessToken === '';
-    
-  // Prioritize DB domain if it exists and isn't just a generic placeholder from local tests
-  const isDefaultDomain = !dbDomain || dbDomain === '8tiahf-bk.myshopify.com';
-  
-  const finalDomain = !isDefaultDomain
-    ? dbDomain
-    : (process.env.SHOPIFY_STORE_DOMAIN || process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || dbDomain || 'zica-bella.myshopify.com');
-
-  // Prioritize DB token if it's not a placeholder
-  const finalToken = !isDbTokenPlaceholder 
-    ? accessToken 
-    : (process.env.SHOPIFY_ADMIN_ACCESS_TOKEN || '');
-  
-  const config = {
-    domain: finalDomain,
-    accessToken: finalToken,
-  };
-
-  if (accessToken && shop) {
-    (global as any)._cachedShopConfig = config;
-  }
-
-  // Debug log for production sync issues
-  if (isDbTokenPlaceholder || !config.domain) {
-    console.log(`[Shopify Admin Config] Domain: ${config.domain}, Token: ${accessToken ? '***' : 'MISSING'}`);
-  }
-
-  return config;
-}
-
-/**
- * Clears the in-memory shop configuration cache.
- * Call this when updating settings in the database to ensure immediate persistence.
- */
-export function clearShopConfigCache() {
-  (global as any)._cachedShopConfig = null;
-  console.log('[Shopify Admin] Config cache cleared.');
-}
-
-export async function adminUrl(endpoint: string): Promise<string> {
-  const { domain } = await getShopConfig();
-  return `https://${domain}/admin/api/${API_VERSION}/${endpoint}`;
-}
-
-export async function headers(): Promise<HeadersInit> {
-  const { accessToken } = await getShopConfig();
-  return {
-    'Content-Type': 'application/json',
-    'X-Shopify-Access-Token': accessToken,
-  };
-}
+export { getShopConfig, shopifyFetch, adminUrl, headers, clearShopConfigCache };
 
 async function shopifyFetchPage<T>(urlStr: string): Promise<{ data: T; nextPageUrl?: string }> {
   const res = await fetch(urlStr, {
@@ -117,15 +55,6 @@ async function shopifyFetchPage<T>(urlStr: string): Promise<{ data: T; nextPageU
   }
 
   return { data, nextPageUrl };
-}
-
-async function shopifyFetch<T>(endpoint: string, params?: Record<string, string>): Promise<T> {
-  const url = new URL(await adminUrl(endpoint));
-  if (params) {
-    Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
-  }
-  const { data } = await shopifyFetchPage<T>(url.toString());
-  return data;
 }
 
 /**
@@ -291,6 +220,18 @@ export async function fetchAllOrders(limit = 250, status = 'any'): Promise<Shopi
   return orders;
 }
 
+export async function fetchOrdersByCustomerId(customerId: string): Promise<ShopifyOrder[]> {
+  try {
+    const data = await shopifyFetch<{ orders: ShopifyOrder[] }>(`customers/${customerId}/orders.json`, {
+      status: 'any',
+    });
+    return data.orders || [];
+  } catch (e) {
+    console.error(`[Shopify Admin] Error fetching orders for customer ${customerId}:`, e);
+    return [];
+  }
+}
+
 export async function fetchOrder(orderId: string): Promise<ShopifyOrder> {
   const data = await shopifyFetch<{ order: ShopifyOrder }>(`orders/${orderId}.json`);
   return data.order;
@@ -362,6 +303,25 @@ export async function updateCustomer(customerId: string, updates: any): Promise<
   return data.customer;
 }
 
+export async function searchCustomerByPhone(phone: string): Promise<ShopifyCustomer | null> {
+  try {
+    // Try explicit phone search first
+    let data = await shopifyFetch<{ customers: ShopifyCustomer[] }>('customers/search.json', {
+      query: `phone:${phone}`,
+    });
+    if (data.customers?.[0]) return data.customers[0];
+
+    // If that fails, try a general query as some phones might be in notes/tags
+    data = await shopifyFetch<{ customers: ShopifyCustomer[] }>('customers/search.json', {
+      query: `${phone}`,
+    });
+    return data.customers?.[0] || null;
+  } catch (e) {
+    console.error(`[Shopify Admin] Error searching customer by phone ${phone}:`, e);
+    return null;
+  }
+}
+
 // ─── Collections ─────────────────────────────────────────────────────
 
 export interface ShopifyCollection {
@@ -374,13 +334,26 @@ export interface ShopifyCollection {
 }
 
 export async function fetchCollections(limit = 250): Promise<ShopifyCollection[]> {
-  const data = await shopifyFetch<{ custom_collections: ShopifyCollection[] }>('custom_collections.json', {
-    limit: String(limit),
-  });
-  const data2 = await shopifyFetch<{ smart_collections: ShopifyCollection[] }>('smart_collections.json', {
-    limit: String(limit),
-  });
-  return [...data.custom_collections, ...data2.smart_collections];
+  try {
+    const [data, data2] = await Promise.all([
+      shopifyFetch<{ custom_collections: ShopifyCollection[] }>('custom_collections.json', { limit: String(limit) }).catch(() => ({ custom_collections: [] })),
+      shopifyFetch<{ smart_collections: ShopifyCollection[] }>('smart_collections.json', { limit: String(limit) }).catch(() => ({ smart_collections: [] })),
+    ]);
+    
+    const all = [...(data?.custom_collections || []), ...(data2?.smart_collections || [])];
+    
+    // Deduplicate by handle
+    const seen = new Set();
+    return all.filter(c => {
+      if (!c || !c.handle) return false;
+      if (seen.has(c.handle)) return false;
+      seen.add(c.handle);
+      return true;
+    });
+  } catch (e) {
+    console.error("[Shopify Admin] Critical error in fetchCollections:", e);
+    return [];
+  }
 }
 
 export async function fetchProductsByCollectionId(collectionId: string | number, limit = 250): Promise<ShopifyProduct[]> {
@@ -427,6 +400,11 @@ export async function fetchEnabledCollections(location: 'header' | 'page' | 'men
     }
 
     const enabledHandles: string[] = JSON.parse(jsonValue).map((h: string) => h.trim().toLowerCase());
+    
+    if (enabledHandles.length === 0) {
+      console.log(`[Shopify Admin] Config for ${location} is empty array, showing all ${allCollections.length}`);
+      return allCollections;
+    }
     
     const filtered = allCollections.filter((c: any) => {
       const handle = c.handle?.trim().toLowerCase();
@@ -646,10 +624,17 @@ export async function fetchProductById(productId: string): Promise<ShopifyProduc
   return { ...data.product, metafields };
 }
 
-/**
- * Fetch a single product by its handle.
- */
 export async function fetchProductByHandle(handle: string): Promise<ShopifyProduct | null> {
+  // If the handle looks like a numeric ID, try fetching by ID first
+  if (/^\d+$/.test(handle)) {
+    try {
+      const product = await fetchProductById(handle);
+      if (product) return product;
+    } catch (e) {
+      // Fall through to handle search
+    }
+  }
+
   const data = await shopifyFetch<{ products: ShopifyProduct[] }>(`products.json?handle=${handle}`);
   if (!data.products || data.products.length === 0) return null;
   const product = data.products[0];
@@ -834,13 +819,9 @@ export async function fetchCollectionByHandle(handle: string, limit = 24): Promi
   products: ShopifyProduct[];
 }> {
   try {
-    // First get the collection by handle via custom_collections + smart_collections
-    const [custom, smart] = await Promise.all([
-      shopifyFetch<{ custom_collections: any[] }>('custom_collections.json', { handle }),
-      shopifyFetch<{ smart_collections: any[] }>('smart_collections.json', { handle }),
-    ]);
-
-    const collection = custom.custom_collections?.[0] || smart.smart_collections?.[0] || null;
+    const allCollections = await fetchCollections();
+    const collection = allCollections.find(c => c.handle?.toLowerCase() === handle?.toLowerCase()) as any;
+    
     if (!collection) return { collection: null, products: [] };
 
     const productsData = await shopifyFetch<{ products: ShopifyProduct[] }>('products.json', {

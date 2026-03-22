@@ -188,7 +188,7 @@ export default function FeaturedUsersModeration() {
             item.isTopFeatured ? 'ring-1 ring-emerald-500/50' : ''
           }`}>
              <div className="relative aspect-[4/5] bg-foreground/[0.02] overflow-hidden">
-              <Image src={item.imageUrl || "/placeholder.png"} alt={item.name} fill className="object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-1000 scale-105 group-hover:scale-100" />
+              <Image src={item.imageUrl || "/zb-logo-220px.png"} alt={item.name} fill className="object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-1000 scale-105 group-hover:scale-100" />
               <div className="absolute top-3 right-3 flex flex-col items-end gap-1.5">
                 <span className={`px-2 py-0.5 rounded text-[7px] font-black uppercase tracking-widest shadow-sm flex items-center gap-1 ${
                   item.status === 'APPROVED' ? 'bg-emerald-500 text-white' : 

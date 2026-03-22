@@ -3,6 +3,7 @@
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import { useRef } from "react";
 import NextImage from "next/image";
+import { handleImageError } from "./ImagePlaceholder";
 
 const DEFAULTS = {
   imgUrl: "https://images.unsplash.com/photo-1552346154-21d328109967?q=80&w=1200",
@@ -70,8 +71,9 @@ export default function FlipbookSection({ imgUrl, videoUrl, tag, title, desc }: 
                     src={displayImg}
                     alt={displayTitle}
                     fill
-                    className="object-cover"
+                    className="object-cover transition-opacity duration-700"
                     sizes="400px"
+                    onError={handleImageError}
                   />
                 </div>
               )}
@@ -83,11 +85,11 @@ export default function FlipbookSection({ imgUrl, videoUrl, tag, title, desc }: 
               className="absolute inset-x-6 bottom-8 z-20 text-center"
               style={{ opacity: 1, y: textY }}
             >
-              <h3 className="text-[18px] font-black text-white uppercase tracking-tight leading-tight mb-2.5">
+              <h3 className="font-heading text-[12px] font-bold text-white uppercase tracking-[0.2em] leading-tight mb-2.5 drop-shadow-md">
                 {displayTitle}
               </h3>
               <div className="w-5 h-[1.5px] bg-white/20 mx-auto mb-3" />
-              <p className="text-white/40 text-[8.5px] font-medium leading-relaxed uppercase tracking-[0.25em] max-w-[200px] mx-auto">
+              <p className="text-white/45 text-[7px] font-light leading-relaxed uppercase tracking-[0.35em] max-w-[200px] mx-auto drop-shadow-sm">
                 {displayDesc}
               </p>
             </motion.div>

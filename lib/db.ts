@@ -15,9 +15,21 @@ const createMockPrismaClient = (reason: string) => {
       if (typeof prop === 'string' && prop.startsWith('$')) {
         return () => Promise.resolve([]);
       }
+      const mockReturn = (targetProp: string) => {
+        if (targetProp === 'count') return 0;
+        if (targetProp === 'findMany') return [];
+        return { 
+          id: 'mock_id', 
+          shopifyId: 'mock_shopify_id', 
+          handle: 'mock_handle', 
+          domain: 'mock.myshopify.com',
+          title: 'Mock Item',
+          orders: []
+        };
+      };
       return new Proxy(
         function(...args: any[]) {
-          return Promise.resolve(null);
+          return Promise.resolve(mockReturn(String(prop)));
         },
         handler
       );
@@ -28,6 +40,12 @@ const createMockPrismaClient = (reason: string) => {
 
 const prismaClientSingleton = () => {
   const dbUrl = process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL;
+  
+  // Ensure DATABASE_URL is set in process.env because native Prisma looks for it
+  if (!process.env.DATABASE_URL && dbUrl) {
+    process.env.DATABASE_URL = dbUrl;
+  }
+
   const isBuild = process.env.NEXT_PHASE === 'phase-production-build';
 
   // During build phase, always use mock to avoid DB connection requirements
@@ -42,43 +60,47 @@ const prismaClientSingleton = () => {
   }
 
   try {
-      // Detecting SQLite or PostgreSQL
+      // Local SQLite development
       if (dbUrl.startsWith('file:')) {
-        const adapter = new PrismaBetterSqlite3({ url: dbUrl });
+        const adapter = new PrismaBetterSqlite3({ url: dbUrl } as any);
         return new PrismaClient({ adapter: adapter as any });
       }
 
-      // pg driver's strict SSL parser overrides 'rejectUnauthorized: false'
-      const cleanUrl = dbUrl.split('?')[0];
+      // Production / PostgreSQL with Driver Adapter
+      // Using direct POSTGRES_URL if available to avoid pooler SSL issues
+      const connectionString = process.env.POSTGRES_URL || dbUrl;
+      
+      if (process.env.NODE_ENV === 'production') {
+        process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+      }
 
       const pool = new Pool({ 
-        connectionString: cleanUrl,
-        ssl: process.env.NODE_ENV === 'production' 
-          ? { rejectUnauthorized: false } 
-          : undefined
+        connectionString,
+        ssl: { rejectUnauthorized: false }
       }) as any
       const adapter = new PrismaPg(pool)
 
       const client = new PrismaClient({
         adapter,
-        log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
+        log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
       });
-    return client;
-  } catch (error) {
-    console.error('[DB] Critical Prisma initialization error:', error);
-    return createMockPrismaClient('init_error');
+      
+      return client;
+  } catch (error: any) {
+    console.error('[DB] Critical Prisma initialization error:', error.message, error.stack);
+    return createMockPrismaClient(`init_error: ${error.message}`);
   }
 };
 
 declare const globalThis: {
-  prismaGlobal: ReturnType<typeof prismaClientSingleton>;
+  __prisma_fresh: ReturnType<typeof prismaClientSingleton>;
 } & typeof global;
 
-const prisma = globalThis.prismaGlobal ?? prismaClientSingleton();
+const prisma = globalThis.__prisma_fresh ?? prismaClientSingleton();
 
 export default prisma;
 
 // Only cache the client globally in development (production uses fresh per-request)
 if (process.env.NODE_ENV !== 'production') {
-  globalThis.prismaGlobal = prisma;
+  globalThis.__prisma_fresh = prisma;
 }

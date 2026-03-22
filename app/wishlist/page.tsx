@@ -22,7 +22,7 @@ export default function WishlistPage() {
       title: product.title,
       size: variant.option1 || null,
       price: variant.price,
-      image: product.image?.src || product.images?.[0]?.src || "/placeholder.png"
+      image: product.image?.src || product.images?.[0]?.src || "/zb-logo-220px.png"
     });
   };
 
@@ -65,7 +65,7 @@ export default function WishlistPage() {
                   <Link href={`/products/${product.handle}`} className="shrink-0">
                     <div className="relative w-28 h-36 rounded-2xl overflow-hidden shadow-lg">
                       <Image 
-                        src={product.image?.src || product.images?.[0]?.src || "/placeholder.png"} 
+                        src={product.image?.src || product.images?.[0]?.src || "/zb-logo-220px.png"} 
                         alt={product.title} 
                         fill 
                         className="object-cover transition-transform duration-700 group-hover:scale-110" 

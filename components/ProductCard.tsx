@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Plus } from "lucide-react";
 import dynamic from "next/dynamic";
 import { ShopifyProduct } from "@/lib/shopify-admin";
+import { handleImageError } from "./ImagePlaceholder";
 
 // Lazy-load modal to avoid SSR issues
 const QuickAddModal = dynamic(() => import("./QuickAddModal"), { ssr: false });
@@ -19,7 +20,7 @@ interface Props {
 export default function ProductCard({ product, priority = false, selectedSize }: Props) {
   const [showModal, setShowModal] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
-  const image = product.images?.[0]?.src || "/placeholder.png";
+  const image = product.images?.[0]?.src || "/zb-logo-220px.png";
   const variant = product.variants?.[0];
   const price = variant?.price || "0";
   const compareAtPrice = variant?.compare_at_price;
@@ -79,9 +80,10 @@ export default function ProductCard({ product, priority = false, selectedSize }:
               alt={product.title}
               fill
               priority={priority}
+              onError={handleImageError}
               sizes="(max-width: 768px) 50vw, 360px"
               className={`object-cover transition-transform duration-700 ${!isSoldOut ? "group-hover:scale-[1.04]" : ""}`}
-              style={isSoldOut ? { filter: "grayscale(0.4)" } : {}}
+              style={isSoldOut ? { filter: "grayscale(0.4)" } : image === "/zb-logo-220px.png" ? { objectFit: "contain", padding: "25%", opacity: 0.3 } : {}}
             />
             {/* Hover glass overlay */}
             {!isSoldOut && (

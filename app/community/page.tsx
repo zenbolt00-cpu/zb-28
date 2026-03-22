@@ -219,29 +219,7 @@ export default function CommunityPage() {
           </section>
         )}
 
-        {/* ── Membership Protocol ── */}
-        <section className="p-5 bg-foreground/[0.02] border border-foreground/[0.05] rounded-2xl mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-7 h-7 rounded-full bg-foreground/5 flex items-center justify-center">
-              <ShieldCheck className="w-3.5 h-3.5 text-foreground/50" />
-            </div>
-            <h3 className="text-[12px] font-bold tracking-tight text-foreground">Membership Protocol</h3>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <span className="text-[9px] font-bold text-foreground/45 tracking-wide uppercase">Age</span>
-              <p className="text-[11px] font-medium text-foreground/40 leading-relaxed">
-                {settings?.communityAgeRestricted ? '18+ verified.' : 'Open to all.'}
-              </p>
-            </div>
-            <div className="space-y-1">
-              <span className="text-[9px] font-bold text-foreground/45 tracking-wide uppercase">Status Tier</span>
-              <p className="text-[11px] font-medium text-foreground/40 leading-relaxed">
-                {settings?.communityMinOrders || 1} order{(settings?.communityMinOrders || 1) > 1 ? 's' : ''} required.
-              </p>
-            </div>
-          </div>
-        </section>
+
 
       </div>
 

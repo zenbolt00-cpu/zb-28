@@ -21,7 +21,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import StorefrontNav from "@/components/StorefrontNav";
 
 const STEPS = [
   { id: "confirmed",   label: "Confirmed",   icon: CheckCircle2 },
@@ -118,7 +117,7 @@ export default function OrderDetailsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground relative overflow-hidden pb-40">
+    <div className="min-h-screen bg-background text-foreground relative pb-safe-nav">
       {/* Background Decor */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute top-0 right-0 w-[80vw] h-[80vw] bg-blue-500/5 rounded-full blur-[120px]" />
@@ -216,7 +215,10 @@ export default function OrderDetailsPage() {
                 </div>
             </div>
 
-            <button className="w-full py-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 text-[8px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2">
+            <button 
+                onClick={() => window.open(`https://www.shiprocket.in/shipment-tracking/?awb=${order.shipments[0].trackingNumber}`, '_blank')}
+                className="w-full py-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 text-[8px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2"
+            >
                 External Track <ExternalLink className="w-3 h-3 opacity-30" />
             </button>
           </div>
@@ -242,10 +244,10 @@ export default function OrderDetailsPage() {
                    </div>
                    <div className="flex-1 min-w-0">
                       <h5 className="text-[10px] font-bold text-foreground/80 truncate uppercase tracking-tight">{item.title}</h5>
-                      <p className="text-[8px] font-extralight text-muted-foreground/40 mt-0.5 font-mono">Qty: {item.quantity} · INR {(item.price / 100).toLocaleString('en-IN')}</p>
+                      <p className="text-[8px] font-extralight text-muted-foreground/40 mt-0.5 font-mono">Qty: {item.quantity} · INR {(item.price).toLocaleString('en-IN')}</p>
                    </div>
                    <div className="text-right">
-                      <p className="text-[10px] font-inter font-bold text-white/60">₹{((item.price * item.quantity) / 100).toLocaleString('en-IN')}</p>
+                      <p className="text-[10px] font-inter font-bold text-white/60">₹{(item.price * item.quantity).toLocaleString('en-IN')}</p>
                    </div>
                 </div>
               ))}
@@ -260,7 +262,7 @@ export default function OrderDetailsPage() {
                <div className="space-y-2.5">
                   <div className="flex justify-between text-[9px] font-extralight text-white/40">
                      <span>Subtotal</span>
-                     <span>₹{(order.totalPrice / 100).toLocaleString('en-IN')}</span>
+                     <span>₹{(order.totalPrice).toLocaleString('en-IN')}</span>
                   </div>
                   <div className="flex justify-between text-[9px] font-extralight text-white/40">
                      <span>Shipping</span>
@@ -268,7 +270,7 @@ export default function OrderDetailsPage() {
                   </div>
                   <div className="pt-2.5 mt-2.5 border-t border-white/5 flex justify-between items-center">
                      <span className="text-[8px] font-black uppercase tracking-widest text-white/20">Total Amount</span>
-                     <span className="text-sm font-heading tracking-widest text-foreground/90">₹{(order.totalPrice / 100).toLocaleString('en-IN')}</span>
+                     <span className="text-sm font-heading tracking-widest text-foreground/90">₹{(order.totalPrice).toLocaleString('en-IN')}</span>
                   </div>
                </div>
            </div>
@@ -285,7 +287,6 @@ export default function OrderDetailsPage() {
         </div>
       </main>
 
-      <StorefrontNav />
     </div>
   );
 }

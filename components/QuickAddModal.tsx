@@ -6,6 +6,7 @@ import { X, ShoppingBag, Check } from "lucide-react";
 import { useCart } from "@/lib/cart-context";
 import { ShopifyProduct } from "@/lib/shopify-admin";
 import { createPortal } from "react-dom";
+import { handleImageError } from "./ImagePlaceholder";
 
 interface Props {
   product: ShopifyProduct;
@@ -27,7 +28,7 @@ export default function QuickAddModal({ product, initialSize, onClose }: Props) 
     .filter((v, i, a) => a.findIndex((x) => x.size === v.size) === i) || [];
 
   const price = product.variants?.[0]?.price || "0";
-  const image = product.images?.[0]?.src || "/placeholder.png";
+  const image = product.images?.[0]?.src || "/zb-logo-220px.png";
 
   // Auto-select if single size
   useEffect(() => {
@@ -108,8 +109,8 @@ export default function QuickAddModal({ product, initialSize, onClose }: Props) 
 
         {/* Header */}
         <div className="flex items-center gap-3 px-5 pt-2 pb-4">
-          <div className="relative w-14 h-14 rounded-2xl overflow-hidden flex-shrink-0">
-            <Image src={image} alt={product.title} fill className="object-cover" />
+          <div className="relative w-14 h-14 rounded-2xl overflow-hidden flex-shrink-0 bg-foreground/[0.03]">
+            <Image src={image} alt={product.title} fill onError={handleImageError} className="object-cover" style={image === "/zb-logo-220px.png" ? { objectFit: "contain", padding: "25%", opacity: 0.3 } : {}}/>
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-[9px] font-extralight uppercase tracking-[0.22em] text-foreground/80 line-clamp-2 leading-relaxed">

@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import StorefrontNav from "@/components/StorefrontNav";
 
 export default function OrdersPage() {
   const { data: session, status } = useSession();
@@ -60,14 +59,14 @@ export default function OrdersPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
+    <div className="min-h-screen bg-background text-foreground relative">
       {/* Ambient Orbs */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden>
         <div className="absolute -top-[20%] right-[-5%] w-[60vw] h-[60vw] rounded-full glow-orb-2 opacity-8 dark:opacity-15" />
         <div className="absolute -bottom-[10%] -left-[10%] w-[50vw] h-[50vw] rounded-full glow-orb-1 opacity-5 dark:opacity-10" />
       </div>
 
-      <main className="relative z-10 max-w-md mx-auto px-4 pt-20 pb-40">
+      <main className="relative z-10 max-w-md mx-auto px-4 pt-20 pb-safe-nav">
         {/* Page Title - Cart Style */}
         <div className="mb-8">
           <p className="text-[7px] font-extralight uppercase tracking-[0.55em] text-muted-foreground/35 mb-0.5 ml-0.5">Your</p>
@@ -176,7 +175,10 @@ export default function OrdersPage() {
                         <p className="font-mono text-foreground/50 font-medium uppercase truncate max-w-[80px]">{order.shipments[0].trackingNumber}</p>
                       </div>
                     </div>
-                    <button className="px-3 py-1.5 rounded-lg bg-foreground/5 hover:bg-foreground/10 text-[7px] font-black uppercase tracking-widest text-foreground/60 transition-colors">
+                    <button 
+                      onClick={() => window.open(`https://www.shiprocket.in/shipment-tracking/?awb=${order.shipments[0].trackingNumber}`, '_blank')}
+                      className="relative z-10 px-3 py-1.5 rounded-lg bg-foreground/5 hover:bg-foreground/10 text-[7px] font-black uppercase tracking-widest text-foreground/60 transition-colors"
+                    >
                         Track Ship
                     </button>
                   </div>
@@ -193,7 +195,6 @@ export default function OrdersPage() {
         )}
       </main>
 
-      <StorefrontNav />
     </div>
   );
 }

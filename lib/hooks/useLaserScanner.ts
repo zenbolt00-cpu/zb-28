@@ -8,24 +8,18 @@ interface UseLaserScannerOptions {
 
 export function useLaserScanner({
   onScan,
-  debounceTime = 50,
+  debounceTime = 100,
   minLength = 4,
 }: UseLaserScannerOptions) {
   const [scannedData, setScannedData] = useState<string>('');
+  const [isConnected, setIsConnected] = useState(false);
   const bufferRef = useRef<string>('');
   const lastKeyTimeRef = useRef<number>(Date.now());
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore if user is typing in an input field natively
-      const activeElement = document.activeElement;
-      if (
-        activeElement &&
-        (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')
-      ) {
-        return;
-      }
-
+      // Global listener as requested - no longer ignoring inputs
+      
       const currentTime = Date.now();
       const timeDiff = currentTime - lastKeyTimeRef.current;
       lastKeyTimeRef.current = currentTime;
@@ -40,6 +34,7 @@ export function useLaserScanner({
         if (bufferRef.current.length >= minLength) {
           const barcode = bufferRef.current;
           setScannedData(barcode);
+          setIsConnected(true);
           onScan(barcode);
           e.preventDefault(); // Prevent accidental form submissions
         }
@@ -60,5 +55,5 @@ export function useLaserScanner({
     };
   }, [onScan, debounceTime, minLength]);
 
-  return { scannedData };
+  return { scannedData, isConnected };
 }

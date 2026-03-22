@@ -12,6 +12,7 @@ import FlipbookSection from "@/components/FlipbookSection";
 import RingCarouselSection from "@/components/RingCarouselSection";
 import SpotlightSection from "@/components/SpotlightSection";
 import LazyVideo from "@/components/LazyVideo";
+import { handleImageError } from "@/components/ImagePlaceholder";
 
 export const dynamic = "force-dynamic";
 
@@ -77,7 +78,7 @@ export default async function Home() {
         {heroVideo ? (
           <HeroVideo src={heroVideo} />
         ) : (
-          <NextImage src={heroImage} alt="Hero" fill priority className="object-cover" />
+          <NextImage src={heroImage} alt="Hero" fill priority className="object-cover" onError={handleImageError} />
         )}
         {/* Gradient removed as per request */}
 
@@ -185,6 +186,7 @@ export default async function Home() {
                 fill
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
                 priority
+                onError={handleImageError}
               />
             )}
           </section>
@@ -204,6 +206,8 @@ export default async function Home() {
           <SpotlightSection 
             title={s?.spotlightTitle || "AUTHENTIC STREETWEAR"} 
             subtitle={s?.spotlightSubtitle} 
+            collection={s?.spotlightCollection}
+            productIds={s?.spotlightProducts}
           />
         </div>
 

@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import prisma from "@/lib/db";
 import { getServerSession } from "next-auth/next";
+import { authOptions } from "../../auth/[...nextauth]/route";
 
 export async function GET(req: Request) {
   try {
@@ -13,13 +14,18 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Customer ID required' }, { status: 400 });
     }
 
-    const session = await getServerSession() as any;
+    const session = await getServerSession(authOptions) as any;
     const currentCustomerEmail = session?.user?.email;
+    const currentCustomerIdSession = session?.user?.id;
 
     let currentCustomerId = null;
-    if (currentCustomerEmail) {
+    if (currentCustomerEmail || currentCustomerIdSession) {
+      const whereClause: any = { OR: [] };
+      if (currentCustomerEmail) whereClause.OR.push({ email: currentCustomerEmail });
+      if (currentCustomerIdSession) whereClause.OR.push({ id: currentCustomerIdSession });
+      
       const currentCustomer = await prisma.customer.findFirst({
-        where: { email: currentCustomerEmail }
+        where: whereClause
       });
       currentCustomerId = currentCustomer?.id;
     }

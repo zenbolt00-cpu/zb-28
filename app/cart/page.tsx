@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft, Loader2 } from "lucide-react";
 import { useCart } from "@/lib/cart-context";
-import StorefrontNav from "@/components/StorefrontNav";
 import { motion, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
 
@@ -218,7 +217,7 @@ export default function CartPage() {
         )}
       </div>
 
-      <StorefrontNav />
+
 
       {/* In-App Checkout WebView */}
       {checkoutUrl && (

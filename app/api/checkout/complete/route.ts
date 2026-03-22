@@ -143,11 +143,23 @@ export async function POST(req: Request) {
       }
     });
 
-    // Update customer address for next time
+    // Update customer name and address for next time
     await prisma.customer.update({
         where: { id: localCustomer.id },
-        data: { defaultAddress: JSON.stringify(address) }
+        data: { 
+            name: address.name,
+            defaultAddress: JSON.stringify(address) 
+        }
     });
+
+    try {
+        await updateCustomer(shopifyCustomerId, {
+            first_name: address.name.split(' ')[0],
+            last_name: address.name.split(' ').slice(1).join(' ') || '.',
+        });
+    } catch (e) {
+        console.error("Shopify Customer Name Update Error:", e);
+    }
 
     return NextResponse.json({ orderId: localOrder.id });
   } catch (error: any) {
