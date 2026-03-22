@@ -26,7 +26,7 @@ export async function POST() {
 
   try {
     // Ensure shop record exists
-    const shopDomain = process.env.SHOPIFY_STORE_DOMAIN || process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || 'zica-bella.myshopify.com';
+    const shopDomain = process.env.SHOPIFY_STORE_DOMAIN || process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || '8tiahf-bk.myshopify.com';
     const envToken = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
     
     let shop = await prisma.shop.findUnique({ where: { domain: shopDomain } });

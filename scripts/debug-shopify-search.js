@@ -8,7 +8,8 @@ async function debug() {
   
   console.log(`Searching for: ${fullPhone} and ${normalizedPhone}`);
 
-  const domain = process.env.SHOPIFY_STORE_DOMAIN || 'zica-bella.myshopify.com';
+  const SHOPIFY_DOMAIN = '8tiahf-bk.myshopify.com';
+  const domain = process.env.SHOPIFY_STORE_DOMAIN || SHOPIFY_DOMAIN;
   const token = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
 
   if (!token) {

@@ -25,7 +25,7 @@ export async function getShopConfig() {
     
     const finalDomain = !isDefaultDomain
       ? (dbDomain as string)
-      : (process.env.SHOPIFY_STORE_DOMAIN || process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || dbDomain || 'zica-bella.myshopify.com');
+      : (process.env.SHOPIFY_STORE_DOMAIN || process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || dbDomain || '8tiahf-bk.myshopify.com');
 
     const finalToken = !isDbTokenPlaceholder 
       ? (accessToken as string) 
@@ -44,7 +44,7 @@ export async function getShopConfig() {
   } catch (error) {
     console.warn('[Shopify Admin] Database access failed during config fetch:', error);
     return {
-      domain: process.env.SHOPIFY_STORE_DOMAIN || 'zica-bella.myshopify.com',
+      domain: process.env.SHOPIFY_STORE_DOMAIN || '8tiahf-bk.myshopify.com',
       accessToken: process.env.SHOPIFY_ADMIN_ACCESS_TOKEN || '',
     };
   }
@@ -86,3 +86,8 @@ export async function shopifyFetch<T>(endpoint: string, params?: Record<string, 
   const data = await res.json();
   return data as T;
 }
+
+export function clearShopConfigCache() {
+  global._cachedShopConfig = undefined;
+}
+

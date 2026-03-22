@@ -3,7 +3,7 @@ import prisma from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
-const ENV_DOMAIN = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || process.env.SHOPIFY_STORE_DOMAIN || 'zica-bella.myshopify.com';
+const ENV_DOMAIN = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || process.env.SHOPIFY_STORE_DOMAIN || '8tiahf-bk.myshopify.com';
 const ENV_TOKEN  = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN || '';
 
 /** Build a settings response from env vars (used when DB is unavailable) */

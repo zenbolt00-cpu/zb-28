@@ -22,7 +22,7 @@ export async function POST() {
 
     const domain = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN
       || process.env.SHOPIFY_STORE_DOMAIN
-      || 'zica-bella.myshopify.com';
+      || '8tiahf-bk.myshopify.com';
 
     const accessToken = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN || '';
 
