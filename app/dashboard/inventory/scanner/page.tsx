@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { useLaserScanner } from "@/lib/hooks/useLaserScanner";
+import { useDeviceScanner, ScannerDevice } from "@/lib/hooks/useDeviceScanner";
 import { 
   ScanLine, 
   ArrowLeft, 
@@ -18,7 +18,15 @@ import {
   ClipboardList,
   Plus,
   Minus,
-  Terminal
+  Terminal,
+  Usb,
+  Cable,
+  Keyboard,
+  AlertOctagon,
+  Trash2,
+  Info,
+  ChevronRight,
+  CircleDot
 } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -31,6 +39,7 @@ export default function InventoryScannerPage() {
   const [message, setMessage] = useState('');
   const [mode, setMode] = useState<'STOCK_IN' | 'ORDER_OUT' | 'RETURN' | 'EXCHANGE' | 'RTO'>('STOCK_IN');
   const [recentScans, setRecentScans] = useState<any[]>([]);
+  const [showHelp, setShowHelp] = useState(false);
 
   const modes = [
     { id: 'STOCK_IN', label: 'Stock In', icon: Package, color: 'text-[#34C759]', bg: 'bg-[#34C759]/10' },
@@ -49,10 +58,22 @@ export default function InventoryScannerPage() {
     setStatus('confirm');
   };
 
-  // Keyboard wedge / USB scanner hook
-  const { isConnected } = useLaserScanner({
+  // Device connection & multiplexing hook
+  const {
+    devices,
+    selectedDeviceId,
+    selectDevice,
+    isConnected,
+    requestHIDDevice,
+    requestSerialDevice,
+    removeDevice,
+    hidSupported,
+    serialSupported,
+    globalError,
+    clearError,
+  } = useDeviceScanner({
     onScan: onScanSuccess,
-    minLength: 4
+    minBarcodeLength: 4
   });
 
   const handleSync = async () => {
@@ -157,6 +178,41 @@ export default function InventoryScannerPage() {
           })}
         </div>
       </div>
+
+      {/* ── Global Error Banner ────────────────────────────────────────────── */}
+      <AnimatePresence>
+        {globalError && (
+          <motion.div 
+            initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+            animate={{ opacity: 1, height: 'auto', marginBottom: 32 }}
+            exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="flex items-start gap-4 p-4 lg:p-6 bg-rose-500/[0.05] border border-rose-500/20 shadow-[0_8px_32px_rgba(225,29,72,0.1)] rounded-[1.5rem] relative">
+               <div className="w-10 h-10 rounded-2xl bg-rose-500/10 flex items-center justify-center flex-shrink-0">
+                  <AlertOctagon className="w-5 h-5 text-rose-500" />
+               </div>
+               <div className="flex-1 pr-8">
+                  <h3 className="text-[12px] font-black uppercase text-rose-500 tracking-[0.2em] mb-1.5 flex items-center gap-2">
+                     Connection Terminated <span className="px-2 py-0.5 rounded bg-rose-500/10 text-[9px]">{globalError.code}</span>
+                  </h3>
+                  <p className="text-[11px] font-bold text-rose-500/80 leading-relaxed mb-3">{globalError.message}</p>
+                  
+                  {globalError.code === 'ERR_DEVICE_LOCKED' && (
+                     <div className="p-3 bg-rose-500/[0.03] border border-rose-500/10 rounded-xl">
+                        <p className="text-[10px] font-bold text-rose-500/70">
+                           <strong className="text-rose-500">Hint:</strong> If your physical scanner is set to "Keyboard Wedge" mode, you do not need to click Add USB. Just select the standard Keyboard source in the Hardware link panel and scan normally.
+                        </p>
+                     </div>
+                  )}
+               </div>
+               <button onClick={clearError} className="absolute top-4 right-4 p-2 rounded-xl text-rose-500/50 hover:bg-rose-500/10 hover:text-rose-500 transition-colors">
+                  <XCircle className="w-5 h-5" />
+               </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
        <div className="grid lg:grid-cols-5 gap-8">
         {/* Scanner Substrate */}
@@ -263,8 +319,101 @@ export default function InventoryScannerPage() {
         </div>
 
          {/* Transmission Logistics */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="bg-foreground/[0.02] backdrop-blur-[60px] saturate-[200%] border border-foreground/10 rounded-[2rem] p-8 shadow-[0_8px_32px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden h-full flex flex-col">
+        <div className="lg:col-span-2 space-y-6 flex flex-col">
+          
+          {/* HARDWARE LINK MODULE */}
+          <div className="bg-foreground/[0.02] backdrop-blur-[60px] saturate-[200%] border border-foreground/10 rounded-[2rem] p-6 shadow-[0_8px_32px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden flex-shrink-0">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-transparent dark:from-white/5 pointer-events-none z-0" />
+            <div className="relative z-10">
+               <div className="flex items-center justify-between mb-5">
+                  <h2 className="text-[11px] font-black uppercase tracking-[0.25em] text-foreground/80 dark:text-white/40 flex items-center gap-2">
+                     <Usb className="w-4 h-4 text-[#34C759]" strokeWidth={2.5} /> Hardware Link
+                  </h2>
+                  <div className="flex items-center gap-1.5">
+                     {hidSupported && (
+                        <button onClick={requestHIDDevice} className="px-3 py-1.5 bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 border border-black/5 dark:border-white/10 rounded-xl text-[9px] font-black tracking-widest uppercase transition-all flex items-center gap-1.5">
+                           <Plus className="w-3 h-3" /> USB
+                        </button>
+                     )}
+                     {serialSupported && (
+                        <button onClick={requestSerialDevice} className="px-3 py-1.5 bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 border border-black/5 dark:border-white/10 rounded-xl text-[9px] font-black tracking-widest uppercase transition-all flex items-center gap-1.5">
+                           <Plus className="w-3 h-3" /> COM
+                        </button>
+                     )}
+                  </div>
+               </div>
+
+               <div className="space-y-2 mb-4">
+                  {devices.map(device => {
+                     const isSelected = selectedDeviceId === device.id;
+                     const timeSince = device.lastActivity ? Math.round((Date.now() - device.lastActivity) / 1000) : null;
+                     const isError = !!device.error;
+
+                     return (
+                        <div 
+                           key={device.id} 
+                           onClick={() => selectDevice(device.id)}
+                           className={`group flex items-center justify-between p-3 rounded-2xl border transition-all cursor-pointer ${
+                              isSelected ? 'bg-black/5 dark:bg-white/10 border-black/10 dark:border-white/20 shadow-inner' : 'bg-black/[0.02] dark:bg-white/[0.02] border-black/5 dark:border-white/5 hover:bg-black/[0.04] dark:hover:bg-white/[0.05]'
+                           } ${isError ? '!bg-rose-500/[0.05] !border-rose-500/20' : ''}`}
+                        >
+                           <div className="flex items-center gap-3">
+                              <div className="relative flex h-2 w-2 flex-shrink-0">
+                                 {device.connected ? (
+                                    <>
+                                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#34C759] opacity-75" />
+                                       <span className="relative inline-flex rounded-full h-2 w-2 bg-[#34C759]" />
+                                    </>
+                                 ) : (
+                                    <span className={`h-2 w-2 rounded-full flex-shrink-0 ${isError ? 'bg-rose-500' : 'bg-foreground/20'}`} />
+                                 )}
+                              </div>
+                              <div className="flex flex-col">
+                                 <span className={`text-[10px] font-black uppercase tracking-widest ${isError ? 'text-rose-500' : isSelected ? 'text-foreground dark:text-white' : 'text-foreground/60 dark:text-white/60'}`}>{device.name}</span>
+                                 <span className={`text-[8px] font-bold uppercase tracking-[0.2em] mt-0.5 ${isError ? 'text-rose-500/70' : 'text-foreground/40 dark:text-white/40'}`}>
+                                    {isError ? 'Connection Error' : device.connected ? (timeSince !== null && timeSince < 10 ? 'ACTIVE NOW' : 'LINK ESTABLISHED') : 'STANDBY OR UNAVAILABLE'}
+                                 </span>
+                              </div>
+                           </div>
+                           <div className="flex items-center gap-2">
+                              {device.type !== 'keyboard' && (
+                                 <button onClick={(e) => { e.stopPropagation(); removeDevice(device.id); }} className="p-1.5 opacity-0 group-hover:opacity-100 text-rose-500 hover:bg-rose-500/10 rounded-lg transition-all">
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                 </button>
+                              )}
+                              <CircleDot className={`w-3.5 h-3.5 ${isSelected ? 'text-[#34C759]' : 'text-transparent'}`} />
+                           </div>
+                        </div>
+                     )
+                  })}
+               </div>
+
+               {/* Help Toggle */}
+               <button onClick={() => setShowHelp(!showHelp)} className="w-full flex items-center justify-center gap-1.5 py-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-xl transition-colors">
+                  <Info className="w-3 h-3 text-foreground/30 dark:text-white/30" />
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-foreground/40 dark:text-white/40">Hardware Linking Guide</span>
+               </button>
+
+               <AnimatePresence>
+                  {showHelp && (
+                     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
+                        <div className="pt-4 space-y-3">
+                           <div className="p-3 bg-black/5 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/5">
+                              <h4 className="text-[9.5px] font-black uppercase tracking-widest mb-1">Standard Scanner (Keyboard Mode)</h4>
+                              <p className="text-[10px] text-foreground/60 leading-relaxed font-medium">Most plug-and-play barcode scanners emulate a typing keyboard. Just verify "USB/Bluetooth Scanner (Keyboard Mode)" is selected above and scan. You don't need to add the USB connection explicitly.</p>
+                           </div>
+                           <div className="p-3 bg-[#007AFF]/5 rounded-xl border border-[#007AFF]/20">
+                              <h4 className="text-[9.5px] font-black uppercase tracking-widest mb-1 text-[#007AFF]">Advanced Scanners (Web HID/COM)</h4>
+                              <p className="text-[10px] text-[#007AFF]/70 leading-relaxed font-medium">If your scanner requires pure optical data transmission without keyboard emulation, click "Add USB" or "Add COM" to pair the browser directly with the hardware interface.</p>
+                           </div>
+                        </div>
+                     </motion.div>
+                  )}
+               </AnimatePresence>
+            </div>
+          </div>
+
+          <div className="bg-foreground/[0.02] backdrop-blur-[60px] saturate-[200%] border border-foreground/10 rounded-[2rem] p-8 shadow-[0_8px_32px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden flex-1 flex flex-col min-h-[400px]">
             <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-transparent dark:from-white/5 pointer-events-none z-0" />
             
             <div className="relative z-10 flex flex-col h-full">
