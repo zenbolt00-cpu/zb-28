@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useCallback, FormEvent } from 'react';
+import { useRef, useState, useCallback, useEffect, FormEvent } from 'react';
 import { useDeviceScanner, ScannerDevice } from '@/lib/hooks/useDeviceScanner';
 import {
   ScanLine,
@@ -25,6 +25,7 @@ import {
 
 interface ScannerComponentProps {
   onScan: (data: string) => void;
+  onConnectionChange?: (isConnected: boolean) => void;
   scannerType?: string;
 }
 
@@ -146,7 +147,8 @@ function DeviceRow({
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export function ScannerComponent({ onScan }: ScannerComponentProps) {
+export function ScannerComponent(props: ScannerComponentProps) {
+  const { onScan } = props;
   const [lastScanned, setLastScanned] = useState<string | null>(null);
   const [lastDeviceId, setLastDeviceId] = useState<string | null>(null);
   const [manualInput, setManualInput] = useState('');
@@ -178,6 +180,12 @@ export function ScannerComponent({ onScan }: ScannerComponentProps) {
     globalError,
     clearError,
   } = useDeviceScanner({ onScan: handleScan });
+
+  useEffect(() => {
+    if (props.onConnectionChange) {
+      props.onConnectionChange(isConnected);
+    }
+  }, [isConnected, props.onConnectionChange]);
 
   const handleManualSubmit = (e: FormEvent) => {
     e.preventDefault();

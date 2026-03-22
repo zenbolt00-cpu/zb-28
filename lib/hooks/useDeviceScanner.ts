@@ -178,6 +178,8 @@ export function useDeviceScanner({
 
   // Keyboard-wedge listener — always active regardless of selected device
   useEffect(() => {
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    
     const handleKeyDown = (e: KeyboardEvent) => {
       // Skip if user is typing in an input, textarea, or editable element
       const el = document.activeElement;
@@ -185,17 +187,12 @@ export function useDeviceScanner({
         return;
       }
 
-      const now = Date.now();
-      const diff = now - kbLastKeyTimeRef.current;
-      kbLastKeyTimeRef.current = now;
-
-      if (diff > keyboardDebounceMs && kbBufferRef.current.length > 0) {
-        kbBufferRef.current = '';
-      }
-
+      // Scanner terminates with Enter or Tab
       if (e.key === 'Enter' || e.key === 'Tab') {
+        if (debounceTimer) clearTimeout(debounceTimer);
         const barcode = kbBufferRef.current.trim();
         kbBufferRef.current = '';
+        
         if (barcode.length >= minBarcodeLength) {
           markKeyboardActive();
           // Only fire onScan if keyboard device is the selected one
@@ -210,14 +207,22 @@ export function useDeviceScanner({
         return;
       }
 
+      // Accumulate printable characters only
       if (e.key.length === 1) {
         kbBufferRef.current += e.key;
+        
+        // Reset the buffer if there's a long pause (manual typing vs scanner)
+        if (debounceTimer) clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          kbBufferRef.current = '';
+        }, keyboardDebounceMs * 2); // Use a slightly more forgiving timeout
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
+      if (debounceTimer) clearTimeout(debounceTimer);
       if (kbActivityTimerRef.current) clearTimeout(kbActivityTimerRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

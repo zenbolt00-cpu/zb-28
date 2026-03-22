@@ -63,7 +63,7 @@ const modeConfig: Record<ScanMode, { label: string; icon: React.ComponentType<an
 export default function ScannerPage() {
   const [scannedItems, setScannedItems] = useState<ScannedItem[]>([]);
   const [activeTab, setActiveTab] = useState<ScanMode>('stock_in');
-  const [isConnected] = useState(true);
+  const [isConnected, setIsConnected] = useState(false);
   const [lastScan, setLastScan] = useState<string | null>(null);
 
   const handleScan = async (data: string) => {
@@ -188,7 +188,11 @@ export default function ScannerPage() {
                 <p className={`text-sm font-semibold ${config.color}`}>{config.actionLabel}</p>
               </div>
             </div>
-            <ScannerComponent onScan={handleScan} scannerType={activeTab} />
+            <ScannerComponent 
+              onScan={handleScan} 
+              onConnectionChange={setIsConnected}
+              scannerType={activeTab} 
+            />
           </div>
 
           <div className="glass-card rounded-2xl p-5">
