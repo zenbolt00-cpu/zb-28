@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useDeviceScanner, ScannerDevice } from "@/lib/hooks/useDeviceScanner";
 import { 
   ScanLine, 
@@ -42,6 +42,7 @@ export default function InventoryScannerPage() {
   const [showHelp, setShowHelp] = useState(false);
   const [manualBarcode, setManualBarcode] = useState('');
   const [lookupResult, setLookupResult] = useState<{ productName: string; sku?: string; barcode?: string; currentQty?: number } | null>(null);
+  const scanInputRef = useRef<HTMLInputElement>(null);
 
   const modes = [
     { id: 'STOCK_IN', label: 'Stock In', icon: Package, color: 'text-[#34C759]', bg: 'bg-[#34C759]/10' },
@@ -51,9 +52,10 @@ export default function InventoryScannerPage() {
     { id: 'RTO', label: 'RTO', icon: XCircle, color: 'text-[#FF3B30]', bg: 'bg-[#FF3B30]/10' },
   ];
 
-  const onScanSuccess = async (decodedText: string) => {
+  const onScanSuccess = useCallback(async (decodedText: string) => {
     if (status === 'syncing' || status === 'confirm') return;
-    
+
+    setManualBarcode('');
     setScanResult(decodedText);
     setIsScanning(false);
     setQuantity(1);
@@ -78,7 +80,15 @@ export default function InventoryScannerPage() {
       setStatus('error');
       setMessage(e.message || 'Signal Lost');
     }
-  };
+  }, [status]);
+
+  const onDeviceScan = useCallback(
+    (code: string, _deviceId: string) => {
+      void _deviceId;
+      void onScanSuccess(code);
+    },
+    [onScanSuccess]
+  );
 
   // Device connection & multiplexing hook
   const {
@@ -94,9 +104,17 @@ export default function InventoryScannerPage() {
     globalError,
     clearError,
   } = useDeviceScanner({
-    onScan: onScanSuccess,
+    onScan: onDeviceScan,
     minBarcodeLength: 4
   });
+
+  useEffect(() => {
+    if (!isScanning || status !== 'idle') return;
+    const id = requestAnimationFrame(() => {
+      scanInputRef.current?.focus({ preventScroll: true });
+    });
+    return () => cancelAnimationFrame(id);
+  }, [isScanning, status]);
 
   const handleSync = async () => {
     if (!scanResult) return;
@@ -272,11 +290,14 @@ export default function InventoryScannerPage() {
                         className="mt-6 w-full max-w-sm mx-auto flex gap-2 px-4"
                       >
                         <input
+                          ref={scanInputRef}
                           type="text"
                           value={manualBarcode}
                           onChange={(e) => setManualBarcode(e.target.value)}
                           placeholder="Type or paste barcode / SKU…"
                           data-scanner-input="true"
+                          autoComplete="off"
+                          spellCheck={false}
                           className="flex-1 bg-white/10 dark:bg-white/5 border border-white/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm font-mono text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#007AFF]/40 transition-shadow"
                         />
                         <button

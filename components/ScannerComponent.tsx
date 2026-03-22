@@ -364,6 +364,9 @@ export function ScannerComponent(props: ScannerComponentProps) {
             type="text"
             value={manualInput}
             onChange={e => setManualInput(e.target.value)}
+            data-scanner-input="true"
+            autoComplete="off"
+            spellCheck={false}
             placeholder="Type or paste barcode / SKU…"
             className="flex-1 bg-foreground/[0.03] border border-foreground/[0.07] rounded-lg px-3 py-2 text-[11px] font-medium text-foreground placeholder:text-foreground/20 focus:outline-none focus:ring-1 focus:ring-foreground/20 focus:border-foreground/20 transition-all"
           />

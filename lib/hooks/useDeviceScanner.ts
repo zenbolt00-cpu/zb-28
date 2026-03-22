@@ -75,8 +75,6 @@ interface UseDeviceScannerOptions {
   keyboardDebounceMs?: number;
   /** min barcode length to accept from keyboard wedge. Default 4 */
   minBarcodeLength?: number;
-  /** how long to show keyboard device as "connected" after last scan. Default 3000 */
-  keyboardActivityTimeoutMs?: number;
 }
 
 interface UseDeviceScannerReturn {
@@ -123,7 +121,6 @@ export function useDeviceScanner({
   onScan,
   keyboardDebounceMs = 80,
   minBarcodeLength = 4,
-  keyboardActivityTimeoutMs = 3000,
 }: UseDeviceScannerOptions): UseDeviceScannerReturn {
 
   const KEYBOARD_DEVICE_ID = 'keyboard-wedge';
@@ -141,10 +138,13 @@ export function useDeviceScanner({
   const onScanRef = useRef(onScan);
   useEffect(() => { onScanRef.current = onScan; }, [onScan]);
 
+  const selectedDeviceIdRef = useRef(selectedDeviceId);
+  useEffect(() => {
+    selectedDeviceIdRef.current = selectedDeviceId;
+  }, [selectedDeviceId]);
+
   // ── Keyboard wedge state ────────────────────────────────────────────────────
   const kbBufferRef = useRef('');
-  const kbLastKeyTimeRef = useRef(0);
-  const kbActivityTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [globalError, setGlobalError] = useState<ScannerError | null>(null);
 
@@ -164,72 +164,93 @@ export function useDeviceScanner({
     );
   }, []);
 
+  /** Keyboard wedge stays available; lastActivity updates for "ACTIVE NOW" in the device list. */
   const markKeyboardActive = useCallback(() => {
     setDevices(prev =>
-      prev.map(d => d.id === KEYBOARD_DEVICE_ID ? { ...d, connected: true, lastActivity: Date.now() } : d)
+      prev.map(d => (d.id === KEYBOARD_DEVICE_ID ? { ...d, connected: true, lastActivity: Date.now() } : d))
     );
-    if (kbActivityTimerRef.current) clearTimeout(kbActivityTimerRef.current);
-    kbActivityTimerRef.current = setTimeout(() => {
-      setDevices(prev =>
-        prev.map(d => d.id === KEYBOARD_DEVICE_ID ? { ...d, connected: false } : d)
-      );
-    }, keyboardActivityTimeoutMs);
-  }, [keyboardActivityTimeoutMs]);
+  }, []);
 
-  // Keyboard-wedge listener — always active regardless of selected device
+  const shouldAcceptKeyboardWedge = useCallback(() => {
+    const cur = selectedDeviceIdRef.current;
+    return cur === KEYBOARD_DEVICE_ID || cur === null;
+  }, []);
+
+  const dispatchKeyboardWedgeScan = useCallback(
+    (raw: string, e: KeyboardEvent) => {
+      const barcode = raw.trim();
+      if (barcode.length < minBarcodeLength) return;
+      if (!shouldAcceptKeyboardWedge()) return;
+      markKeyboardActive();
+      kbBufferRef.current = '';
+      onScanRef.current(barcode, KEYBOARD_DEVICE_ID);
+      e.preventDefault();
+      e.stopPropagation();
+    },
+    [markKeyboardActive, minBarcodeLength, shouldAcceptKeyboardWedge]
+  );
+
+  function isScannerCaptureElement(el: EventTarget | null): el is HTMLInputElement | HTMLTextAreaElement {
+    if (!el || !(el instanceof HTMLElement)) return false;
+    return el.getAttribute('data-scanner-input') === 'true';
+  }
+
+  // Keyboard-wedge listener — capture phase so we handle Enter before form submit / other handlers
   useEffect(() => {
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
-    
+    const bufferIdleMs = Math.max(500, keyboardDebounceMs * 6);
+
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Skip if user is typing in an input, UNLESS it's a scanner input (optional logic)
       const el = document.activeElement;
-      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || (el as HTMLElement).isContentEditable)) {
-        // If it's an Enter key in an input, we usually let the form handle it.
-        // But if the scanner is fast, we might want to prevent default if it's NOT a deliberate Enter.
+      const inGenericField =
+        el &&
+        (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || (el as HTMLElement).isContentEditable);
+
+      // Dedicated capture field: scanner types here; on Enter/Tab read value (keyboard wedge).
+      if (inGenericField && isScannerCaptureElement(el)) {
+        if (e.key === 'Enter' || e.key === 'Tab') {
+          if (debounceTimer) clearTimeout(debounceTimer);
+          const input = el as HTMLInputElement;
+          const barcode = (input.value || '').trim();
+          if (barcode.length >= minBarcodeLength) {
+            dispatchKeyboardWedgeScan(barcode, e);
+          }
+        }
         return;
       }
+
+      // Other inputs: don't steal keystrokes from manual typing
+      if (inGenericField) return;
 
       // Scanner terminates with Enter or Tab
       if (e.key === 'Enter' || e.key === 'Tab') {
         if (debounceTimer) clearTimeout(debounceTimer);
         const barcode = kbBufferRef.current.trim();
         kbBufferRef.current = '';
-        
         if (barcode.length >= minBarcodeLength) {
-          markKeyboardActive();
-          // Only fire onScan if keyboard device is the selected one
-          setSelectedDeviceId(current => {
-            if (current === KEYBOARD_DEVICE_ID || current === null) {
-              onScanRef.current(barcode, KEYBOARD_DEVICE_ID);
-            }
-            return current;
-          });
-          e.preventDefault();
-          e.stopPropagation();
+          dispatchKeyboardWedgeScan(barcode, e);
         }
         return;
       }
 
       // Accumulate printable characters only
-      if (e.key.length === 1) {
+      if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
         kbBufferRef.current += e.key;
-        
-        // Reset the buffer if there's a long pause (manual typing vs scanner)
+
         if (debounceTimer) clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
           kbBufferRef.current = '';
-        }, keyboardDebounceMs * 3); // Increased forgiving timeout for mobile/slower scanners
+        }, bufferIdleMs);
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown, true);
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keydown', handleKeyDown, true);
       if (debounceTimer) clearTimeout(debounceTimer);
-      if (kbActivityTimerRef.current) clearTimeout(kbActivityTimerRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [keyboardDebounceMs, minBarcodeLength, markKeyboardActive]);
+  }, [keyboardDebounceMs, minBarcodeLength, dispatchKeyboardWedgeScan]);
 
   // ── Restore previously paired HID devices on mount ──────────────────────────
   useEffect(() => {
@@ -271,12 +292,9 @@ export function useDeviceScanner({
           setDevices(prev =>
             prev.map(d => d.id === deviceId ? { ...d, connected: true, lastActivity: Date.now() } : d)
           );
-          setSelectedDeviceId(current => {
-            if (current === deviceId) {
-              onScanRef.current(barcode, deviceId);
-            }
-            return current;
-          });
+          if (selectedDeviceIdRef.current === deviceId) {
+            onScanRef.current(barcode, deviceId);
+          }
         }
       };
 
@@ -396,15 +414,12 @@ export function useDeviceScanner({
             buffer = lines.pop() ?? '';
             for (const line of lines) {
               const barcode = line.trim();
-              if (barcode.length >= minBarcodeLength) {
-                setSelectedDeviceId(current => {
-                  if (current === id) onScanRef.current(barcode, id);
-                  return current;
-                });
+              if (barcode.length >= minBarcodeLength && selectedDeviceIdRef.current === id) {
+                onScanRef.current(barcode, id);
               }
             }
           }
-        } catch (err: any) {
+        } catch {
           setDeviceError(id, 'ERR_READ_FAILED', 'Connection lost while reading from serial port.');
         }
       };
@@ -439,7 +454,9 @@ export function useDeviceScanner({
 
   // ── Derived state ───────────────────────────────────────────────────────────
   const selectedDevice = devices.find(d => d.id === selectedDeviceId);
-  const isConnected = selectedDevice?.connected ?? false;
+  /** Keyboard wedge has no pairing step — treat as always ready when that source is selected. */
+  const isConnected =
+    selectedDevice?.type === 'keyboard' ? true : (selectedDevice?.connected ?? false);
 
   const hidSupported = typeof window !== 'undefined' && 'hid' in navigator;
   const serialSupported = typeof window !== 'undefined' && 'serial' in navigator;
