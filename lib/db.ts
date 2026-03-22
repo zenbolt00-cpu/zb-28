@@ -1,4 +1,8 @@
 import { PrismaClient } from '@prisma/client'
+import { Pool } from 'pg'
+import { PrismaPg } from '@prisma/adapter-pg'
+import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
+import Database from 'better-sqlite3'
 
 // Mock Prisma client for when database is unavailable
 const createMockPrismaClient = (reason: string) => {
@@ -56,8 +60,28 @@ const prismaClientSingleton = () => {
   }
 
   try {
-      // Create standard Prisma Client - it will use DATABASE_URL internally
+      // Local SQLite development fallback
+      if (dbUrl.startsWith('file:')) {
+        const sqlite = new Database(dbUrl.replace('file:', ''));
+        const adapter = new PrismaBetterSqlite3(sqlite);
+        return new PrismaClient({ adapter, log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'] });
+      }
+
+      // Production PostgreSQL
+      const connectionString = process.env.POSTGRES_URL || dbUrl;
+      
+      if (process.env.NODE_ENV === 'production') {
+        process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+      }
+
+      const pool = new Pool({ 
+        connectionString,
+        ssl: { rejectUnauthorized: false }
+      });
+      const adapter = new PrismaPg(pool);
+
       const client = new PrismaClient({
+        adapter,
         log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
       });
       
