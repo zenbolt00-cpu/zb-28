@@ -282,39 +282,10 @@ export async function PATCH(req: Request) {
 
     if (bodyDomain && !data.domain) data.domain = bodyDomain;
 
-    // Filter data to only include columns that actually exist in the production DB
-    const actualColumns = [
-      'id', 'domain', 'accessToken', 'installedAt', 'updatedAt', 'delhiveryApiKey',
-      'razorpayKeyId', 'razorpayKeySecret', 'shiprocketEmail', 'shiprocketToken',
-      'webhookSecret', 'heroImage', 'heroVideo', 'heroTitle', 'heroSubtitle',
-      'heroButtonText', 'latestCurationTitle', 'latestCurationSubtitle',
-      'archiveTitle', 'archiveSubtitle', 'blueprintTitle', 'blueprintSubtitle',
-      'showHeroText', 'showLatestCuration', 'showArchive', 'showBlueprint',
-      'showProductVideo', 'showSizeChart', 'showBrand', 'showShippingReturn',
-      'showCare', 'showSizeFit', 'showDetails', 'pdpBackground', 'instagramUrl',
-      'appleUrl', 'spotifyUrl', 'youtubeUrl', 'featuredMedia', 'collectionsMedia',
-      'footerVideo', 'mainMenuHandle', 'secondaryMenuHandle', 'showTreeText',
-      'enabledCollectionsHeader', 'enabledCollectionsPage', 'enabledCollectionsMenu',
-      'featuredMediaImage', 'kineticMeshProducts', 'communitySubtitle',
-      'communityTitle', 'kineticMeshTitle', 'showCommunity', 'spotlightSubtitle',
-      'spotlightTitle', 'chatAccessMode', 'communityAgeRestricted',
-      'communityMinOrders', 'communityWhatsAppEnabled', 'flipbookConfig',
-      'flipbookDesc', 'flipbookImage', 'flipbookTag', 'flipbookTitle',
-      'flipbookVideo', 'ringCarouselItems', 'ringCarouselTitle', 'showRingCarousel'
-    ];
-
-    const safeData: any = {};
-    Object.keys(data).forEach(key => {
-      if (actualColumns.includes(key)) {
-        safeData[key] = data[key];
-      } else {
-        console.warn(`[Settings API] Skipping non-existent column: ${key}`);
-      }
-    });
-
+    // Data is already filtered by allowedKeys above — send directly to Prisma
     const updatedShop = await prisma.shop.update({
       where: { id: shop.id },
-      data: safeData,
+      data,
     });
 
     console.log(`[Settings API] Saved settings for ${updatedShop.domain}`);
