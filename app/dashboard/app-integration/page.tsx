@@ -105,6 +105,8 @@ export default function AppIntegrationPage() {
 
   const [settings, setSettings] = useState<any>(null);
   const [savingSettings, setSavingSettings] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [saveMessage, setSaveMessage] = useState('');
 
   const testEndpoints = useCallback(async () => {
     setTesting(true);
@@ -179,18 +181,34 @@ export default function AppIntegrationPage() {
   const saveSettings = async () => {
     if (!settings) return;
     setSavingSettings(true);
+    setSaveStatus('idle');
+    setSaveMessage('');
     try {
-      await fetch('/api/admin/settings', {
+      const res = await fetch('/api/admin/settings', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(settings),
+        body: JSON.stringify({
+          shopId: settings.id,
+          ...settings,
+        }),
       });
-      // Optionally re-fetch config status
-      testEndpoints();
-    } catch (err) {
-      console.error('Error saving settings:', err);
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setSaveStatus('success');
+        setSaveMessage('Settings saved successfully!');
+        // Refresh endpoints to verify
+        testEndpoints();
+      } else {
+        setSaveStatus('error');
+        setSaveMessage(data.error || 'Failed to save settings. Check your connection.');
+      }
+    } catch (err: any) {
+      setSaveStatus('error');
+      setSaveMessage(`Save failed: ${err.message}`);
     } finally {
       setSavingSettings(false);
+      // Auto-dismiss toast after 4 seconds
+      setTimeout(() => { setSaveStatus('idle'); setSaveMessage(''); }, 4000);
     }
   };
 
@@ -345,88 +363,218 @@ export default function AppIntegrationPage() {
         <div className="lg:col-span-2 mt-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 px-6 mb-5">
             <div className="flex items-center gap-3">
-              <Settings className="w-4.5 h-4.5 text-foreground/40 dark:text-foreground/40 dark:text-foreground/40 dark:text-foreground/40 dark:text-foreground/20" />
-              <h3 className="text-[11px] font-bold uppercase tracking-[0.4em] text-foreground/40 dark:text-foreground/40 dark:text-foreground/40 dark:text-foreground/40 dark:text-foreground/20">Mobile App Content Settings</h3>
+              <Settings className="w-4.5 h-4.5 text-foreground/40 dark:text-foreground/20" />
+              <h3 className="text-[11px] font-bold uppercase tracking-[0.4em] text-foreground/40 dark:text-foreground/20">Mobile App Content Settings</h3>
             </div>
-            {settings && (
-              <button
-                onClick={saveSettings}
-                disabled={savingSettings}
-                className="text-[10px] font-bold uppercase tracking-[0.3em] bg-foreground text-background px-6 py-2.5 rounded-xl hover:opacity-90 disabled:opacity-50 transition-all flex items-center gap-2 shadow-xl shadow-foreground/20"
-              >
-                {savingSettings && <Loader2 className="w-3 h-3 animate-spin" />}
-                {savingSettings ? 'Saving...' : 'Save App Settings'}
-              </button>
-            )}
+            <div className="flex items-center gap-3">
+              {saveStatus !== 'idle' && (
+                <span className={`text-[10px] font-bold uppercase tracking-wider px-4 py-2 rounded-xl transition-all ${
+                  saveStatus === 'success' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-400'
+                }`}>
+                  {saveMessage}
+                </span>
+              )}
+              {settings && (
+                <button
+                  onClick={saveSettings}
+                  disabled={savingSettings}
+                  className="text-[10px] font-bold uppercase tracking-[0.3em] bg-foreground text-background px-6 py-2.5 rounded-xl hover:opacity-90 disabled:opacity-50 transition-all flex items-center gap-2 shadow-xl shadow-foreground/20"
+                >
+                  {savingSettings && <Loader2 className="w-3 h-3 animate-spin" />}
+                  {savingSettings ? 'Saving...' : 'Save App Settings'}
+                </button>
+              )}
+            </div>
           </div>
           <GlassCard>
             {settings ? (
               <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+                {/* Left Column */}
                 <div className="space-y-6">
+                   {/* ── Hero Section ── */}
                    <div>
                      <h4 className="flex items-center gap-2 text-[12px] font-bold text-foreground/80 uppercase tracking-widest mb-6 pb-2 border-b border-foreground/5">
                        <Smartphone className="w-4 h-4" /> App Homepage Hero
                      </h4>
                    </div>
                    <div>
-                     <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 mb-2">Hero Image URL</label>
+                     <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/60 mb-2">Hero Image URL</label>
                      <input type="text" value={settings.heroImage || ''} onChange={e => setSettings({...settings, heroImage: e.target.value})} className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-1 focus:ring-foreground/20 transition-all" placeholder="https://..." />
                    </div>
                    <div>
-                     <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 mb-2">Hero Title</label>
-                     <input type="text" value={settings.heroTitle || ''} onChange={e => setSettings({...settings, heroTitle: e.target.value})} className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-1 focus:ring-foreground/20 transition-all" placeholder="e.g. AUTHENTIC STREETWEAR" />
+                     <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/60 mb-2">Hero Video URL</label>
+                     <input type="text" value={settings.heroVideo || ''} onChange={e => setSettings({...settings, heroVideo: e.target.value})} className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-1 focus:ring-foreground/20 transition-all" placeholder="https://..." />
                    </div>
                    <div>
-                     <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 mb-2">Hero Subtitle</label>
+                     <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/60 mb-2">Hero Title</label>
+                     <input type="text" value={settings.heroTitle || ''} onChange={e => setSettings({...settings, heroTitle: e.target.value})} className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-1 focus:ring-foreground/20 transition-all" placeholder="e.g. ZICA BELLA" />
+                   </div>
+                   <div>
+                     <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/60 mb-2">Hero Subtitle</label>
                      <input type="text" value={settings.heroSubtitle || ''} onChange={e => setSettings({...settings, heroSubtitle: e.target.value})} className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-1 focus:ring-foreground/20 transition-all" placeholder="Enter subtitle..." />
                    </div>
+                   <div>
+                     <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/60 mb-2">Hero Button Text</label>
+                     <input type="text" value={settings.heroButtonText || ''} onChange={e => setSettings({...settings, heroButtonText: e.target.value})} className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-1 focus:ring-foreground/20 transition-all" placeholder="Discover" />
+                   </div>
+                   <label className="flex items-center gap-3 cursor-pointer">
+                     <input type="checkbox" checked={settings.showHeroText ?? false} onChange={e => setSettings({...settings, showHeroText: e.target.checked})} className="w-4 h-4 rounded accent-foreground" />
+                     <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/60">Show Hero Text Overlay</span>
+                   </label>
 
+                   {/* ── Spotlight Section ── */}
                    <div className="pt-4 mt-6 border-t border-foreground/5">
                      <h4 className="flex items-center gap-2 text-[12px] font-bold text-foreground/80 uppercase tracking-widest mb-6 pb-2">
-                       <ImageIcon className="w-4 h-4" /> App Flipbook Section
+                       <Eye className="w-4 h-4" /> Spotlight Section
                      </h4>
                    </div>
                    <div>
-                     <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 mb-2">Flipbook Image URL</label>
+                     <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/60 mb-2">Spotlight Title</label>
+                     <input type="text" value={settings.spotlightTitle || ''} onChange={e => setSettings({...settings, spotlightTitle: e.target.value})} className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-1 focus:ring-foreground/20 transition-all" placeholder="AUTHENTIC STREETWEAR" />
+                   </div>
+                   <div>
+                     <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/60 mb-2">Spotlight Subtitle</label>
+                     <input type="text" value={settings.spotlightSubtitle || ''} onChange={e => setSettings({...settings, spotlightSubtitle: e.target.value})} className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-1 focus:ring-foreground/20 transition-all" placeholder="Luxury Indian streetwear..." />
+                   </div>
+                   <div>
+                     <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/60 mb-2">Spotlight Collection Handle</label>
+                     <input type="text" value={settings.spotlightCollection || ''} onChange={e => setSettings({...settings, spotlightCollection: e.target.value})} className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-1 focus:ring-foreground/20 transition-all font-mono" placeholder="tshirts" />
+                     <p className="text-[10px] text-foreground/30 mt-1.5 ml-1">The collection handle for the spotlight grid (e.g. tshirts, accessories)</p>
+                   </div>
+
+                   {/* ── Flipbook Section ── */}
+                   <div className="pt-4 mt-6 border-t border-foreground/5">
+                     <h4 className="flex items-center gap-2 text-[12px] font-bold text-foreground/80 uppercase tracking-widest mb-6 pb-2">
+                       <ImageIcon className="w-4 h-4" /> Flipbook Section
+                     </h4>
+                   </div>
+                   <div>
+                     <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/60 mb-2">Flipbook Image URL</label>
                      <input type="text" value={settings.flipbookImage || ''} onChange={e => setSettings({...settings, flipbookImage: e.target.value})} className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-1 focus:ring-foreground/20 transition-all" placeholder="https://..." />
                    </div>
                    <div>
-                     <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 mb-2">Flipbook Title</label>
-                     <input type="text" value={settings.flipbookTitle || ''} onChange={e => setSettings({...settings, flipbookTitle: e.target.value})} className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-1 focus:ring-foreground/20 transition-all" placeholder="e.g. Archival Vision" />
+                     <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/60 mb-2">Flipbook Video URL</label>
+                     <input type="text" value={settings.flipbookVideo || ''} onChange={e => setSettings({...settings, flipbookVideo: e.target.value})} className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-1 focus:ring-foreground/20 transition-all" placeholder="https://..." />
                    </div>
                    <div>
-                     <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 mb-2">Flipbook Description</label>
+                     <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/60 mb-2">Flipbook Title</label>
+                     <input type="text" value={settings.flipbookTitle || ''} onChange={e => setSettings({...settings, flipbookTitle: e.target.value})} className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-1 focus:ring-foreground/20 transition-all" placeholder="Archival Vision" />
+                   </div>
+                   <div>
+                     <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/60 mb-2">Flipbook Tag</label>
+                     <input type="text" value={settings.flipbookTag || ''} onChange={e => setSettings({...settings, flipbookTag: e.target.value})} className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-1 focus:ring-foreground/20 transition-all" placeholder="Core Manifest" />
+                   </div>
+                   <div>
+                     <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/60 mb-2">Flipbook Description</label>
                      <input type="text" value={settings.flipbookDesc || ''} onChange={e => setSettings({...settings, flipbookDesc: e.target.value})} className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-1 focus:ring-foreground/20 transition-all" placeholder="Engineered for those..." />
                    </div>
                 </div>
 
+                {/* Right Column */}
                 <div className="space-y-6">
+                   {/* ── Community Section ── */}
                    <div>
                      <h4 className="flex items-center gap-2 text-[12px] font-bold text-foreground/80 uppercase tracking-widest mb-6 pb-2 border-b border-foreground/5">
-                       <Package className="w-4 h-4" /> App Collections & Menu
+                       <Users className="w-4 h-4" /> Community Section
                      </h4>
                    </div>
                    <div>
-                     <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 mb-2">Homepage Featured Collections (JSON Array or Handles)</label>
-                     <input type="text" value={settings.enabledCollectionsPage || ''} onChange={e => setSettings({...settings, enabledCollectionsPage: e.target.value})} className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-1 focus:ring-foreground/20 transition-all font-mono" placeholder='["tshirts", "hoodies"]' />
-                     <p className="text-[10px] text-foreground/50 dark:text-foreground/50 dark:text-foreground/50 dark:text-foreground/50 dark:text-foreground/30 mt-1.5 ml-1">Collections shown in the bottom horizontal scroll on the app homepage.</p>
+                     <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/60 mb-2">Community Title</label>
+                     <input type="text" value={settings.communityTitle || ''} onChange={e => setSettings({...settings, communityTitle: e.target.value})} className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-1 focus:ring-foreground/20 transition-all" placeholder="Featured Looks" />
                    </div>
                    <div>
-                     <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 mb-2">App Menu Collections (JSON Array or Handles)</label>
-                     <input type="text" value={settings.enabledCollectionsMenu || ''} onChange={e => setSettings({...settings, enabledCollectionsMenu: e.target.value})} className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-1 focus:ring-foreground/20 transition-all font-mono" placeholder='["accessories", "rings"]' />
-                     <p className="text-[10px] text-foreground/50 dark:text-foreground/50 dark:text-foreground/50 dark:text-foreground/50 dark:text-foreground/30 mt-1.5 ml-1">Collections shown in the app's Explore/Search tabs.</p>
+                     <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/60 mb-2">Community Subtitle</label>
+                     <input type="text" value={settings.communitySubtitle || ''} onChange={e => setSettings({...settings, communitySubtitle: e.target.value})} className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-1 focus:ring-foreground/20 transition-all" placeholder="Community" />
+                   </div>
+                   <label className="flex items-center gap-3 cursor-pointer">
+                     <input type="checkbox" checked={settings.showCommunity ?? true} onChange={e => setSettings({...settings, showCommunity: e.target.checked})} className="w-4 h-4 rounded accent-foreground" />
+                     <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/60">Show Community Section</span>
+                   </label>
+
+                   {/* ── Ring Carousel ── */}
+                   <div className="pt-4 mt-6 border-t border-foreground/5">
+                     <h4 className="flex items-center gap-2 text-[12px] font-bold text-foreground/80 uppercase tracking-widest mb-6 pb-2">
+                       <BarChart3 className="w-4 h-4" /> Ring Carousel
+                     </h4>
                    </div>
                    <div>
-                     <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 mb-2">App Ring Carousel Items (JSON Array)</label>
+                     <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/60 mb-2">Ring Carousel Title</label>
+                     <input type="text" value={settings.ringCarouselTitle || ''} onChange={e => setSettings({...settings, ringCarouselTitle: e.target.value})} className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-1 focus:ring-foreground/20 transition-all" placeholder="RING COLLECTION" />
+                   </div>
+                   <div>
+                     <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/60 mb-2">Ring Carousel Items (JSON Array)</label>
                      <input type="text" value={settings.ringCarouselItems || ''} onChange={e => setSettings({...settings, ringCarouselItems: e.target.value})} className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-1 focus:ring-foreground/20 transition-all font-mono" placeholder='["ring1", "ring2"]' />
-                     <p className="text-[10px] text-foreground/50 dark:text-foreground/50 dark:text-foreground/50 dark:text-foreground/50 dark:text-foreground/30 mt-1.5 ml-1">Products featured in the 3D rotating wheel on the app homepage.</p>
+                   </div>
+                   <label className="flex items-center gap-3 cursor-pointer">
+                     <input type="checkbox" checked={settings.showRingCarousel ?? true} onChange={e => setSettings({...settings, showRingCarousel: e.target.checked})} className="w-4 h-4 rounded accent-foreground" />
+                     <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/60">Show Ring Carousel</span>
+                   </label>
+
+                   {/* ── Social Links ── */}
+                   <div className="pt-4 mt-6 border-t border-foreground/5">
+                     <h4 className="flex items-center gap-2 text-[12px] font-bold text-foreground/80 uppercase tracking-widest mb-6 pb-2">
+                       <Globe className="w-4 h-4" /> Social Links
+                     </h4>
+                   </div>
+                   <div>
+                     <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/60 mb-2">Instagram URL</label>
+                     <input type="text" value={settings.instagramUrl || ''} onChange={e => setSettings({...settings, instagramUrl: e.target.value})} className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-1 focus:ring-foreground/20 transition-all" placeholder="https://instagram.com/..." />
+                   </div>
+                   <div>
+                     <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/60 mb-2">YouTube URL</label>
+                     <input type="text" value={settings.youtubeUrl || ''} onChange={e => setSettings({...settings, youtubeUrl: e.target.value})} className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-1 focus:ring-foreground/20 transition-all" placeholder="https://youtube.com/..." />
+                   </div>
+                   <div>
+                     <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/60 mb-2">Spotify URL</label>
+                     <input type="text" value={settings.spotifyUrl || ''} onChange={e => setSettings({...settings, spotifyUrl: e.target.value})} className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-1 focus:ring-foreground/20 transition-all" placeholder="https://spotify.com/..." />
+                   </div>
+
+                   {/* ── Collections & Menu ── */}
+                   <div className="pt-4 mt-6 border-t border-foreground/5">
+                     <h4 className="flex items-center gap-2 text-[12px] font-bold text-foreground/80 uppercase tracking-widest mb-6 pb-2">
+                       <Package className="w-4 h-4" /> Collections & Menu
+                     </h4>
+                   </div>
+                   <div>
+                     <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/60 mb-2">Homepage Featured Collections (JSON)</label>
+                     <input type="text" value={settings.enabledCollectionsPage || ''} onChange={e => setSettings({...settings, enabledCollectionsPage: e.target.value})} className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-1 focus:ring-foreground/20 transition-all font-mono" placeholder='["tshirts", "hoodies"]' />
+                     <p className="text-[10px] text-foreground/30 mt-1.5 ml-1">Collections shown in the bottom scroll on the app homepage.</p>
+                   </div>
+                   <div>
+                     <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/60 mb-2">App Menu Collections (JSON)</label>
+                     <input type="text" value={settings.enabledCollectionsMenu || ''} onChange={e => setSettings({...settings, enabledCollectionsMenu: e.target.value})} className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-1 focus:ring-foreground/20 transition-all font-mono" placeholder='["accessories", "rings"]' />
+                     <p className="text-[10px] text-foreground/30 mt-1.5 ml-1">Collections shown in the app's Explore/Search tabs.</p>
+                   </div>
+
+                   {/* ── Section & Feature Toggles ── */}
+                   <div className="pt-4 mt-6 border-t border-foreground/5">
+                     <h4 className="flex items-center gap-2 text-[12px] font-bold text-foreground/80 uppercase tracking-widest mb-6 pb-2">
+                       <Zap className="w-4 h-4" /> Section Toggles
+                     </h4>
+                   </div>
+                   <div className="grid grid-cols-2 gap-4">
+                     {[
+                       { key: 'showLatestCuration', label: 'Latest Curation' },
+                       { key: 'showArchive', label: 'Archive' },
+                       { key: 'showBlueprint', label: 'Blueprint' },
+                       { key: 'showProductVideo', label: 'Product Video' },
+                       { key: 'showSizeChart', label: 'Size Chart' },
+                       { key: 'showBrand', label: 'Brand' },
+                       { key: 'showShippingReturn', label: 'Shipping/Returns' },
+                       { key: 'showDetails', label: 'Product Details' },
+                     ].map(toggle => (
+                       <label key={toggle.key} className="flex items-center gap-2 cursor-pointer">
+                         <input type="checkbox" checked={settings[toggle.key] ?? true} onChange={e => setSettings({...settings, [toggle.key]: e.target.checked})} className="w-4 h-4 rounded accent-foreground" />
+                         <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-foreground/60">{toggle.label}</span>
+                       </label>
+                     ))}
                    </div>
                 </div>
               </div>
             ) : (
               <div className="p-10 flex flex-col items-center justify-center gap-4">
-                <Loader2 className="w-6 h-6 text-foreground/40 dark:text-foreground/40 dark:text-foreground/40 dark:text-foreground/40 dark:text-foreground/20 animate-spin" />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-foreground/50 dark:text-foreground/50 dark:text-foreground/50 dark:text-foreground/50 dark:text-foreground/30">Loading App Settings...</span>
+                <Loader2 className="w-6 h-6 text-foreground/20 animate-spin" />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-foreground/30">Loading App Settings...</span>
               </div>
             )}
           </GlassCard>

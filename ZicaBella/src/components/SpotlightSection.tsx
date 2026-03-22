@@ -30,9 +30,9 @@ export default function SpotlightSection({
   const { settings } = useAdminSettings();
   const shopData = settings?.shop || settings || {};
 
-  const resolvedTitle = title || shopData?.spotlightTitle || "AUTHENTIC STREETWEAR";
-  const resolvedSubtitle = subtitle || shopData?.spotlightSubtitle || "Luxury Indian streetwear for modern men.";
-  const resolvedCollectionHandle = collectionHandle || shopData?.spotlightCollection || "t-shirts";
+  const resolvedTitle = title || settings?.spotlight?.title || "AUTHENTIC STREETWEAR";
+  const resolvedSubtitle = subtitle || settings?.spotlight?.subtitle || "Luxury Indian streetwear for modern men.";
+  const resolvedCollectionHandle = collectionHandle || settings?.spotlight?.collection || "tshirts";
 
   const { products, loading } = useCollectionByHandle(resolvedCollectionHandle);
   const theme = useThemeStore(s => s.theme);
@@ -62,7 +62,7 @@ export default function SpotlightSection({
     <View style={styles.container}>
       <TouchableOpacity 
         style={styles.header}
-        onPress={() => navigation.navigate('CollectionDetail', { handle: resolvedCollectionHandle, title: resolvedTitle })}
+        onPress={() => navigation.navigate('Collection', { handle: resolvedCollectionHandle, title: resolvedTitle })}
         activeOpacity={0.7}
       >
         <Typography rocaston size={48} color={colors.text} style={styles.titleTop}>{firstWord}</Typography>

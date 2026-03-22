@@ -133,7 +133,7 @@ export function useDeviceScanner({
       id: KEYBOARD_DEVICE_ID,
       name: 'USB / Bluetooth Scanner (Keyboard Mode)',
       type: 'keyboard',
-      connected: false,
+      connected: true,
     },
   ]);
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(KEYBOARD_DEVICE_ID);
@@ -179,6 +179,12 @@ export function useDeviceScanner({
   // Keyboard-wedge listener — always active regardless of selected device
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Skip if user is typing in an input, textarea, or editable element
+      const el = document.activeElement;
+      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || (el as HTMLElement).isContentEditable)) {
+        return;
+      }
+
       const now = Date.now();
       const diff = now - kbLastKeyTimeRef.current;
       kbLastKeyTimeRef.current = now;
@@ -206,10 +212,6 @@ export function useDeviceScanner({
 
       if (e.key.length === 1) {
         kbBufferRef.current += e.key;
-        // If this came in fast (scanner speed), track activity
-        if (diff < keyboardDebounceMs || kbBufferRef.current.length === 1) {
-          // Could be scanner - don't mark active yet, wait for Enter
-        }
       }
     };
 

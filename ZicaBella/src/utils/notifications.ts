@@ -29,10 +29,17 @@ export const initPushNotifications = async () => {
     }
 
     let messaging: any;
+    let firebaseApp: any;
     try {
+      firebaseApp = require('@react-native-firebase/app').default;
       messaging = require('@react-native-firebase/messaging').default;
     } catch (e) {
       console.warn('[Notifications] Failed to load @react-native-firebase/messaging:', e);
+      return;
+    }
+
+    if (!firebaseApp?.apps?.length) {
+      console.warn('[Notifications] Firebase is not configured on this build. Skipping messaging setup.');
       return;
     }
 
@@ -54,4 +61,3 @@ export const initPushNotifications = async () => {
     console.warn('[Notifications] Global catch caught an error (likely keychain/entitlement in simulator):', err);
   }
 };
-

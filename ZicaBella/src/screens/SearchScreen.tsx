@@ -6,7 +6,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { useColors, colors as staticColors } from '../constants/colors';
+import { useColors } from '../constants/colors';
 import { config } from '../constants/config';
 import { useSearchProducts, useCollections } from '../hooks/useProducts';
 import ProductCard from '../components/ProductCard';
@@ -75,21 +75,21 @@ export default function SearchScreen() {
       scrollEventThrottle={16}
     >
       {/* ── Search Bar ── */}
-      <View style={styles.searchContainer}>
+      <View style={[styles.searchContainer, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(128,128,128,0.05)', borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(128,128,128,0.1)' }]}>
         <Ionicons name="search-outline" size={16} color={colors.textExtraLight} style={styles.searchIcon} />
         <TextInput
           value={query}
           onChangeText={handleSearch}
           placeholder="Search Zica Bella…"
           placeholderTextColor={colors.textExtraLight}
-          style={styles.searchInput}
+          style={[styles.searchInput, { color: colors.text }]}
           autoCapitalize="none"
           autoCorrect={false}
           returnKeyType="search"
         />
         {query.length > 0 && (
           <TouchableOpacity onPress={() => { setQuery(''); search(''); }} style={styles.clearButton}>
-          <Typography weight="300" size={8} color="rgba(5,5,6,0.4)" style={styles.clearText}>Clear</Typography>
+          <Typography weight="300" size={8} color={colors.textExtraLight} style={styles.clearText}>Clear</Typography>
           </TouchableOpacity>
         )}
       </View>
@@ -97,8 +97,8 @@ export default function SearchScreen() {
       {/* ── Results header ── */}
       {query.length > 0 && (
         <View style={styles.resultsHeader}>
-          <Typography weight="300" size={10} color="rgba(5,5,6,0.8)" style={styles.queryLabel}>"{query}"</Typography>
-          <Typography weight="300" size={8} color="rgba(5,5,6,0.4)" style={styles.countLabel}>
+          <Typography weight="300" size={10} color={colors.textSecondary} style={styles.queryLabel}>"{query}"</Typography>
+          <Typography weight="300" size={8} color={colors.textExtraLight} style={styles.countLabel}>
             {results.length} {results.length === 1 ? 'result' : 'results'}
           </Typography>
         </View>
@@ -126,8 +126,8 @@ export default function SearchScreen() {
           <View style={styles.emptyIcon}>
             <Ionicons name="search-outline" size={20} color={colors.textExtraLight} />
           </View>
-          <Typography heading weight="300" size={11} color="rgba(5,5,6,0.5)" style={styles.emptyTitle}>No results for "{query}"</Typography>
-          <Typography weight="300" size={9} color="rgba(5,5,6,0.3)" style={styles.emptySubtitle}>Try a different term or browse below</Typography>
+          <Typography heading weight="300" size={11} color={colors.textMuted} style={styles.emptyTitle}>No results for "{query}"</Typography>
+          <Typography weight="300" size={9} color={colors.textExtraLight} style={styles.emptySubtitle}>Try a different term or browse below</Typography>
         </View>
       )}
 
@@ -136,7 +136,7 @@ export default function SearchScreen() {
         <>
           {/* Trending */}
           <View style={styles.section}>
-            <Typography weight="300" size={7} color="rgba(5,5,6,0.4)" style={styles.sectionLabel}>Trending</Typography>
+            <Typography weight="300" size={7} color={colors.textExtraLight} style={styles.sectionLabel}>Trending</Typography>
             <View style={styles.trendingContainer}>
               {config.trending.map((term) => (
                 <TouchableOpacity
@@ -145,7 +145,7 @@ export default function SearchScreen() {
                   onPress={() => handleSearch(term)}
                   activeOpacity={0.7}
                 >
-                  <Typography weight="300" size={9} color="rgba(5,5,6,0.6)" style={styles.trendingText}>{term}</Typography>
+                  <Typography weight="300" size={9} color={colors.textSecondary} style={styles.trendingText}>{term}</Typography>
                 </TouchableOpacity>
               ))}
             </View>
@@ -154,7 +154,7 @@ export default function SearchScreen() {
           {/* Recently Viewed */}
           {recentProducts.length > 0 && (
             <View style={styles.section}>
-              <Typography weight="300" size={7} color="rgba(5,5,6,0.4)" style={styles.sectionLabel}>Recently Viewed</Typography>
+              <Typography weight="300" size={7} color={colors.textExtraLight} style={styles.sectionLabel}>Recently Viewed</Typography>
               <View style={styles.productGrid}>
                 {recentProducts.slice(0, 4).map((product) => (
                   <View key={product.id} style={styles.cardWrapper}>
@@ -197,10 +197,8 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(128,128,128,0.05)',
     borderRadius: 12,
     borderWidth: 0.5,
-    borderColor: 'rgba(128,128,128,0.1)',
     marginBottom: 24,
     marginHorizontal: 16,
     paddingHorizontal: 16,
@@ -213,7 +211,6 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 13,
-    color: staticColors.text,
     fontWeight: '400',
     letterSpacing: 0.5,
   },

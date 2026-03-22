@@ -38,7 +38,7 @@ export const Typography: React.FC<TypographyProps> = ({
 
   // Determine base font family
   let baseFont = 'System';
-  if (heading) baseFont = 'HeadingProWide-Bold';
+  if (heading) baseFont = 'Poppins-Bold';
   else if (rocaston) baseFont = 'Rocaston';
 
   // Split string into numbers and everything else

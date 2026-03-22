@@ -15,7 +15,6 @@ import { useFonts } from 'expo-font';
 
 export default function App() {
   const [fontsLoaded] = useFonts({
-    'HeadingProWide-Bold': require('./assets/fonts/Heading_Pro_Wide_Trial_Bold.woff'),
     'Rocaston': require('./assets/fonts/Rocaston.ttf'),
     'Poppins': require('./assets/fonts/Poppins-Regular.ttf'),
     'Poppins-Bold': require('./assets/fonts/Poppins-Bold.ttf'),

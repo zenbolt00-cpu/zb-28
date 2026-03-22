@@ -1,7 +1,7 @@
 import React from 'react';
 import { 
   View, Text, StyleSheet, Modal, TouchableOpacity, 
-  Dimensions, Pressable, ScrollView 
+  Dimensions, Pressable, ScrollView, ActivityIndicator 
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,6 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useColors } from '../constants/colors';
 import { useThemeStore } from '../store/themeStore';
+import { useCollections } from '../hooks/useProducts';
 
 const { width } = Dimensions.get('window');
 
@@ -23,26 +24,18 @@ export default function MenuDrawer({ visible, onClose }: Props) {
   const colors = useColors();
   const theme = useThemeStore(state => state.theme);
   const isDark = theme === 'dark';
+  
+  // Fetch collections dynamically from API
+  const { collections, loading: collectionsLoading } = useCollections(20, 'menu');
 
-  const collections = [
-    { title: 'ACID TEES', handle: 'acid-tees' },
-    { title: 'DO-ZAK COLLECTION', handle: 'do-zak-collection' },
-    { title: 'DRIP DENIM', handle: 'drip-denim' },
-    { title: 'FEATURED COLLECTION', handle: 'featured-collection' },
-    { title: 'JORTSY', handle: 'jortsy' },
-    { title: 'LEATHER ROOM', handle: 'leather-room' },
-    { title: 'ROGUE WINTER', handle: 'rogue-winter' },
-    { title: 'VEXEE SHIRTS', handle: 'vexee-shirts' }
-  ];
-
-  const shopItems = [
-    { title: 'T-shirt', handle: 't-shirts' },
-    { title: 'Jeans', handle: 'jeans' },
-    { title: 'Pants', handle: 'pants' },
-    { title: 'Trousers', handle: 'trousers' },
-    { title: 'Jorts', handle: 'jorts' },
-    { title: 'Shirts', handle: 'shirts' }
-  ];
+  // Filter into categories: collections vs shop categories
+  const shopHandles = new Set(['tshirts', 'jeans', 'shorts', 'shirts', 'jackets']);
+  const excludeHandles = new Set(['homepage', 'featured', 'new-arrivals']);
+  
+  const menuCollections = collections.filter(
+    c => !shopHandles.has(c.handle) && !excludeHandles.has(c.handle)
+  );
+  const shopItems = collections.filter(c => shopHandles.has(c.handle));
 
   const bottomLinks = [
     { title: 'COLLABORATIONS', route: 'Collaborations' },
@@ -101,9 +94,11 @@ export default function MenuDrawer({ visible, onClose }: Props) {
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
             <View style={styles.widgetGrid}>
               <GlassWidget title="COLLECTIONS" style={{ flex: 1.2 }}>
-                {collections.map(item => (
+                {collectionsLoading ? (
+                  <ActivityIndicator size="small" color={colors.textExtraLight} style={{ marginTop: 20 }} />
+                ) : menuCollections.map(item => (
                   <TouchableOpacity 
-                    key={item.handle} 
+                    key={item.id} 
                     style={styles.itemBtn}
                     onPress={() => handleNavigate('Collection', { handle: item.handle })}
                   >
@@ -115,7 +110,7 @@ export default function MenuDrawer({ visible, onClose }: Props) {
               <GlassWidget title="SHOP" style={{ flex: 0.8 }}>
                 {shopItems.map(item => (
                   <TouchableOpacity 
-                    key={item.handle} 
+                    key={item.id} 
                     style={styles.itemBtn}
                     onPress={() => handleNavigate('Collection', { handle: item.handle })}
                   >

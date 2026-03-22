@@ -28,13 +28,13 @@ export default function FlipbookSection({ imgUrl, videoUrl, tag, title, desc }: 
   const { settings } = useAdminSettings();
   const shopData = settings?.shop || settings || {};
 
-  const resolvedImgUrl = imgUrl || settings?.flipbookImage || shopData?.flipbookImage;
-  const resolvedVideoUrl = videoUrl || settings?.flipbookVideo || shopData?.flipbookVideo;
+  const resolvedImgUrl = imgUrl || settings?.flipbook?.image;
+  const resolvedVideoUrl = videoUrl || settings?.flipbook?.video;
 
   const displayImg   = resolvedImgUrl   || DEFAULTS.imgUrl;
-  const displayTag   = tag      || settings?.flipbookTag    || shopData?.flipbookTag    || DEFAULTS.tag;
-  const displayTitle = title    || settings?.flipbookTitle  || shopData?.flipbookTitle  || DEFAULTS.title;
-  const displayDesc  = desc     || settings?.flipbookDesc   || shopData?.flipbookDesc   || DEFAULTS.desc;
+  const displayTag   = tag      || settings?.flipbook?.tag    || DEFAULTS.tag;
+  const displayTitle = title    || settings?.flipbook?.title  || DEFAULTS.title;
+  const displayDesc  = desc     || settings?.flipbook?.description   || DEFAULTS.desc;
 
   const player = useVideoPlayer(resolvedVideoUrl ?? null, (player) => {
     if (!videoUrl) {

@@ -36,19 +36,18 @@ export default function HomeScreen() {
   const isDark = theme === 'dark';
 
   const { settings, loading: settingsLoading } = useAdminSettings();
-  const shopData = settings?.shop || settings || {};
   
-  const ringHandle = shopData?.ringCollection || 'accessories';
-  const ringTitle = shopData?.ringTitle || 'RING COLLECTION';
+  const ringHandle = settings?.ringCarousel?.collection || 'accessories';
+  const ringTitle = settings?.ringCarousel?.title || 'RING COLLECTION';
 
-  const heroVideoSrc = shopData?.heroVideo || config.heroVideoUrl;
-  const heroImageSrc = shopData?.heroImage; // We can use this if video is absent
-  const heroTitle = shopData?.heroTitle || 'ZICA BELLA';
-  const heroSubtitle = shopData?.heroSubtitle || 'ARCHIVAL VISION';
-  const showHeroText = shopData?.showHeroText ?? true;
+  const heroVideoSrc = settings?.hero?.video || config.heroVideoUrl;
+  const heroImageSrc = settings?.hero?.image;
+  const heroTitle = settings?.hero?.title || 'ZICA BELLA';
+  const heroSubtitle = settings?.hero?.subtitle || 'ARCHIVAL VISION';
+  const showHeroText = settings?.hero?.showText ?? true;
 
-  const latestCurationTitle = shopData?.latestCurationTitle || 'LATEST CURATION';
-  const latestCurationSubtitle = shopData?.latestCurationSubtitle || 'SEASON DROP';
+  const latestCurationTitle = settings?.latestCuration?.title || 'LATEST CURATION';
+  const latestCurationSubtitle = settings?.latestCuration?.subtitle || 'SEASON DROP';
 
   const { products, loading, error, refetch } = useProducts(24);
   const { collections, refetch: refetchCollections } = useCollections(20, 'page');

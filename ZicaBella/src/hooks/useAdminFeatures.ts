@@ -6,11 +6,12 @@ export function useAdminSettings() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${config.appUrl}/api/app/settings?t=${Date.now()}`)
+    fetch(`${config.appUrl}/api/app/config?t=${Date.now()}`)
       .then((res) => res.json())
       .then((data) => {
-        // Only set settings if there's no error from the API
-        if (!data.error) {
+        if (data.config) {
+          setSettings(data.config);
+        } else if (!data.error) {
           setSettings(data);
         } else {
           console.error('API returned error:', data.error);
