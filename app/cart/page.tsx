@@ -49,7 +49,7 @@ export default function CartPage() {
           <h1 className="font-heading text-[13px] uppercase tracking-widest text-foreground/80 flex items-center gap-2">
             Cart
             {count > 0 && (
-              <span className="text-[8px] px-2 py-0.5 rounded-full bg-foreground/10 text-foreground/50 font-inter font-medium">
+              <span className="text-[8px] px-2 py-0.5 rounded-full bg-foreground/10 text-foreground/70 dark:text-foreground/50 font-inter font-medium">
                 {count}
               </span>
             )}
@@ -59,8 +59,8 @@ export default function CartPage() {
         {/* Empty state */}
         {items.length === 0 && (
           <div className="text-center pt-20 pb-8">
-            <ShoppingBag className="w-12 h-12 text-foreground/10 mx-auto mb-4" />
-            <p className="font-heading text-[10px] uppercase tracking-widest text-foreground/30 mb-2">
+            <ShoppingBag className="w-12 h-12 text-foreground/30 dark:text-foreground/10 mx-auto mb-4" />
+            <p className="font-heading text-[10px] uppercase tracking-widest text-foreground/50 dark:text-foreground/30 mb-2">
               Your Cart is Empty
             </p>
             {/* Link removed - Global navigation handles this */}
@@ -101,7 +101,7 @@ export default function CartPage() {
                     Size: {item.size}
                   </p>
                 )}
-                <p className="text-[9px] font-inter font-semibold tracking-wider text-foreground/60">
+                <p className="text-[9px] font-inter font-semibold tracking-wider text-foreground/80 dark:text-foreground/60">
                   ₹{(parseFloat(item.price) * item.quantity).toLocaleString("en-IN")}
                 </p>
               </div>
@@ -119,7 +119,7 @@ export default function CartPage() {
                 >
                   <button
                     onClick={() => update(item.id, item.quantity - 1)}
-                    className="w-5 h-5 flex items-center justify-center text-foreground/40 hover:text-foreground transition-colors active:scale-90"
+                    className="w-5 h-5 flex items-center justify-center text-foreground/60 dark:text-foreground/40 hover:text-foreground transition-colors active:scale-90"
                   >
                     <Minus className="w-2.5 h-2.5" />
                   </button>
@@ -128,14 +128,14 @@ export default function CartPage() {
                   </span>
                   <button
                     onClick={() => update(item.id, item.quantity + 1)}
-                    className="w-5 h-5 flex items-center justify-center text-foreground/40 hover:text-foreground transition-colors active:scale-90"
+                    className="w-5 h-5 flex items-center justify-center text-foreground/60 dark:text-foreground/40 hover:text-foreground transition-colors active:scale-90"
                   >
                     <Plus className="w-2.5 h-2.5" />
                   </button>
                 </div>
                 <button
                   onClick={() => remove(item.id)}
-                  className="text-foreground/20 hover:text-rose-400 transition-colors active:scale-90 p-1"
+                  className="text-foreground/40 dark:text-foreground/20 hover:text-rose-400 transition-colors active:scale-90 p-1"
                 >
                   <Trash2 className="w-3 h-3" />
                 </button>
@@ -162,13 +162,13 @@ export default function CartPage() {
               }}
             >
               <div className="flex justify-between items-center mb-2">
-                <span className="text-[8px] font-extralight uppercase tracking-widest text-foreground/40">Subtotal</span>
+                <span className="text-[8px] font-extralight uppercase tracking-widest text-foreground/60 dark:text-foreground/40">Subtotal</span>
                 <span className="text-[9px] font-inter font-semibold tracking-wider text-foreground/70">
                   ₹{subtotal.toLocaleString("en-IN")}
                 </span>
               </div>
               <div className="flex justify-between items-center mb-2">
-                <span className="text-[8px] font-extralight uppercase tracking-widest text-foreground/40">Shipping</span>
+                <span className="text-[8px] font-extralight uppercase tracking-widest text-foreground/60 dark:text-foreground/40">Shipping</span>
                 <span className="text-[8px] font-extralight text-foreground/35">Calculated at checkout</span>
               </div>
               <div className="h-[0.5px] bg-foreground/[0.06] my-2" />
@@ -209,7 +209,7 @@ export default function CartPage() {
             </button>
             <button
               onClick={clear}
-              className="w-full py-2.5 rounded-2xl text-[8px] font-extralight uppercase tracking-widest text-foreground/30 hover:text-foreground/60 transition-colors"
+              className="w-full py-2.5 rounded-2xl text-[8px] font-extralight uppercase tracking-widest text-foreground/50 dark:text-foreground/30 hover:text-foreground/80 dark:text-foreground/60 transition-colors"
             >
               Clear Cart
             </button>

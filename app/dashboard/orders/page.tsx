@@ -84,12 +84,12 @@ function StatusBadge({ status, type }: { status: string | null; type: "payment" 
     fulfilled: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
     delivered: "bg-green-500/10 text-green-600 dark:text-green-400",
     partial: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
-    unfulfilled: "bg-foreground/[0.05] text-foreground/70 dark:text-foreground/70 dark:text-foreground/50",
+    unfulfilled: "bg-foreground/[0.05] text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/50",
     pending: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
     authorized: "bg-purple-500/10 text-purple-600 dark:text-purple-400",
   };
   return (
-    <span className={`inline-flex px-2 py-0.5 rounded-sm text-[9px] font-medium uppercase tracking-widest ${colors[label] || "bg-foreground/[0.05] text-foreground/70 dark:text-foreground/70 dark:text-foreground/50"}`}>
+    <span className={`inline-flex px-2 py-0.5 rounded-sm text-[9px] font-medium uppercase tracking-widest ${colors[label] || "bg-foreground/[0.05] text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/50"}`}>
       {label}
     </span>
   );
@@ -315,7 +315,7 @@ export default function OrdersPage() {
           <h1 className="text-xl font-semibold text-foreground tracking-tight">
             Orders
           </h1>
-          <p className="text-[11px] text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 tracking-wide max-w-xl">
+          <p className="text-[11px] text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 tracking-wide max-w-xl">
             Manage fulfillment, payments, and order details.
           </p>
         </div>
@@ -342,9 +342,9 @@ export default function OrdersPage() {
       {/* Filters & Search */}
        <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40" />
           <input
-            className="w-full bg-background border border-foreground/[0.05] rounded-md pl-9 pr-4 py-2 text-[11px] font-medium text-foreground placeholder:text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 focus:outline-none focus:border-foreground/20 transition-colors uppercase tracking-widest"
+            className="w-full bg-background border border-foreground/[0.05] rounded-md pl-9 pr-4 py-2 text-[11px] font-medium text-foreground placeholder:text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 focus:outline-none focus:border-foreground/20 transition-colors uppercase tracking-widest"
             placeholder="Search orders..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -356,7 +356,7 @@ export default function OrdersPage() {
               key={s}
               onClick={() => setStatusFilter(s)}
               className={`px-3 py-1.5 rounded-[4px] text-[9px] font-medium uppercase tracking-[0.15em] transition-colors ${
-                statusFilter === s ? "bg-foreground text-background" : "text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 hover:bg-foreground/[0.03]"
+                statusFilter === s ? "bg-foreground text-background" : "text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 hover:bg-foreground/[0.03]"
               }`}
             >
               {s === "any" ? "All" : s}
@@ -378,27 +378,27 @@ export default function OrdersPage() {
             <thead className="bg-foreground/[0.01] border-b border-foreground/[0.05]">
               <tr>
                 <th className="px-5 py-3 w-8"></th>
-                <th className="px-5 py-3 text-[9px] font-semibold text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 uppercase tracking-widest">Order</th>
-                <th className="px-5 py-3 text-[9px] font-semibold text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 uppercase tracking-widest">Customer</th>
-                <th className="px-5 py-3 text-[9px] font-semibold text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 uppercase tracking-widest">Payment</th>
-                <th className="px-5 py-3 text-[9px] font-semibold text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 uppercase tracking-widest">Fulfillment</th>
-                <th className="px-5 py-3 text-[9px] font-semibold text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 uppercase tracking-widest">Delivery</th>
-                <th className="px-5 py-3 text-[9px] font-semibold text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 uppercase tracking-widest text-right">Total</th>
-                <th className="px-5 py-3 text-[9px] font-semibold text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 uppercase tracking-widest text-center">Date</th>
-                <th className="px-5 py-3 text-[9px] font-semibold text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 uppercase tracking-widest text-right">Actions</th>
+                <th className="px-5 py-3 text-[9px] font-semibold text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 uppercase tracking-widest">Order</th>
+                <th className="px-5 py-3 text-[9px] font-semibold text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 uppercase tracking-widest">Customer</th>
+                <th className="px-5 py-3 text-[9px] font-semibold text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 uppercase tracking-widest">Payment</th>
+                <th className="px-5 py-3 text-[9px] font-semibold text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 uppercase tracking-widest">Fulfillment</th>
+                <th className="px-5 py-3 text-[9px] font-semibold text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 uppercase tracking-widest">Delivery</th>
+                <th className="px-5 py-3 text-[9px] font-semibold text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 uppercase tracking-widest text-right">Total</th>
+                <th className="px-5 py-3 text-[9px] font-semibold text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 uppercase tracking-widest text-center">Date</th>
+                <th className="px-5 py-3 text-[9px] font-semibold text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 uppercase tracking-widest text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-foreground/[0.05]">
               {loading && orders.length === 0 ? (
                  <tr>
-                  <td colSpan={9} className="px-5 py-12 text-center text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40">
+                  <td colSpan={9} className="px-5 py-12 text-center text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40">
                     <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2" />
                     <p className="text-[10px] font-medium uppercase tracking-widest">Loading...</p>
                   </td>
                 </tr>
               ) : displayedOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-5 py-12 text-center text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40">
+                  <td colSpan={9} className="px-5 py-12 text-center text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40">
                     <p className="text-[10px] font-medium uppercase tracking-widest">No orders found</p>
                   </td>
                 </tr>
@@ -420,7 +420,7 @@ export default function OrdersPage() {
                         className={`transition-colors cursor-pointer ${isExpanded ? 'bg-foreground/[0.01]' : 'hover:bg-foreground/[0.02]'}`}
                         onClick={() => setExpanded(isExpanded ? null : order.id)}
                       >
-                         <td className="px-5 py-3 text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40">
+                         <td className="px-5 py-3 text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40">
                           {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                         </td>
                         <td className="px-5 py-3">
@@ -429,8 +429,8 @@ export default function OrdersPage() {
                           </Link>
                         </td>
                         <td className="px-5 py-3">
-                          <div className={`text-[11px] font-medium ${rawName ? "text-foreground" : "text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 italic"}`}>{customerName}</div>
-                          {order.customer?.email && <div className="text-[9px] text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 mt-0.5">{order.customer.email}</div>}
+                          <div className={`text-[11px] font-medium ${rawName ? "text-foreground" : "text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 italic"}`}>{customerName}</div>
+                          {order.customer?.email && <div className="text-[9px] text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 mt-0.5">{order.customer.email}</div>}
                         </td>
                         <td className="px-5 py-3">
                           <StatusBadge status={order.financial_status} type="payment" />
@@ -444,7 +444,7 @@ export default function OrdersPage() {
                         <td className="px-5 py-3 text-[12px] font-medium text-foreground text-right">
                           ₹{parseFloat(order.total_price).toLocaleString("en-IN")}
                         </td>
-                        <td className="px-5 py-3 text-[10px] text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 uppercase tracking-widest text-center">
+                        <td className="px-5 py-3 text-[10px] text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 uppercase tracking-widest text-center">
                           {new Date(order.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                         </td>
                         <td className="px-5 py-3 text-right" onClick={(e) => e.stopPropagation()}>
@@ -474,7 +474,7 @@ export default function OrdersPage() {
                                 setEditForm({ note: order.note || "", email: order.customer?.email || "" });
                                 setIsEditModalOpen(true);
                               }}
-                              className="p-1.5 text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 hover:text-foreground transition-colors"
+                              className="p-1.5 text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 hover:text-foreground transition-colors"
                             >
                               <Edit2 className="w-3.5 h-3.5" />
                             </button>
@@ -482,7 +482,7 @@ export default function OrdersPage() {
                               href={`https://${SHOPIFY_DOMAIN}/admin/orders/${order.id}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="p-1.5 text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 hover:text-foreground transition-colors"
+                              className="p-1.5 text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 hover:text-foreground transition-colors"
                             >
                               <ExternalLink className="w-3.5 h-3.5" />
                             </a>
@@ -502,7 +502,7 @@ export default function OrdersPage() {
                                <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
                                   {/* Line Items */}
                                   <div>
-                                    <h4 className="text-[9px] font-semibold uppercase tracking-widest text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 mb-3 border-b border-foreground/[0.05] pb-2">
+                                    <h4 className="text-[9px] font-semibold uppercase tracking-widest text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 mb-3 border-b border-foreground/[0.05] pb-2">
                                       Items ({order.line_items.length})
                                     </h4>
                                     <div className="space-y-3">
@@ -510,7 +510,7 @@ export default function OrdersPage() {
                                         <div key={item.id} className="flex justify-between items-start text-sm">
                                           <div className="max-w-[70%]">
                                             <p className="text-[11px] font-medium text-foreground break-words">{item.name || item.title}</p>
-                                            {item.sku && <p className="text-[9px] font-mono text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 mt-0.5">SKU: {item.sku}</p>}
+                                            {item.sku && <p className="text-[9px] font-mono text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 mt-0.5">SKU: {item.sku}</p>}
                                           </div>
                                           <div className="text-[11px] font-medium text-foreground text-right">
                                             {item.quantity} × ₹{parseFloat(item.price).toLocaleString("en-IN")}
@@ -524,7 +524,7 @@ export default function OrdersPage() {
                                   <div className="space-y-6">
                                     {order.shipping_address && (
                                       <div>
-                                        <h4 className="text-[9px] font-semibold uppercase tracking-widest text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 mb-3 border-b border-foreground/[0.05] pb-2">
+                                        <h4 className="text-[9px] font-semibold uppercase tracking-widest text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 mb-3 border-b border-foreground/[0.05] pb-2">
                                           Shipping Address
                                         </h4>
                                         <div className="text-[11px] text-foreground/80 space-y-0.5">
@@ -533,14 +533,14 @@ export default function OrdersPage() {
                                           <p>{order.shipping_address.address1}</p>
                                           {order.shipping_address.address2 && <p>{order.shipping_address.address2}</p>}
                                           <p>{order.shipping_address.city}, {order.shipping_address.province} {order.shipping_address.zip}</p>
-                                          <p className="text-[9px] uppercase tracking-widest text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 mt-1">{order.shipping_address.country}</p>
+                                          <p className="text-[9px] uppercase tracking-widest text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 mt-1">{order.shipping_address.country}</p>
                                           {order.shipping_address.phone && <p className="mt-2 font-mono text-[9px]">{order.shipping_address.phone}</p>}
                                         </div>
                                       </div>
                                     )}
                                     {order.note && (
                                        <div>
-                                        <h4 className="text-[9px] font-semibold uppercase tracking-widest text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 mb-3 border-b border-foreground/[0.05] pb-2">
+                                        <h4 className="text-[9px] font-semibold uppercase tracking-widest text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 mb-3 border-b border-foreground/[0.05] pb-2">
                                           Order Note
                                         </h4>
                                         <p className="text-[11px] text-foreground/80 bg-background border border-foreground/[0.05] p-3 rounded-md">{order.note}</p>
@@ -568,13 +568,13 @@ export default function OrdersPage() {
           <div className="bg-background w-full max-w-sm rounded-xl p-6 border border-foreground/[0.05] shadow-lg relative z-10">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-[12px] font-semibold text-foreground tracking-widest uppercase">Edit Order</h2>
-              <button onClick={() => setIsEditModalOpen(false)} className="text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 hover:text-foreground">
+              <button onClick={() => setIsEditModalOpen(false)} className="text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 hover:text-foreground">
                 <X className="w-4 h-4" />
               </button>
             </div>
             <form onSubmit={handleUpdateOrder} className="space-y-4">
                <div>
-                <label className="block text-[9px] font-semibold uppercase tracking-widest text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 mb-1.5">Email</label>
+                <label className="block text-[9px] font-semibold uppercase tracking-widest text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 mb-1.5">Email</label>
                 <input
                   type="email"
                   value={editForm.email}
@@ -583,7 +583,7 @@ export default function OrdersPage() {
                 />
               </div>
               <div>
-                <label className="block text-[9px] font-semibold uppercase tracking-widest text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 mb-1.5">Note</label>
+                <label className="block text-[9px] font-semibold uppercase tracking-widest text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 mb-1.5">Note</label>
                 <textarea
                   value={editForm.note}
                   onChange={(e) => setEditForm(prev => ({ ...prev, note: e.target.value }))}
@@ -609,7 +609,7 @@ export default function OrdersPage() {
           <div className="bg-background w-full max-w-lg rounded-xl p-6 border border-foreground/[0.05] shadow-lg relative z-10 my-8">
             <div className="flex justify-between items-center mb-6 border-b border-foreground/[0.05] pb-4">
               <h2 className="text-[12px] font-semibold text-foreground tracking-widest uppercase">Create Draft Order</h2>
-              <button onClick={() => setIsCreateModalOpen(false)} className="text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 hover:text-foreground">
+              <button onClick={() => setIsCreateModalOpen(false)} className="text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 hover:text-foreground">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -617,29 +617,29 @@ export default function OrdersPage() {
             <form onSubmit={handleCreateOrder} className="space-y-5">
                <div className="grid grid-cols-2 gap-4">
                  <div>
-                   <label className="block text-[9px] font-semibold uppercase tracking-widest text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 mb-1.5">First Name</label>
+                   <label className="block text-[9px] font-semibold uppercase tracking-widest text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 mb-1.5">First Name</label>
                    <input required value={createForm.firstName} onChange={(e) => setCreateForm(p => ({...p, firstName: e.target.value}))} className="w-full bg-foreground/[0.02] border border-foreground/[0.05] focus:border-foreground/20 rounded-md px-3 py-2 text-[11px] font-medium text-foreground outline-none" />
                  </div>
                  <div>
-                   <label className="block text-[9px] font-semibold uppercase tracking-widest text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 mb-1.5">Last Name</label>
+                   <label className="block text-[9px] font-semibold uppercase tracking-widest text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 mb-1.5">Last Name</label>
                    <input required value={createForm.lastName} onChange={(e) => setCreateForm(p => ({...p, lastName: e.target.value}))} className="w-full bg-foreground/[0.02] border border-foreground/[0.05] focus:border-foreground/20 rounded-md px-3 py-2 text-[11px] font-medium text-foreground outline-none" />
                  </div>
                </div>
                <div>
-                 <label className="block text-[9px] font-semibold uppercase tracking-widest text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 mb-1.5">Email</label>
+                 <label className="block text-[9px] font-semibold uppercase tracking-widest text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 mb-1.5">Email</label>
                  <input required type="email" value={createForm.email} onChange={(e) => setCreateForm(p => ({...p, email: e.target.value}))} className="w-full bg-foreground/[0.02] border border-foreground/[0.05] focus:border-foreground/20 rounded-md px-3 py-2 text-[11px] font-medium text-foreground outline-none" />
                </div>
 
                <div className="pt-2">
-                 <h3 className="text-[9px] font-semibold text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 uppercase tracking-widest mb-3 border-b border-foreground/[0.05] pb-2">Line Item</h3>
+                 <h3 className="text-[9px] font-semibold text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 uppercase tracking-widest mb-3 border-b border-foreground/[0.05] pb-2">Line Item</h3>
                  <div className="space-y-3 relative">
                    {isProductsLoading && (
                      <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/50 backdrop-blur-sm">
-                       <Loader2 className="w-4 h-4 animate-spin text-foreground/70 dark:text-foreground/70 dark:text-foreground/50" />
+                       <Loader2 className="w-4 h-4 animate-spin text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/50" />
                      </div>
                    )}
                    <div>
-                     <label className="block text-[9px] font-semibold uppercase tracking-widest text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 mb-1.5">Product</label>
+                     <label className="block text-[9px] font-semibold uppercase tracking-widest text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 mb-1.5">Product</label>
                      <select
                        required
                        value={selectedProductId}
@@ -656,7 +656,7 @@ export default function OrdersPage() {
                    
                    <div className="grid grid-cols-4 gap-4">
                      <div className="col-span-3">
-                       <label className="block text-[9px] font-semibold uppercase tracking-widest text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 mb-1.5">Variant</label>
+                       <label className="block text-[9px] font-semibold uppercase tracking-widest text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 mb-1.5">Variant</label>
                        <select
                          required
                          disabled={!selectedProductId}
@@ -673,7 +673,7 @@ export default function OrdersPage() {
                        </select>
                      </div>
                      <div>
-                       <label className="block text-[9px] font-semibold uppercase tracking-widest text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 mb-1.5">Qty</label>
+                       <label className="block text-[9px] font-semibold uppercase tracking-widest text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 mb-1.5">Qty</label>
                        <input required type="number" min="1" value={createForm.quantity} onChange={(e) => setCreateForm(p => ({...p, quantity: parseInt(e.target.value) || 1}))} className="w-full bg-foreground/[0.02] border border-foreground/[0.05] focus:border-foreground/20 rounded-md px-3 py-2 text-[11px] font-medium text-foreground outline-none" />
                      </div>
                    </div>
@@ -681,23 +681,23 @@ export default function OrdersPage() {
                </div>
 
                <div className="pt-2">
-                 <h3 className="text-[9px] font-semibold text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 uppercase tracking-widest mb-3 border-b border-foreground/[0.05] pb-2">Shipping</h3>
+                 <h3 className="text-[9px] font-semibold text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 uppercase tracking-widest mb-3 border-b border-foreground/[0.05] pb-2">Shipping</h3>
                  <div className="space-y-3">
                     <div>
-                      <label className="block text-[9px] font-semibold uppercase tracking-widest text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 mb-1.5">Address</label>
+                      <label className="block text-[9px] font-semibold uppercase tracking-widest text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 mb-1.5">Address</label>
                       <input required value={createForm.address1} onChange={(e) => setCreateForm(p => ({...p, address1: e.target.value}))} className="w-full bg-foreground/[0.02] border border-foreground/[0.05] focus:border-foreground/20 rounded-md px-3 py-2 text-[11px] font-medium text-foreground outline-none" />
                    </div>
                    <div className="grid grid-cols-3 gap-3">
                       <div>
-                        <label className="block text-[9px] font-semibold uppercase tracking-widest text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 mb-1.5">City</label>
+                        <label className="block text-[9px] font-semibold uppercase tracking-widest text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 mb-1.5">City</label>
                         <input required value={createForm.city} onChange={(e) => setCreateForm(p => ({...p, city: e.target.value}))} className="w-full bg-foreground/[0.02] border border-foreground/[0.05] focus:border-foreground/20 rounded-md px-3 py-2 text-[11px] font-medium text-foreground outline-none" />
                       </div>
                       <div>
-                        <label className="block text-[9px] font-semibold uppercase tracking-widest text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 mb-1.5">Zip</label>
+                        <label className="block text-[9px] font-semibold uppercase tracking-widest text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 mb-1.5">Zip</label>
                         <input required value={createForm.zip} onChange={(e) => setCreateForm(p => ({...p, zip: e.target.value}))} className="w-full bg-foreground/[0.02] border border-foreground/[0.05] focus:border-foreground/20 rounded-md px-3 py-2 text-[11px] font-medium text-foreground outline-none" />
                       </div>
                       <div>
-                        <label className="block text-[9px] font-semibold uppercase tracking-widest text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 mb-1.5">Country</label>
+                        <label className="block text-[9px] font-semibold uppercase tracking-widest text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 mb-1.5">Country</label>
                         <input required value={createForm.country} onChange={(e) => setCreateForm(p => ({...p, country: e.target.value}))} className="w-full bg-foreground/[0.02] border border-foreground/[0.05] focus:border-foreground/20 rounded-md px-3 py-2 text-[11px] font-medium text-foreground outline-none" />
                       </div>
                    </div>

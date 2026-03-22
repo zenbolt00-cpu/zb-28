@@ -33,7 +33,7 @@ export default function OrderConfirmationPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-8 h-8 animate-spin text-foreground/20" />
+        <Loader2 className="w-8 h-8 animate-spin text-foreground/40 dark:text-foreground/20" />
       </div>
     );
   }

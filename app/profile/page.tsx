@@ -117,7 +117,7 @@ export default function ProfilePage() {
           transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
           className="w-8 h-8 border-[1.5px] border-foreground/10 border-t-foreground/40 rounded-full"
         />
-        <p className="text-[7px] font-semibold uppercase tracking-[0.5em] text-foreground/20">Loading</p>
+        <p className="text-[7px] font-semibold uppercase tracking-[0.5em] text-foreground/40 dark:text-foreground/20">Loading</p>
       </div>
     );
   }
@@ -164,7 +164,7 @@ export default function ProfilePage() {
                   <img src={customer?.image || session.user?.image || ""} alt="" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <User className="w-8 h-8 text-foreground/10" />
+                    <User className="w-8 h-8 text-foreground/30 dark:text-foreground/10" />
                   </div>
                 )}
                 <button
@@ -184,7 +184,7 @@ export default function ProfilePage() {
             <div className="flex-1 min-w-0">
               <h1 className="text-[17px] font-bold tracking-tight text-foreground truncate leading-tight">{name}</h1>
               {email && (
-                <p className="text-[10px] text-foreground/50 truncate tracking-wide mt-0.5">{email}</p>
+                <p className="text-[10px] text-foreground/70 dark:text-foreground/50 truncate tracking-wide mt-0.5">{email}</p>
               )}
               <div className="flex items-center gap-3 mt-1.5">
                 <div className="flex items-center gap-1">
@@ -198,7 +198,7 @@ export default function ProfilePage() {
                 </div>
               </div>
               <div className="mt-3 flex items-center gap-3">
-                <span className="px-2.5 py-1 rounded-full text-[7px] font-bold uppercase tracking-widest border border-foreground/10 text-foreground/40">
+                <span className="px-2.5 py-1 rounded-full text-[7px] font-bold uppercase tracking-widest border border-foreground/10 text-foreground/60 dark:text-foreground/40">
                   Silver Member
                 </span>
               </div>
@@ -238,7 +238,7 @@ export default function ProfilePage() {
               key={t}
               onClick={() => setTab(t)}
               className={`flex-1 py-2 rounded-[0.75rem] text-[8px] font-bold uppercase tracking-[0.15em] transition-all ${
-                tab === t ? "bg-foreground text-background shadow" : "text-foreground/30 hover:text-foreground/50"
+                tab === t ? "bg-foreground text-background shadow" : "text-foreground/50 dark:text-foreground/30 hover:text-foreground/70 dark:text-foreground/50"
               }`}
             >
               {t === "orders" ? "Orders" : t === "wishlist" ? "Wishlist" : "Account"}
@@ -251,8 +251,8 @@ export default function ProfilePage() {
           {tab === "orders" && (
             <motion.div key="orders" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.3 }}>
               <div className="flex items-center justify-between mb-3 px-1">
-                <span className="text-[8px] font-semibold uppercase tracking-[0.3em] text-foreground/30">Order History</span>
-                <Link href="/orders" className="flex items-center gap-1 text-[8px] font-bold text-foreground/40 hover:text-foreground/70 transition-colors">
+                <span className="text-[8px] font-semibold uppercase tracking-[0.3em] text-foreground/50 dark:text-foreground/30">Order History</span>
+                <Link href="/orders" className="flex items-center gap-1 text-[8px] font-bold text-foreground/60 dark:text-foreground/40 hover:text-foreground/70 transition-colors">
                   All <ArrowUpRight className="w-3 h-3" />
                 </Link>
               </div>
@@ -279,14 +279,14 @@ export default function ProfilePage() {
                           <p className="text-[10px] font-bold text-foreground/70 truncate">
                             #{order.shopifyOrderId?.slice(-6) || order.id.slice(-6)}
                           </p>
-                          <p className="flex items-center gap-1 text-[8px] text-foreground/30 mt-0.5">
+                          <p className="flex items-center gap-1 text-[8px] text-foreground/50 dark:text-foreground/30 mt-0.5">
                             <Clock className="w-2.5 h-2.5" />
                             {new Date(order.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
                           </p>
                         </div>
                         <div className="text-right shrink-0">
-                          <p className="text-[11px] font-bold text-foreground/60">₹{order.totalPrice.toLocaleString("en-IN")}</p>
-                          <ChevronRight className="w-3 h-3 ml-auto mt-0.5 text-foreground/15 group-hover:text-foreground/30 transition-colors" />
+                          <p className="text-[11px] font-bold text-foreground/80 dark:text-foreground/60">₹{order.totalPrice.toLocaleString("en-IN")}</p>
+                          <ChevronRight className="w-3 h-3 ml-auto mt-0.5 text-foreground/15 group-hover:text-foreground/50 dark:text-foreground/30 transition-colors" />
                         </div>
                       </motion.div>
                     </Link>
@@ -294,7 +294,7 @@ export default function ProfilePage() {
                 </div>
               ) : (
                 <div className="py-16 text-center rounded-[1.5rem]" style={{ border: "1px dashed rgba(255,255,255,0.06)" }}>
-                  <Package className="w-8 h-8 text-foreground/10 mx-auto mb-3" />
+                  <Package className="w-8 h-8 text-foreground/30 dark:text-foreground/10 mx-auto mb-3" />
                   <p className="text-[8px] font-semibold uppercase tracking-widest text-foreground/15">No orders yet</p>
                 </div>
               )}
@@ -304,8 +304,8 @@ export default function ProfilePage() {
           {tab === "wishlist" && (
             <motion.div key="wishlist" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.3 }}>
               <div className="flex items-center justify-between mb-3 px-1">
-                <span className="text-[8px] font-semibold uppercase tracking-[0.3em] text-foreground/30">Saved Items</span>
-                <Link href="/wishlist" className="flex items-center gap-1 text-[8px] font-bold text-foreground/40 hover:text-foreground/70 transition-colors">
+                <span className="text-[8px] font-semibold uppercase tracking-[0.3em] text-foreground/50 dark:text-foreground/30">Saved Items</span>
+                <Link href="/wishlist" className="flex items-center gap-1 text-[8px] font-bold text-foreground/60 dark:text-foreground/40 hover:text-foreground/70 transition-colors">
                   All <ArrowUpRight className="w-3 h-3" />
                 </Link>
               </div>
@@ -330,7 +330,7 @@ export default function ProfilePage() {
                 </div>
               ) : (
                 <div className="py-16 text-center rounded-[1.5rem]" style={{ border: "1px dashed rgba(255,255,255,0.06)" }}>
-                  <Bookmark className="w-8 h-8 text-foreground/10 mx-auto mb-3" />
+                  <Bookmark className="w-8 h-8 text-foreground/30 dark:text-foreground/10 mx-auto mb-3" />
                   <p className="text-[8px] font-semibold uppercase tracking-widest text-foreground/15">Nothing saved yet</p>
                 </div>
               )}
@@ -343,7 +343,7 @@ export default function ProfilePage() {
               {/* Region Picker */}
               <div className="rounded-[1.5rem] overflow-hidden" style={{ border: "1px solid rgba(255,255,255,0.06)" }}>
                 <div className="px-4 py-3 border-b border-white/[0.04]">
-                  <p className="text-[8px] font-semibold uppercase tracking-[0.3em] text-foreground/30">Region</p>
+                  <p className="text-[8px] font-semibold uppercase tracking-[0.3em] text-foreground/50 dark:text-foreground/30">Region</p>
                 </div>
                 <div className="p-3 grid grid-cols-2 gap-2">
                   {[
@@ -356,7 +356,7 @@ export default function ProfilePage() {
                       className={`flex items-center justify-between px-4 py-3 rounded-[1rem] border transition-all text-left ${
                         customer?.region === r.id
                           ? "bg-foreground border-transparent text-background"
-                          : "border-white/[0.06] text-foreground/40 hover:bg-foreground/[0.03]"
+                          : "border-white/[0.06] text-foreground/60 dark:text-foreground/40 hover:bg-foreground/[0.03]"
                       }`}
                     >
                       <div className="flex items-center gap-2">
@@ -391,7 +391,7 @@ export default function ProfilePage() {
               {/* Sign Out */}
               <button
                 onClick={() => signOut({ callbackUrl: "/login" })}
-                className="w-full py-4 rounded-[1.5rem] text-[9px] font-bold uppercase tracking-[0.3em] text-foreground/30 hover:text-red-400 hover:bg-red-500/[0.04] transition-all active:scale-[0.98]"
+                className="w-full py-4 rounded-[1.5rem] text-[9px] font-bold uppercase tracking-[0.3em] text-foreground/50 dark:text-foreground/30 hover:text-red-400 hover:bg-red-500/[0.04] transition-all active:scale-[0.98]"
                 style={{ border: "1px solid rgba(255,255,255,0.06)" }}
               >
                 Sign Out

@@ -47,7 +47,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md relative z-10 glass rounded-[2.5rem] p-10 border border-white/10 shadow-2xl animate-in fade-in zoom-in duration-700">
         <div className="flex flex-col items-center mb-10 text-center">
           <div className="w-16 h-16 rounded-2xl bg-foreground/5 flex items-center justify-center border border-foreground/10 mb-6 group transition-all duration-500 hover:border-foreground/20">
-            <Lock className="w-8 h-8 text-foreground/40 group-hover:text-foreground/70 transition-colors" />
+            <Lock className="w-8 h-8 text-foreground/60 dark:text-foreground/40 group-hover:text-foreground/70 transition-colors" />
           </div>
           <h1 className="font-rocaston text-2xl tracking-[0.2em] text-foreground mb-2">ADMIN PORTAL</h1>
           <p className="text-[10px] font-extralight uppercase tracking-[0.4em] text-muted-foreground/60">Restricted Access</p>

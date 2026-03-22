@@ -57,11 +57,11 @@ export default function ReturnsPage() {
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-2">
          <div className="space-y-1">
-          <div className="px-2 py-0.5 bg-foreground/[0.03] rounded-md text-[8px] font-black text-foreground/80 dark:text-foreground/60 dark:text-foreground/40 dark:text-white/30 uppercase tracking-[0.2em] w-fit mb-1">reversal protocol</div>
+          <div className="px-2 py-0.5 bg-foreground/[0.03] rounded-md text-[8px] font-black text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/40 dark:text-white/30 uppercase tracking-[0.2em] w-fit mb-1">reversal protocol</div>
           <h1 className="text-xl font-black text-foreground uppercase tracking-tight mb-0.5 lowercase leading-none">
             Returns
           </h1>
-          <p className="text-[10px] text-foreground/80 dark:text-foreground/60 dark:text-foreground/40 dark:text-white/20 font-bold uppercase tracking-widest mt-1">
+          <p className="text-[10px] text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/40 dark:text-white/20 font-bold uppercase tracking-widest mt-1">
             Manage customer feedback loops and reversals.
           </p>
         </div>
@@ -70,13 +70,13 @@ export default function ReturnsPage() {
       <div className="grid grid-cols-1 gap-3">
          {loading ? (
           <div className="bg-white/50 dark:bg-white/[0.02] border border-foreground/[0.05] rounded-xl p-12 text-center flex justify-center shadow-sm">
-            <Loader2 className="w-6 h-6 animate-spin text-foreground/30 dark:text-foreground/30 dark:text-foreground/10" />
+            <Loader2 className="w-6 h-6 animate-spin text-foreground/30 dark:text-foreground/30 dark:text-foreground/30 dark:text-foreground/30 dark:text-foreground/10" />
           </div>
         ) : returns.length === 0 ? (
            <div className="bg-white/50 dark:bg-white/[0.02] border border-foreground/[0.05] rounded-xl p-8 text-center shadow-sm">
             <Undo2 className="w-8 h-8 text-foreground/5 mx-auto mb-3" />
             <h3 className="text-[11px] font-black text-foreground uppercase tracking-tight lowercase">Protocol inactive</h3>
-            <p className="text-[9px] text-foreground/40 dark:text-foreground/40 dark:text-foreground/20 font-black uppercase tracking-[0.2em] mt-1">No reversal nodes detected.</p>
+            <p className="text-[9px] text-foreground/40 dark:text-foreground/40 dark:text-foreground/40 dark:text-foreground/40 dark:text-foreground/20 font-black uppercase tracking-[0.2em] mt-1">No reversal nodes detected.</p>
           </div>
         ) : (
           returns.map(req => (
@@ -93,9 +93,9 @@ export default function ReturnsPage() {
                     {req.status}
                   </span>
                 </div>
-                <p className="text-[10px] font-black text-foreground/50 dark:text-foreground/30 dark:text-white/20 uppercase tracking-tight lowercase leading-none">{req.product.title} <span className="text-foreground/30 dark:text-foreground/30 dark:text-foreground/10 ml-1">sku: {req.sku || 'N/A'}</span></p>
+                <p className="text-[10px] font-black text-foreground/50 dark:text-foreground/30 dark:text-white/20 uppercase tracking-tight lowercase leading-none">{req.product.title} <span className="text-foreground/30 dark:text-foreground/30 dark:text-foreground/30 dark:text-foreground/30 dark:text-foreground/10 ml-1">sku: {req.sku || 'N/A'}</span></p>
                  <p className="text-[8px] font-black text-foreground/40 dark:text-foreground/20 dark:text-white/10 uppercase tracking-[0.2em] flex items-center gap-2">
-                  <span className="text-foreground/80 dark:text-foreground/60 dark:text-foreground/40 dark:text-white/30">{req.customer?.name}</span>
+                  <span className="text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/40 dark:text-white/30">{req.customer?.name}</span>
                   <div className="w-1 h-1 rounded-full bg-foreground/10" />
                   <span>{req.reason}</span>
                 </p>

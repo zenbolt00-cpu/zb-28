@@ -379,7 +379,7 @@ export default function ProductDetailsClient({
                 )}
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-normal text-foreground/40 tracking-tight">₹{parseFloat(initialPrice).toLocaleString('en-IN')}</span>
+                <span className="text-[11px] font-normal text-foreground/60 dark:text-foreground/40 tracking-tight">₹{parseFloat(initialPrice).toLocaleString('en-IN')}</span>
                 {comparePrice && parseFloat(comparePrice) > parseFloat(initialPrice) && (
                   <span className="text-[10px] font-light text-foreground/15 line-through tracking-wider">₹{parseFloat(comparePrice).toLocaleString('en-IN')}</span>
                 )}
@@ -397,7 +397,7 @@ export default function ProductDetailsClient({
               }}
               className="w-8 h-8 rounded-full bg-foreground/5 border border-foreground/5 flex items-center justify-center hover:bg-foreground/10 transition-all active:scale-90"
             >
-              <Bookmark className={`w-3.5 h-3.5 ${isBookmarked(product.id.toString()) ? "text-primary fill-primary" : "text-foreground/40"}`} />
+              <Bookmark className={`w-3.5 h-3.5 ${isBookmarked(product.id.toString()) ? "text-primary fill-primary" : "text-foreground/60 dark:text-foreground/40"}`} />
             </button>
           </div>
 
@@ -406,9 +406,9 @@ export default function ProductDetailsClient({
             {sizes.length > 0 && (
               <div className="space-y-2">
                 <div className="flex justify-between items-center px-1">
-                  <span className="text-[7px] font-bold uppercase tracking-[0.4em] text-foreground/20">Select Size</span>
+                  <span className="text-[7px] font-bold uppercase tracking-[0.4em] text-foreground/40 dark:text-foreground/20">Select Size</span>
                   {(shopSettings?.showSizeChart ?? true) && sizeChartImageUrl && (
-                    <button onClick={() => setShowSizeChart(true)} className="text-[7px] font-bold text-foreground/20 hover:text-foreground transition-all uppercase tracking-[0.2em] border-b border-foreground/5">
+                    <button onClick={() => setShowSizeChart(true)} className="text-[7px] font-bold text-foreground/40 dark:text-foreground/20 hover:text-foreground transition-all uppercase tracking-[0.2em] border-b border-foreground/5">
                       Guide
                     </button>
                   )}
@@ -427,7 +427,7 @@ export default function ProductDetailsClient({
                             ? "bg-foreground text-background border-transparent shadow-sm"
                             : isOutOfStock
                             ? "bg-foreground/[0.01] border-foreground/[0.04] text-foreground/15 cursor-not-allowed"
-                            : "bg-foreground/[0.03] border-foreground/[0.07] text-foreground/40 hover:border-foreground/20 hover:text-foreground/70"
+                            : "bg-foreground/[0.03] border-foreground/[0.07] text-foreground/60 dark:text-foreground/40 hover:border-foreground/20 hover:text-foreground/70"
                         }`}
                       >
                         {size}
@@ -529,7 +529,7 @@ export default function ProductDetailsClient({
             >
               <div className="flex overflow-x-auto hide-scrollbar gap-1.5 mb-2 px-0.5">
                 {tabs.map((tab) => (
-                  <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`shrink-0 px-3 py-1.5 rounded-full text-[7px] font-bold uppercase tracking-widest transition-all ${activeTab === tab.id ? "bg-foreground/10 text-foreground/90 shadow-inner" : "text-foreground/30 hover:text-foreground/60 bg-transparent"}`}>
+                  <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`shrink-0 px-3 py-1.5 rounded-full text-[7px] font-bold uppercase tracking-widest transition-all ${activeTab === tab.id ? "bg-foreground/10 text-foreground/90 shadow-inner" : "text-foreground/50 dark:text-foreground/30 hover:text-foreground/80 dark:text-foreground/60 bg-transparent"}`}>
                     {tab.label}
                   </button>
                 ))}
@@ -543,17 +543,17 @@ export default function ProductDetailsClient({
               >
                 {activeTab === "details" ? (
                   <div className="relative">
-                    <div className={`text-[9.5px] font-light leading-[1.6] tracking-wide text-foreground/60 space-y-3 ${!isDescriptionExpanded ? 'line-clamp-3' : ''}`} dangerouslySetInnerHTML={{ __html: product.body_html || "" }} />
+                    <div className={`text-[9.5px] font-light leading-[1.6] tracking-wide text-foreground/80 dark:text-foreground/60 space-y-3 ${!isDescriptionExpanded ? 'line-clamp-3' : ''}`} dangerouslySetInnerHTML={{ __html: product.body_html || "" }} />
                     <button 
                       onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)} 
-                      className="mt-3 px-3 py-1 rounded-full text-[6px] font-bold uppercase tracking-[0.15em] transition-all bg-foreground/5 border border-foreground/5 text-foreground/40 hover:text-foreground"
+                      className="mt-3 px-3 py-1 rounded-full text-[6px] font-bold uppercase tracking-[0.15em] transition-all bg-foreground/5 border border-foreground/5 text-foreground/60 dark:text-foreground/40 hover:text-foreground"
                     >
                       {isDescriptionExpanded ? "View Less" : "View More"}
                     </button>
                   </div>
                 ) : (
                   tabs.map(tab => activeTab === tab.id && (
-                    <div key={tab.id} className="animate-in fade-in duration-700 text-[9.5px] font-light leading-[1.6] text-foreground/60" dangerouslySetInnerHTML={{ __html: parseShopifyRichText(getMeta(tab.label.toUpperCase())) }} />
+                    <div key={tab.id} className="animate-in fade-in duration-700 text-[9.5px] font-light leading-[1.6] text-foreground/80 dark:text-foreground/60" dangerouslySetInnerHTML={{ __html: parseShopifyRichText(getMeta(tab.label.toUpperCase())) }} />
                   ))
                 )}
               </div>
@@ -561,7 +561,7 @@ export default function ProductDetailsClient({
 
             {(shopSettings?.showProductVideo ?? true) && productVideoUrl && (
               <div className="mt-1 -mx-0.5">
-                <span className="text-[7.5px] font-bold uppercase tracking-[0.4em] text-foreground/20 ml-1 mb-1.5 block">Experimental Reference</span>
+                <span className="text-[7.5px] font-bold uppercase tracking-[0.4em] text-foreground/40 dark:text-foreground/20 ml-1 mb-1.5 block">Experimental Reference</span>
                 <div 
                   className="relative aspect-[9/16] rounded-[2.2rem] overflow-hidden bg-foreground/[0.02] border border-foreground/[0.05] shadow-inner cursor-pointer"
                   onClick={() => setIsMuted(!isMuted)}
@@ -600,7 +600,7 @@ export default function ProductDetailsClient({
                       </h2>
                       <div className="flex items-center gap-2">
                         <button 
-                          className="flex items-center justify-center p-1.5 active:scale-90 transition-all text-foreground/40 hover:text-foreground hover:bg-foreground/5 rounded-full"
+                          className="flex items-center justify-center p-1.5 active:scale-90 transition-all text-foreground/60 dark:text-foreground/40 hover:text-foreground hover:bg-foreground/5 rounded-full"
                           onClick={() => {
                             if (curatedScrollRef.current) {
                               curatedScrollRef.current.scrollBy({ left: -300, behavior: 'smooth' });
@@ -610,7 +610,7 @@ export default function ProductDetailsClient({
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="0.75" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
                         </button>
                         <button 
-                          className="flex items-center justify-center p-1.5 active:scale-90 transition-all text-foreground/40 hover:text-foreground hover:bg-foreground/5 rounded-full"
+                          className="flex items-center justify-center p-1.5 active:scale-90 transition-all text-foreground/60 dark:text-foreground/40 hover:text-foreground hover:bg-foreground/5 rounded-full"
                           onClick={() => {
                             if (curatedScrollRef.current) {
                               curatedScrollRef.current.scrollBy({ left: 300, behavior: 'smooth' });
@@ -668,11 +668,11 @@ export default function ProductDetailsClient({
                             <span className="text-[9px] font-extralight tracking-widest uppercase text-foreground/80 line-clamp-1 pr-6 leading-tight">
                               {p.title}
                             </span>
-                            <span className="text-[9px] font-light tracking-wide text-foreground/50 leading-tight">
+                            <span className="text-[9px] font-light tracking-wide text-foreground/70 dark:text-foreground/50 leading-tight">
                               ₹{parseFloat(initialPrice).toLocaleString('en-IN')}
                             </span>
                             <button
-                              className="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-sm bg-transparent hover:bg-foreground/5 text-foreground/40 hover:text-foreground transition-all active:scale-90"
+                              className="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-sm bg-transparent hover:bg-foreground/5 text-foreground/60 dark:text-foreground/40 hover:text-foreground transition-all active:scale-90"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setQuickAddProduct(p);
@@ -693,7 +693,7 @@ export default function ProductDetailsClient({
             {recentlyViewed.length > 1 && (
               <div className="mt-4 pt-4 border-t border-foreground/[0.05] -mx-0.5">
                 <div className="flex items-center justify-between mb-[1px] px-1">
-                  <h2 className="text-[10px] font-bold tracking-[0.15em] uppercase text-foreground/40 font-heading">Recently Viewed</h2>
+                  <h2 className="text-[10px] font-bold tracking-[0.15em] uppercase text-foreground/60 dark:text-foreground/40 font-heading">Recently Viewed</h2>
                 </div>
                 <div className="grid grid-cols-2 gap-x-[6px] gap-y-[1px]">
                   {recentlyViewed.filter(p => p.id !== product.id).slice(0, 4).map((p) => <ProductCard key={p.id} product={p} />)}
@@ -709,7 +709,7 @@ export default function ProductDetailsClient({
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60" onClick={() => setShowSizeChart(false)}>
           <div className="relative w-full max-w-sm glass border border-foreground/10 rounded-[2.5rem] p-6 shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-6">
-              <span className="text-[8px] font-bold uppercase tracking-widest text-foreground/40">Sizing Reference</span>
+              <span className="text-[8px] font-bold uppercase tracking-widest text-foreground/60 dark:text-foreground/40">Sizing Reference</span>
               <button onClick={() => setShowSizeChart(false)} className="px-4 py-1.5 rounded-full bg-foreground/5 text-[7px] uppercase tracking-widest font-bold">Dismiss</button>
             </div>
             <div className="aspect-square w-full overflow-auto rounded-2xl bg-foreground/[0.03] border border-foreground/5 hide-scrollbar overscroll-none">
@@ -739,7 +739,7 @@ export default function ProductDetailsClient({
             <div className="flex justify-between items-center p-6 pt-10">
               <div className="flex flex-col">
                 <span className="text-[10px] font-bold tracking-tighter text-foreground mb-0.5">{product.title}</span>
-                <span className="text-[8px] font-medium text-foreground/30 uppercase tracking-widest">{activeImg + 1} of {allImages.length}</span>
+                <span className="text-[8px] font-medium text-foreground/50 dark:text-foreground/30 uppercase tracking-widest">{activeImg + 1} of {allImages.length}</span>
               </div>
               <button 
                 onClick={() => {
@@ -747,7 +747,7 @@ export default function ProductDetailsClient({
                 }}
                 className="w-10 h-10 rounded-full bg-foreground/5 flex items-center justify-center active:scale-90 transition-all"
               >
-                <X className="w-4.5 h-4.5 text-foreground/60" />
+                <X className="w-4.5 h-4.5 text-foreground/80 dark:text-foreground/60" />
               </button>
             </div>
 

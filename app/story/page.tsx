@@ -37,7 +37,7 @@ export default function StoryPage() {
               The Genesis
             </motion.p>
             <motion.h1 variants={fadeIn} className="font-heading text-5xl sm:text-6xl md:text-8xl xl:text-9xl uppercase tracking-tighter leading-none mb-8">
-              Redefining <br/> <span className="text-foreground/40 italic">The Code.</span>
+              Redefining <br/> <span className="text-foreground/60 dark:text-foreground/40 italic">The Code.</span>
             </motion.h1>
             <motion.p variants={fadeIn} className="text-sm sm:text-lg text-muted-foreground max-w-2xl mx-auto font-light leading-relaxed mt-6">
               Zica Bella was born from a singular, uncompromising vision: to elevate emerging Indian street culture into a global luxury phenomenon.
@@ -77,8 +77,8 @@ export default function StoryPage() {
               {/* Glassmorphic placeholder for founder image */}
               <div className="absolute inset-0 bg-foreground/[0.03] backdrop-blur-2xl border border-foreground/10 rounded-3xl overflow-hidden flex flex-col items-center justify-center p-8 text-center glass">
                  <div className="w-16 h-px bg-foreground/20 mb-8" />
-                 <p className="font-rocaston tracking-[0.3em] uppercase text-xs text-foreground/40 mb-2">Original Archive</p>
-                 <h3 className="font-heading text-4xl sm:text-5xl uppercase text-foreground/20">Z.B.</h3>
+                 <p className="font-rocaston tracking-[0.3em] uppercase text-xs text-foreground/60 dark:text-foreground/40 mb-2">Original Archive</p>
+                 <h3 className="font-heading text-4xl sm:text-5xl uppercase text-foreground/40 dark:text-foreground/20">Z.B.</h3>
                  <div className="w-16 h-px bg-foreground/20 mt-8" />
               </div>
             </motion.div>

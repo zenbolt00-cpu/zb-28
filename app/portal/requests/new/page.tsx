@@ -162,7 +162,7 @@ export default function NewRequestPage() {
         <div className="bg-white p-8 rounded-3xl border shadow-sm">
           <div className="flex items-center space-x-4 mb-8">
             <div className="h-12 w-12 bg-foreground/5 rounded-2xl flex items-center justify-center border border-foreground/10">
-              <Package className="w-5 h-5 text-foreground/60" />
+              <Package className="w-5 h-5 text-foreground/80 dark:text-foreground/60" />
             </div>
             <div>
               <h1 className="font-rocaston text-xl tracking-[0.15em] text-foreground leading-none mb-2">CREATE REQUEST</h1>

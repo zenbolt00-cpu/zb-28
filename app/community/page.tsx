@@ -148,16 +148,16 @@ export default function CommunityPage() {
             className="mb-4 flex flex-col items-center"
           >
             <div className="px-3 py-1.5 rounded-full border border-foreground/[0.06] bg-foreground/[0.02] backdrop-blur-md mb-4 inline-flex items-center gap-2">
-              <Globe className="w-3 h-3 text-foreground/40" />
-              <span className="text-[8px] font-black text-foreground/60 uppercase tracking-[0.2em] leading-none">Global Network</span>
+              <Globe className="w-3 h-3 text-foreground/60 dark:text-foreground/40" />
+              <span className="text-[8px] font-black text-foreground/80 dark:text-foreground/60 uppercase tracking-[0.2em] leading-none">Global Network</span>
             </div>
           </motion.div>
 
           <h1 className="text-[28px] font-light tracking-tight text-foreground leading-[1.15] mb-3">
             The Inner{" "}
-            <span className="text-foreground/30 italic font-serif">Circle</span>
+            <span className="text-foreground/50 dark:text-foreground/30 italic font-serif">Circle</span>
           </h1>
-          <p className="text-foreground/50 text-[11px] font-medium max-w-[260px] leading-relaxed tracking-wide mb-5">
+          <p className="text-foreground/70 dark:text-foreground/50 text-[11px] font-medium max-w-[260px] leading-relaxed tracking-wide mb-5">
             Exclusive access for verified Zica Bella customers.
           </p>
 
@@ -262,7 +262,7 @@ export default function CommunityPage() {
                     onClick={() => setShowSubForm(false)}
                     className="w-8 h-8 rounded-full bg-foreground/[0.06] flex items-center justify-center active:scale-90 transition-all"
                   >
-                    <X className="w-4 h-4 text-foreground/60" />
+                    <X className="w-4 h-4 text-foreground/80 dark:text-foreground/60" />
                   </button>
                 </div>
 
@@ -282,8 +282,8 @@ export default function CommunityPage() {
 
                       {/* ─ Image Upload ─ */}
                       <div>
-                        <p className="text-[9px] font-bold text-foreground/40 uppercase tracking-widest mb-2 ml-1">
-                          Photo <span className="text-foreground/20 font-normal normal-case">(required)</span>
+                        <p className="text-[9px] font-bold text-foreground/60 dark:text-foreground/40 uppercase tracking-widest mb-2 ml-1">
+                          Photo <span className="text-foreground/40 dark:text-foreground/20 font-normal normal-case">(required)</span>
                         </p>
                         {/* Upload zone */}
                         <div className="relative group/up h-44 rounded-[1.25rem] bg-foreground/[0.03] border border-dashed border-foreground/10 overflow-hidden flex flex-col items-center justify-center transition-all hover:bg-foreground/[0.05] hover:border-foreground/20">
@@ -336,7 +336,7 @@ export default function CommunityPage() {
                       {/* ─ Name + Email row ─ */}
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <p className="text-[9px] font-bold text-foreground/40 uppercase tracking-widest mb-1.5 ml-1">Name</p>
+                          <p className="text-[9px] font-bold text-foreground/60 dark:text-foreground/40 uppercase tracking-widest mb-1.5 ml-1">Name</p>
                           <input
                             required
                             placeholder="Your name"
@@ -346,7 +346,7 @@ export default function CommunityPage() {
                           />
                         </div>
                         <div>
-                          <p className="text-[9px] font-bold text-foreground/40 uppercase tracking-widest mb-1.5 ml-1">Email</p>
+                          <p className="text-[9px] font-bold text-foreground/60 dark:text-foreground/40 uppercase tracking-widest mb-1.5 ml-1">Email</p>
                           <input
                             required
                             type="email"
@@ -360,8 +360,8 @@ export default function CommunityPage() {
 
                       {/* ─ Instagram ─ */}
                       <div>
-                        <p className="text-[9px] font-bold text-foreground/40 uppercase tracking-widest mb-1.5 ml-1">
-                          Instagram <span className="text-foreground/20 font-normal normal-case">(optional)</span>
+                        <p className="text-[9px] font-bold text-foreground/60 dark:text-foreground/40 uppercase tracking-widest mb-1.5 ml-1">
+                          Instagram <span className="text-foreground/40 dark:text-foreground/20 font-normal normal-case">(optional)</span>
                         </p>
                         <input
                           placeholder="https://instagram.com/p/…"
@@ -373,7 +373,7 @@ export default function CommunityPage() {
 
                       {/* ─ Style Narrative ─ */}
                       <div>
-                        <p className="text-[9px] font-bold text-foreground/40 uppercase tracking-widest mb-1.5 ml-1">Style Narrative</p>
+                        <p className="text-[9px] font-bold text-foreground/60 dark:text-foreground/40 uppercase tracking-widest mb-1.5 ml-1">Style Narrative</p>
                         <textarea
                           required
                           placeholder="Describe your curation…"

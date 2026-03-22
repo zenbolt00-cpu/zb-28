@@ -98,9 +98,9 @@ export default function CollectionsAdminPage() {
       {/* Header Area */}
        <div className="flex items-end justify-between gap-4 mb-2">
         <div>
-          <div className="px-2 py-0.5 bg-foreground/[0.03] rounded-md text-[7px] font-normal text-foreground/50 dark:text-foreground/50 dark:text-foreground/30 uppercase tracking-[0.3em] w-fit mb-2">visibility matrix</div>
+          <div className="px-2 py-0.5 bg-foreground/[0.03] rounded-md text-[7px] font-normal text-foreground/50 dark:text-foreground/50 dark:text-foreground/50 dark:text-foreground/50 dark:text-foreground/30 uppercase tracking-[0.3em] w-fit mb-2">visibility matrix</div>
           <h1 className="font-normal text-lg tracking-[0.2em] text-foreground uppercase mb-0.5 leading-none">Collections</h1>
-          <p className="text-[9px] text-foreground/40 dark:text-foreground/40 dark:text-foreground/20 font-normal uppercase tracking-[0.2em] mt-1">
+          <p className="text-[9px] text-foreground/40 dark:text-foreground/40 dark:text-foreground/40 dark:text-foreground/40 dark:text-foreground/20 font-normal uppercase tracking-[0.2em] mt-1">
             Control storefront visibility for each node.
           </p>
         </div>
@@ -121,13 +121,13 @@ export default function CollectionsAdminPage() {
 
        {/* Search Bar */}
       <div className="relative group max-w-sm">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3 h-3 text-foreground/40 dark:text-foreground/40 dark:text-foreground/20 group-focus-within:text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 transition-colors" />
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3 h-3 text-foreground/40 dark:text-foreground/40 dark:text-foreground/40 dark:text-foreground/40 dark:text-foreground/20 group-focus-within:text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 transition-colors" />
         <input 
           type="text" 
           placeholder="FILTER SPECTRUM..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full pl-9 pr-4 py-2 rounded-md bg-foreground/[0.02] border border-foreground/[0.05] focus:border-foreground/10 focus:bg-foreground/[0.04] transition-all outline-none text-[10px] font-normal uppercase tracking-[0.1em] placeholder:text-foreground/30 dark:text-foreground/30 dark:text-foreground/10"
+          className="w-full pl-9 pr-4 py-2 rounded-md bg-foreground/[0.02] border border-foreground/[0.05] focus:border-foreground/10 focus:bg-foreground/[0.04] transition-all outline-none text-[10px] font-normal uppercase tracking-[0.1em] placeholder:text-foreground/30 dark:text-foreground/30 dark:text-foreground/30 dark:text-foreground/30 dark:text-foreground/10"
         />
       </div>
 
@@ -136,15 +136,15 @@ export default function CollectionsAdminPage() {
         <div className="grid grid-cols-[1fr,80px,80px,80px] gap-2 px-5 py-3 border-b border-foreground/[0.02] bg-foreground/[0.01]">
           <span className="text-[7px] uppercase tracking-[0.3em] font-normal text-foreground/15">Collection & Info</span>
           <div className="flex items-center justify-center gap-1.5">
-            <PanelTop className="w-2.5 h-2.5 text-foreground/30 dark:text-foreground/30 dark:text-foreground/10" strokeWidth={1.5} />
+            <PanelTop className="w-2.5 h-2.5 text-foreground/30 dark:text-foreground/30 dark:text-foreground/30 dark:text-foreground/30 dark:text-foreground/10" strokeWidth={1.5} />
             <span className="text-[7px] uppercase tracking-[0.3em] font-normal text-foreground/15">Header</span>
           </div>
           <div className="flex items-center justify-center gap-1.5">
-            <Layers className="w-2.5 h-2.5 text-foreground/30 dark:text-foreground/30 dark:text-foreground/10" strokeWidth={1.5} />
+            <Layers className="w-2.5 h-2.5 text-foreground/30 dark:text-foreground/30 dark:text-foreground/30 dark:text-foreground/30 dark:text-foreground/10" strokeWidth={1.5} />
             <span className="text-[7px] uppercase tracking-[0.3em] font-normal text-foreground/15">List</span>
           </div>
           <div className="flex items-center justify-center gap-1.5">
-            <MenuIcon className="w-2.5 h-2.5 text-foreground/30 dark:text-foreground/30 dark:text-foreground/10" strokeWidth={1.5} />
+            <MenuIcon className="w-2.5 h-2.5 text-foreground/30 dark:text-foreground/30 dark:text-foreground/30 dark:text-foreground/30 dark:text-foreground/10" strokeWidth={1.5} />
             <span className="text-[7px] uppercase tracking-[0.3em] font-normal text-foreground/15">Menu</span>
           </div>
         </div>
@@ -178,7 +178,7 @@ export default function CollectionsAdminPage() {
                   </div>
                   <div>
                     <h3 className="text-[9px] font-normal uppercase tracking-[0.1em] text-foreground lowercase leading-none">{collection.title}</h3>
-                    <p className="text-[7px] text-foreground/40 dark:text-foreground/40 dark:text-foreground/20 font-normal uppercase tracking-[0.2em] mt-1">{collection.products?.length || 0} Pieces</p>
+                    <p className="text-[7px] text-foreground/40 dark:text-foreground/40 dark:text-foreground/40 dark:text-foreground/40 dark:text-foreground/20 font-normal uppercase tracking-[0.2em] mt-1">{collection.products?.length || 0} Pieces</p>
                   </div>
                 </div>
 
@@ -218,7 +218,7 @@ export default function CollectionsAdminPage() {
         className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300 border ${
           active 
             ? "bg-foreground text-background border-foreground shadow-sm" 
-            : "bg-foreground/[0.02] text-foreground/30 dark:text-foreground/30 dark:text-foreground/10 border-foreground/[0.05] hover:border-foreground/10 hover:text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40"
+            : "bg-foreground/[0.02] text-foreground/30 dark:text-foreground/30 dark:text-foreground/30 dark:text-foreground/30 dark:text-foreground/10 border-foreground/[0.05] hover:border-foreground/10 hover:text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40"
         }`}
       >
         {active ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}

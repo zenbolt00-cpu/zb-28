@@ -19,7 +19,7 @@ export default async function CollectionsPage() {
               Collections
             </h1>
             <div className="h-[1px] w-16 bg-foreground/10 rounded-full" />
-            <p className="text-[9px] text-foreground/30 font-medium uppercase tracking-[0.2em] leading-relaxed max-w-[280px]">
+            <p className="text-[9px] text-foreground/50 dark:text-foreground/30 font-medium uppercase tracking-[0.2em] leading-relaxed max-w-[280px]">
               Curated luxury series
             </p>
           </div>
@@ -77,7 +77,7 @@ export default async function CollectionsPage() {
         {/* Empty State */}
         {collections.length === 0 && (
           <div className="py-32 text-center space-y-4">
-            <p className="text-[10px] uppercase tracking-[0.5em] text-foreground/20 font-heading">
+            <p className="text-[10px] uppercase tracking-[0.5em] text-foreground/40 dark:text-foreground/20 font-heading">
               No collections found
             </p>
             <div className="h-[1px] w-12 bg-foreground/5 mx-auto" />

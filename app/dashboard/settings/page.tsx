@@ -160,8 +160,8 @@ export default function AdminSettingsPage() {
 
   if (loading) return (
      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-      <Loader2 className="w-5 h-5 text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 animate-spin" />
-      <span className="text-[10px] font-medium uppercase tracking-widest text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40">Loading Settings...</span>
+      <Loader2 className="w-5 h-5 text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 animate-spin" />
+      <span className="text-[10px] font-medium uppercase tracking-widest text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40">Loading Settings...</span>
     </div>
   );
 
@@ -253,7 +253,7 @@ export default function AdminSettingsPage() {
       <div className="text-center pt-10">
          <div className="inline-flex items-center gap-3 px-6 py-2.5 border border-foreground/[0.08] rounded-full bg-white/40 dark:bg-white/[0.02] shadow-xl backdrop-blur-md">
             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse-slow" />
-            <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-foreground/50 dark:text-foreground/50 dark:text-foreground/30">System Configuration Locked</span>
+            <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-foreground/50 dark:text-foreground/50 dark:text-foreground/50 dark:text-foreground/50 dark:text-foreground/30">System Configuration Locked</span>
          </div>
       </div>
     </motion.div>

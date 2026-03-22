@@ -132,11 +132,11 @@ export default function BlogsAdminPage() {
     <div className="p-8 max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-2">
          <div className="space-y-1">
-          <div className="px-2 py-0.5 bg-foreground/[0.03] rounded-md text-[8px] font-black text-foreground/80 dark:text-foreground/60 dark:text-foreground/40 dark:text-white/30 uppercase tracking-[0.2em] w-fit mb-1">journal archives</div>
+          <div className="px-2 py-0.5 bg-foreground/[0.03] rounded-md text-[8px] font-black text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/40 dark:text-white/30 uppercase tracking-[0.2em] w-fit mb-1">journal archives</div>
           <h1 className="text-xl font-black text-foreground uppercase tracking-tight mb-0.5 lowercase leading-none">
             Blog Management
           </h1>
-          <p className="text-[10px] text-foreground/80 dark:text-foreground/60 dark:text-foreground/40 dark:text-white/20 font-bold uppercase tracking-widest mt-1">
+          <p className="text-[10px] text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/40 dark:text-white/20 font-bold uppercase tracking-widest mt-1">
             Curate the Zica Bella narrative spectrum.
           </p>
         </div>
@@ -151,7 +151,7 @@ export default function BlogsAdminPage() {
        <div className="bg-white/50 dark:bg-white/[0.02] border border-foreground/[0.05] rounded-xl overflow-hidden shadow-sm">
         {posts.length === 0 ? (
           <div className="p-12 text-center">
-            <p className="text-[10px] font-black uppercase tracking-widest text-foreground/30 dark:text-foreground/30 dark:text-foreground/10">No transmissions detected.</p>
+            <p className="text-[10px] font-black uppercase tracking-widest text-foreground/30 dark:text-foreground/30 dark:text-foreground/30 dark:text-foreground/30 dark:text-foreground/10">No transmissions detected.</p>
           </div>
         ) : (
            <table className="w-full text-left text-[11px] whitespace-nowrap">
@@ -176,7 +176,7 @@ export default function BlogsAdminPage() {
                         LIVE
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded text-[7px] font-black bg-foreground/[0.03] text-foreground/50 dark:text-foreground/50 dark:text-foreground/30 border border-foreground/10 uppercase tracking-widest">
+                      <span className="inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded text-[7px] font-black bg-foreground/[0.03] text-foreground/50 dark:text-foreground/50 dark:text-foreground/50 dark:text-foreground/50 dark:text-foreground/30 border border-foreground/10 uppercase tracking-widest">
                         ARCHIVE
                       </span>
                     )}
@@ -186,7 +186,7 @@ export default function BlogsAdminPage() {
                   </td>
                    <td className="px-4 py-2.5 text-right">
                     <div className="flex items-center justify-end gap-1 opacity-20 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => handleOpenModal(post)} className="p-2 text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 hover:text-foreground hover:bg-foreground/[0.05] rounded-lg transition-colors">
+                      <button onClick={() => handleOpenModal(post)} className="p-2 text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 hover:text-foreground hover:bg-foreground/[0.05] rounded-lg transition-colors">
                         <Edit2 className="w-3 h-3" />
                       </button>
                       <button onClick={() => handleDelete(post.id)} className="p-2 text-rose-500/40 hover:text-rose-500 hover:bg-rose-500/5 rounded-lg transition-colors">
@@ -206,8 +206,8 @@ export default function BlogsAdminPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/40 backdrop-blur-xl">
           <div className="bg-white/90 dark:bg-black/90 backdrop-blur-3xl w-full max-w-4xl max-h-[90vh] rounded-[1.5rem] shadow-2xl overflow-hidden flex flex-col border border-foreground/[0.05]">
             <div className="px-6 py-4 border-b border-foreground/[0.05] flex items-center justify-between">
-              <h2 className="text-[11px] font-black uppercase tracking-[0.3em] text-foreground/40 dark:text-foreground/40 dark:text-foreground/20">{editingPost ? 'Update Transmission' : 'New Transmission'}</h2>
-              <button onClick={() => setModalOpen(false)} className="p-2 hover:bg-foreground/[0.05] rounded-full transition-colors text-foreground/40 dark:text-foreground/40 dark:text-foreground/20 hover:text-foreground">
+              <h2 className="text-[11px] font-black uppercase tracking-[0.3em] text-foreground/40 dark:text-foreground/40 dark:text-foreground/40 dark:text-foreground/40 dark:text-foreground/20">{editingPost ? 'Update Transmission' : 'New Transmission'}</h2>
+              <button onClick={() => setModalOpen(false)} className="p-2 hover:bg-foreground/[0.05] rounded-full transition-colors text-foreground/40 dark:text-foreground/40 dark:text-foreground/40 dark:text-foreground/40 dark:text-foreground/20 hover:text-foreground">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -230,7 +230,7 @@ export default function BlogsAdminPage() {
                     type="text"
                     value={formData.slug}
                     onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                    className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-lg px-4 py-3 text-[13px] font-black text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 focus:outline-none focus:ring-1 focus:ring-foreground/10 transition-all"
+                    className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-lg px-4 py-3 text-[13px] font-black text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 focus:outline-none focus:ring-1 focus:ring-foreground/10 transition-all"
                   />
                 </div>
               </div>
@@ -273,7 +273,7 @@ export default function BlogsAdminPage() {
                   value={formData.content}
                   onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                   rows={10}
-                  className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-lg px-4 py-4 text-[13px] font-black text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 placeholder:text-muted-foreground/10 focus:outline-none focus:ring-1 focus:ring-foreground/10 transition-all resize-none"
+                  className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-lg px-4 py-4 text-[13px] font-black text-foreground/80 dark:text-foreground/80 dark:text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 placeholder:text-muted-foreground/10 focus:outline-none focus:ring-1 focus:ring-foreground/10 transition-all resize-none"
                   placeholder="Initialize narrative transmission..."
                 />
 
@@ -285,7 +285,7 @@ export default function BlogsAdminPage() {
                   onChange={(e) => setFormData({ ...formData, published: e.target.checked })}
                   className="w-4 h-4 rounded border-foreground/20 text-foreground focus:ring-foreground bg-transparent"
                 />
-                <label htmlFor="published" className="text-[10px] font-black uppercase tracking-widest select-none cursor-pointer text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40">
+                <label htmlFor="published" className="text-[10px] font-black uppercase tracking-widest select-none cursor-pointer text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40">
                   Broadcast transmission immediately
                 </label>
               </div>
@@ -294,7 +294,7 @@ export default function BlogsAdminPage() {
             <div className="px-6 py-5 border-t border-foreground/[0.05] flex justify-end gap-2">
               <button 
                 onClick={() => setModalOpen(false)}
-                className="px-5 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 hover:text-foreground transition-all"
+                className="px-5 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 hover:text-foreground transition-all"
               >
                 Abort
               </button>

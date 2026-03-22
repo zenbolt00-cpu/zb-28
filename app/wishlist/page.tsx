@@ -39,7 +39,7 @@ export default function WishlistPage() {
         {bookmarks.length === 0 ? (
           <div className="flex flex-col items-center justify-center text-center py-20">
             <div className="w-16 h-16 rounded-full bg-foreground/5 flex items-center justify-center mb-6">
-              <Bookmark className="w-6 h-6 text-foreground/20" />
+              <Bookmark className="w-6 h-6 text-foreground/40 dark:text-foreground/20" />
             </div>
             <p className="text-[10px] text-muted-foreground uppercase tracking-widest leading-relaxed max-w-[240px] mb-10 opacity-60">
               Your collection of saved luxury pieces is currently empty.
@@ -78,7 +78,7 @@ export default function WishlistPage() {
                       <h3 className="text-[12px] font-bold uppercase tracking-tight text-foreground/90 mb-1 line-clamp-1">
                         {product.title}
                       </h3>
-                      <p className="text-[13px] font-medium tracking-tighter text-foreground/50">
+                      <p className="text-[13px] font-medium tracking-tighter text-foreground/70 dark:text-foreground/50">
                         ₹{parseFloat(product.variants[0].price).toLocaleString("en-IN")}
                       </p>
                     </div>
@@ -93,7 +93,7 @@ export default function WishlistPage() {
                       </button>
                       <button 
                         onClick={() => removeBookmark(product.id.toString())}
-                        className="p-3.5 rounded-xl bg-foreground/5 text-foreground/30 hover:text-rose-400 hover:bg-rose-400/5 transition-all active:scale-90"
+                        className="p-3.5 rounded-xl bg-foreground/5 text-foreground/50 dark:text-foreground/30 hover:text-rose-400 hover:bg-rose-400/5 transition-all active:scale-90"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>

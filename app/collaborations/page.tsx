@@ -70,7 +70,7 @@ export default function CollaborationsPage() {
               <div className="w-full md:w-1/2 aspect-[4/3] bg-foreground/[0.02] border border-foreground/5 rounded-[2rem] overflow-hidden relative glass">
                 <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center transition-transform duration-700 group-hover:scale-105">
                    <div className="w-8 h-px bg-foreground/10 mb-6" />
-                   <p className="font-sans text-xl sm:text-2xl tracking-tighter font-medium text-foreground/30">
+                   <p className="font-sans text-xl sm:text-2xl tracking-tighter font-medium text-foreground/50 dark:text-foreground/30">
                      {collab.imagePlaceholder}
                    </p>
                    <div className="w-8 h-px bg-foreground/10 mt-6" />
@@ -81,7 +81,7 @@ export default function CollaborationsPage() {
               <div className="w-full md:w-1/2 flex flex-col justify-center h-full space-y-5 py-4 font-sans">
                 <div className="space-y-2">
                   <div className="flex items-center gap-3">
-                    <span className="px-3 py-1 rounded-full bg-foreground/[0.03] border border-foreground/5 text-[10px] uppercase tracking-wider font-medium text-foreground/60">
+                    <span className="px-3 py-1 rounded-full bg-foreground/[0.03] border border-foreground/5 text-[10px] uppercase tracking-wider font-medium text-foreground/80 dark:text-foreground/60">
                       {collab.category}
                     </span>
                   </div>

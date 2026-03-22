@@ -48,7 +48,7 @@ export default async function BlogsPage() {
                     />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center p-8 text-center transition-transform duration-700 group-hover:scale-105">
-                      <p className="font-sans text-lg tracking-widest font-medium text-foreground/20">
+                      <p className="font-sans text-lg tracking-widest font-medium text-foreground/40 dark:text-foreground/20">
                         Z.B. ARTICLE
                       </p>
                     </div>

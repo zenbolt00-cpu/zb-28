@@ -207,7 +207,7 @@ export default function LoginPage() {
                         className="flex items-center gap-1 h-full px-2 py-2 bg-foreground/[0.02] border border-foreground/[0.05] rounded-xl hover:bg-foreground/[0.04] transition-all text-[10px] font-bold min-w-[55px] justify-between"
                       >
                         <span className="text-foreground/70">{selectedCountry.code}</span>
-                        <ChevronDown className={`w-2 h-2 text-foreground/30 transition-transform ${showCountryDropdown ? 'rotate-180' : ''}`} />
+                        <ChevronDown className={`w-2 h-2 text-foreground/50 dark:text-foreground/30 transition-transform ${showCountryDropdown ? 'rotate-180' : ''}`} />
                       </button>
 
                       {/* Dropdown */}
@@ -237,7 +237,7 @@ export default function LoginPage() {
                               >
                                 <span className="text-[12px]">{c.flag}</span>
                                 <span className="text-[9px] font-bold text-foreground/70 flex-1">{c.name}</span>
-                                <span className="text-[8px] font-bold text-foreground/30">{c.code}</span>
+                                <span className="text-[8px] font-bold text-foreground/50 dark:text-foreground/30">{c.code}</span>
                               </button>
                             ))}
                           </motion.div>
@@ -269,7 +269,7 @@ export default function LoginPage() {
                     {phoneError ? (
                       <p className="text-[8px] font-bold text-red-500/80 tracking-wide">{phoneError}</p>
                     ) : phone.length > 0 ? (
-                      <p className={`text-[8px] font-bold tracking-wide ${isPhoneValid ? 'text-emerald-500/60' : 'text-foreground/20'}`}>
+                      <p className={`text-[8px] font-bold tracking-wide ${isPhoneValid ? 'text-emerald-500/60' : 'text-foreground/40 dark:text-foreground/20'}`}>
                         {phone.length}/10 {isPhoneValid && '✓'}
                       </p>
                     ) : (
@@ -300,7 +300,7 @@ export default function LoginPage() {
               >
                 <p className="text-center text-[9px] text-muted-foreground/50 font-medium">
                   Sent to{' '}
-                  <span className="text-foreground/60 font-bold">{selectedCountry.code} {phone.slice(0,3)}••••{phone.slice(7)}</span>
+                  <span className="text-foreground/80 dark:text-foreground/60 font-bold">{selectedCountry.code} {phone.slice(0,3)}••••{phone.slice(7)}</span>
                 </p>
                 <div className="flex justify-between gap-1.5 text-center px-2">
                   {otp.map((digit, idx) => (
@@ -330,7 +330,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setStep(1)}
-                    className="w-full flex items-center justify-center gap-1 text-center text-[7px] text-muted-foreground/30 hover:text-foreground/40 font-black tracking-[0.25em] uppercase transition-colors"
+                    className="w-full flex items-center justify-center gap-1 text-center text-[7px] text-muted-foreground/30 hover:text-foreground/60 dark:text-foreground/40 font-black tracking-[0.25em] uppercase transition-colors"
                   >
                     <ChevronLeft className="w-2.5 h-2.5" />
                     Back
@@ -344,7 +344,7 @@ export default function LoginPage() {
           <div className="pt-2 space-y-4">
             <div className="flex items-center gap-3 px-1">
               <div className="h-[1px] flex-1 bg-foreground/[0.03]" />
-              <span className="text-[7px] font-bold uppercase tracking-[0.2em] text-foreground/20">Social</span>
+              <span className="text-[7px] font-bold uppercase tracking-[0.2em] text-foreground/40 dark:text-foreground/20">Social</span>
               <div className="h-[1px] flex-1 bg-foreground/[0.03]" />
             </div>
 

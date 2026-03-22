@@ -120,18 +120,18 @@ export default function ProductsPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-2">
         <div className="space-y-1">
-          <div className="px-2 py-0.5 bg-foreground/[0.03] rounded-md text-[7px] font-normal text-foreground/50 dark:text-foreground/50 dark:text-foreground/30 uppercase tracking-[0.3em] w-fit">inventory hub</div>
+          <div className="px-2 py-0.5 bg-foreground/[0.03] rounded-md text-[7px] font-normal text-foreground/50 dark:text-foreground/50 dark:text-foreground/50 dark:text-foreground/50 dark:text-foreground/30 uppercase tracking-[0.3em] w-fit">inventory hub</div>
           <h1 className="text-lg font-normal text-foreground uppercase tracking-[0.2em] mb-0.5 leading-none mt-1">
             Products
           </h1>
-          <p className="text-[9px] text-foreground/40 dark:text-foreground/40 dark:text-foreground/20 font-normal uppercase tracking-[0.2em] mt-1">
+          <p className="text-[9px] text-foreground/40 dark:text-foreground/40 dark:text-foreground/40 dark:text-foreground/40 dark:text-foreground/20 font-normal uppercase tracking-[0.2em] mt-1">
             Manage your Shopify spectrum — {products.length} nodes.
           </p>
         </div>
         <button
           onClick={loadProducts}
           disabled={loading}
-          className="flex items-center gap-2 px-5 py-2 bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-foreground/[0.05] rounded-md text-[8px] font-normal uppercase tracking-[0.2em] text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 disabled:opacity-50 transition-all active:scale-95"
+          className="flex items-center gap-2 px-5 py-2 bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-foreground/[0.05] rounded-md text-[8px] font-normal uppercase tracking-[0.2em] text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 disabled:opacity-50 transition-all active:scale-95"
         >
           <RefreshCw className={`w-3 h-3 ${loading ? "animate-spin" : ""}`} strokeWidth={1.5} />
           REFRESH
@@ -141,9 +141,9 @@ export default function ProductsPage() {
       {/* Filters */}
       <div className="flex flex-col md:flex-row gap-2">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-foreground/30 dark:text-foreground/30 dark:text-foreground/10" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-foreground/30 dark:text-foreground/30 dark:text-foreground/30 dark:text-foreground/30 dark:text-foreground/10" />
           <input
-            className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md pl-9 pr-4 py-2 text-[10px] font-normal text-foreground placeholder:text-foreground/30 dark:text-foreground/30 dark:text-foreground/10 focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em]"
+            className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md pl-9 pr-4 py-2 text-[10px] font-normal text-foreground placeholder:text-foreground/30 dark:text-foreground/30 dark:text-foreground/30 dark:text-foreground/30 dark:text-foreground/10 focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em]"
             placeholder="SEARCH SPECTRUM, SKUS…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -157,7 +157,7 @@ export default function ProductsPage() {
               className={`px-3 py-1.5 rounded-md text-[8px] font-normal uppercase tracking-[0.2em] transition-all ${
                 statusFilter === s
                   ? "bg-foreground text-background shadow-md shadow-foreground/5"
-                  : "text-foreground/40 dark:text-foreground/40 dark:text-foreground/20 hover:text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40"
+                  : "text-foreground/40 dark:text-foreground/40 dark:text-foreground/40 dark:text-foreground/40 dark:text-foreground/20 hover:text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40"
               }`}
             >
               {s}
@@ -218,16 +218,16 @@ export default function ProductsPage() {
                     </h3>
                     <div className="flex flex-wrap gap-1.5 mt-1.5 text-[7px] font-normal uppercase tracking-[0.3em]">
                       {product.vendor && (
-                        <span className="text-foreground/40 dark:text-foreground/40 dark:text-foreground/20 bg-foreground/[0.02] px-1.5 py-0.5 rounded-[2px] border border-foreground/[0.03]">
+                        <span className="text-foreground/40 dark:text-foreground/40 dark:text-foreground/40 dark:text-foreground/40 dark:text-foreground/20 bg-foreground/[0.02] px-1.5 py-0.5 rounded-[2px] border border-foreground/[0.03]">
                           {product.vendor}
                         </span>
                       )}
                       {product.product_type && (
-                        <span className="text-foreground/40 dark:text-foreground/40 dark:text-foreground/20 bg-foreground/[0.02] px-1.5 py-0.5 rounded-[2px] border border-foreground/[0.03]">
+                        <span className="text-foreground/40 dark:text-foreground/40 dark:text-foreground/40 dark:text-foreground/40 dark:text-foreground/20 bg-foreground/[0.02] px-1.5 py-0.5 rounded-[2px] border border-foreground/[0.03]">
                           {product.product_type}
                         </span>
                       )}
-                      <span className="text-foreground/40 dark:text-foreground/40 dark:text-foreground/20 bg-foreground/[0.02] px-1.5 py-0.5 rounded-[2px] border border-foreground/[0.03]">
+                      <span className="text-foreground/40 dark:text-foreground/40 dark:text-foreground/40 dark:text-foreground/40 dark:text-foreground/20 bg-foreground/[0.02] px-1.5 py-0.5 rounded-[2px] border border-foreground/[0.03]">
                         {product.variants.length} SKU{product.variants.length !== 1 ? "s" : ""}
                       </span>
                     </div>
@@ -237,7 +237,7 @@ export default function ProductsPage() {
                 {/* Right: Stats + Actions */}
                 <div className="flex items-center gap-4 md:gap-5 shrink-0">
                   <div className="text-center">
-                    <p className="text-[7px] text-foreground/30 dark:text-foreground/30 dark:text-foreground/10 uppercase font-normal tracking-[0.3em] mb-1 leading-none">
+                    <p className="text-[7px] text-foreground/30 dark:text-foreground/30 dark:text-foreground/30 dark:text-foreground/30 dark:text-foreground/10 uppercase font-normal tracking-[0.3em] mb-1 leading-none">
                       RELAY
                     </p>
                     <p
@@ -249,7 +249,7 @@ export default function ProductsPage() {
                     </p>
                   </div>
                   <div className="text-center">
-                    <p className="text-[7px] text-foreground/30 dark:text-foreground/30 dark:text-foreground/10 uppercase font-normal tracking-[0.3em] mb-1 leading-none">
+                    <p className="text-[7px] text-foreground/30 dark:text-foreground/30 dark:text-foreground/30 dark:text-foreground/30 dark:text-foreground/10 uppercase font-normal tracking-[0.3em] mb-1 leading-none">
                       VALUATION
                     </p>
                     <p className="text-[11px] font-normal tracking-[0.1em] text-foreground">
@@ -265,7 +265,7 @@ export default function ProductsPage() {
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[7px] font-normal uppercase tracking-[0.2em] transition-all disabled:opacity-50 ${
                       product.status === "active"
                         ? "bg-emerald-500/10 text-emerald-500/60 border border-emerald-500/10"
-                        : "bg-foreground/[0.04] text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 border border-foreground/[0.05]"
+                        : "bg-foreground/[0.04] text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 border border-foreground/[0.05]"
                     }`}
                   >
                     {isUpdating ? (
@@ -283,7 +283,7 @@ export default function ProductsPage() {
                     href={`https://${SHOPIFY_DOMAIN}/admin/products/${product.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-2 bg-foreground/[0.01] border border-foreground/[0.02] rounded-lg transition-all text-muted-foreground/10 hover:text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40"
+                    className="p-2 bg-foreground/[0.01] border border-foreground/[0.02] rounded-lg transition-all text-muted-foreground/10 hover:text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40"
                     title="Open in Shopify Admin"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />

@@ -121,7 +121,7 @@ export default function InventoryScannerPage() {
               </span>
             </div>
           </div>
-          <p className="text-[9px] lg:text-[10px] text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 font-bold uppercase tracking-[0.3em] max-w-xl">
+          <p className="text-[9px] lg:text-[10px] text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 font-bold uppercase tracking-[0.3em] max-w-xl">
             Advanced inventory reconciliation and substrate tracking.
           </p>
         </div>
@@ -138,7 +138,7 @@ export default function InventoryScannerPage() {
                 className={`relative flex items-center gap-2.5 px-5 py-3 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all whitespace-nowrap z-10 overflow-hidden ${
                   isActive 
                     ? 'text-foreground dark:text-white shadow-[0_2px_8px_rgba(0,0,0,0.08)]' 
-                    : 'text-foreground/80 dark:text-foreground/60 dark:text-foreground/40 dark:text-white/40 hover:text-foreground/70 dark:hover:text-white/70 hover:bg-black/5 dark:hover:bg-white/10'
+                    : 'text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/40 dark:text-white/40 hover:text-foreground/70 dark:hover:text-white/70 hover:bg-black/5 dark:hover:bg-white/10'
                 }`}
               >
                 {isActive && (
@@ -202,7 +202,7 @@ export default function InventoryScannerPage() {
                         </button>
                         <div className="w-16 flex flex-col items-center justify-center">
                           <span className="text-2xl font-black text-foreground dark:text-white tracking-tighter leading-none">{quantity}</span>
-                          <span className="text-[8px] font-black text-foreground/80 dark:text-foreground/60 dark:text-foreground/40 dark:text-white/40 uppercase tracking-widest mt-1">Units</span>
+                          <span className="text-[8px] font-black text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/40 dark:text-white/40 uppercase tracking-widest mt-1">Units</span>
                         </div>
                         <button 
                           onClick={() => setQuantity(quantity + 1)} 
@@ -268,7 +268,7 @@ export default function InventoryScannerPage() {
             <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-transparent dark:from-white/5 pointer-events-none z-0" />
             
             <div className="relative z-10 flex flex-col h-full">
-               <h2 className="text-[11px] font-black uppercase tracking-[0.25em] text-foreground/80 dark:text-foreground/60 dark:text-foreground/40 dark:text-white/40 mb-6 flex items-center gap-2">
+               <h2 className="text-[11px] font-black uppercase tracking-[0.25em] text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/40 dark:text-white/40 mb-6 flex items-center gap-2">
                   <ActivityLine /> Activity Feed
                </h2>
                
@@ -283,7 +283,7 @@ export default function InventoryScannerPage() {
                      status === 'success' ? 'bg-[#34C759]/5 text-[#34C759] border-[#34C759]/20' :
                      status === 'error' ? 'bg-[#FF3B30]/5 text-[#FF3B30] border-[#FF3B30]/20' :
                      status === 'syncing' ? 'bg-[#007AFF]/5 text-[#007AFF] border-[#007AFF]/20' :
-                     'bg-black/5 dark:bg-white/5 text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-white/60 border-black/5 dark:border-white/10'
+                     'bg-black/5 dark:bg-white/5 text-foreground/80 dark:text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-white/60 border-black/5 dark:border-white/10'
                    }`}
                  >
                    <div className={`p-3 rounded-xl flex items-center justify-center ${
@@ -331,7 +331,7 @@ export default function InventoryScannerPage() {
                                  {(() => {
                                     const m = modes.find(mod => mod.id === s.mode);
                                     const Icon = m?.icon || Box;
-                                    return <Icon className={`w-4 h-4 ${m?.color || 'text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40'}`} strokeWidth={2} />;
+                                    return <Icon className={`w-4 h-4 ${m?.color || 'text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40'}`} strokeWidth={2} />;
                                  })()}
                               </div>
                               <div>
@@ -341,7 +341,7 @@ export default function InventoryScannerPage() {
                            </div>
                            <div className="text-right">
                               <span className="text-[9px] font-black px-2.5 py-1.5 rounded-lg bg-black/10 dark:bg-white/10 text-foreground/70 dark:text-white/70 uppercase tracking-[0.15em]">{s.mode} {s.quantity > 1 ? `x${s.quantity}` : ''}</span>
-                              <p className="text-[9px] font-bold text-foreground/80 dark:text-foreground/60 dark:text-foreground/40 dark:text-white/40 mt-2 uppercase tracking-widest">{s.timestamp}</p>
+                              <p className="text-[9px] font-bold text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/40 dark:text-white/40 mt-2 uppercase tracking-widest">{s.timestamp}</p>
                            </div>
                          </motion.div>
                        )) : (

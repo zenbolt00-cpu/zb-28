@@ -76,7 +76,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         className={`group flex items-center gap-4 px-6 py-3 rounded-2xl transition-all duration-500 relative overflow-hidden ${
           isActive 
             ? "text-foreground bg-foreground/10 shadow-lg border border-foreground/10" 
-            : "text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 hover:text-foreground/80 hover:bg-foreground/5"
+            : "text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 hover:text-foreground/80 hover:bg-foreground/5"
         }`}
       >
         <Icon className={`w-4.5 h-4.5 transition-colors duration-300 ${isActive ? 'text-foreground' : 'opacity-40 group-hover:opacity-100'}`} strokeWidth={isActive ? 2 : 1.5} />
@@ -142,7 +142,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </div>
               <div className="flex flex-col">
                 <span className="text-[14px] font-semibold text-foreground/90 font-inter">Zica Bella</span>
-                <span className="text-[10px] text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 mt-1 font-medium select-none font-inter">System Configurator</span>
+                <span className="text-[10px] text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 mt-1 font-medium select-none font-inter">System Configurator</span>
               </div>
             </div>
           </div>
@@ -150,7 +150,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="flex-1 overflow-y-auto custom-scrollbar space-y-8 pr-2">
             <div>
               <div className="mb-3 px-4">
-                 <span className="text-[10px] font-semibold text-foreground/50 dark:text-foreground/50 dark:text-foreground/30 font-inter">Core Services</span>
+                 <span className="text-[10px] font-semibold text-foreground/50 dark:text-foreground/50 dark:text-foreground/50 dark:text-foreground/50 dark:text-foreground/30 font-inter">Core Services</span>
               </div>
               <div className="space-y-0.5">
                 {[...coreNav].map(item => <NavLink key={item.name} item={item} />)}
@@ -159,7 +159,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
              
             <div>
               <div className="mb-3 px-4">
-                 <span className="text-[10px] font-semibold text-foreground/50 dark:text-foreground/50 dark:text-foreground/30 font-inter">Logistics</span>
+                 <span className="text-[10px] font-semibold text-foreground/50 dark:text-foreground/50 dark:text-foreground/50 dark:text-foreground/50 dark:text-foreground/30 font-inter">Logistics</span>
               </div>
               <div className="space-y-0.5">
                 {[...operationalNav].map(item => <NavLink key={item.name} item={item} />)}
@@ -168,7 +168,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
              
             <div>
               <div className="mb-3 px-4">
-                 <span className="text-[10px] font-semibold text-foreground/50 dark:text-foreground/50 dark:text-foreground/30 font-inter">Experience</span>
+                 <span className="text-[10px] font-semibold text-foreground/50 dark:text-foreground/50 dark:text-foreground/50 dark:text-foreground/50 dark:text-foreground/30 font-inter">Experience</span>
               </div>
               <div className="space-y-0.5">
                 {[...aestheticNav].map(item => <NavLink key={item.name} item={item} />)}
@@ -177,7 +177,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
              
             <div>
               <div className="mb-3 px-4">
-                 <span className="text-[10px] font-semibold text-foreground/50 dark:text-foreground/50 dark:text-foreground/30 font-inter">Integration</span>
+                 <span className="text-[10px] font-semibold text-foreground/50 dark:text-foreground/50 dark:text-foreground/50 dark:text-foreground/50 dark:text-foreground/30 font-inter">Integration</span>
               </div>
               <div className="space-y-0.5">
                 {[...integrationNav].map(item => <NavLink key={item.name} item={item} />)}
@@ -191,7 +191,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-500 ${
                 pathname === '/dashboard/settings'
                   ? "bg-foreground text-background shadow-lg shadow-black/10"
-                  : "text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 hover:text-foreground hover:bg-foreground/[0.03]"
+                  : "text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/80 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/60 dark:text-foreground/40 hover:text-foreground hover:bg-foreground/[0.03]"
               }`}
             >
               <Settings className="w-4 h-4" strokeWidth={pathname === '/dashboard/settings' ? 2 : 1.5} />
@@ -209,7 +209,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="flex items-center gap-3 lg:gap-6">
             <button 
               onClick={() => setIsSidebarOpen(true)}
-              className="lg:hidden p-2 rounded-2xl bg-foreground/5 text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 hover:text-foreground transition-colors border border-foreground/10"
+              className="lg:hidden p-2 rounded-2xl bg-foreground/5 text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/70 dark:text-foreground/50 hover:text-foreground transition-colors border border-foreground/10"
             >
                <Menu className="w-5 h-5" />
             </button>
@@ -224,13 +224,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="flex items-center gap-2 lg:gap-4">
                <ThemeToggle />
                <div className="hidden sm:block w-[1px] h-4 bg-foreground/10 mx-1" />
-              <button className="hidden sm:flex w-9 h-9 items-center justify-center rounded-2xl bg-foreground/5 text-foreground/50 dark:text-foreground/50 dark:text-foreground/30 hover:text-foreground transition-all border border-foreground/5">
+              <button className="hidden sm:flex w-9 h-9 items-center justify-center rounded-2xl bg-foreground/5 text-foreground/50 dark:text-foreground/50 dark:text-foreground/50 dark:text-foreground/50 dark:text-foreground/30 hover:text-foreground transition-all border border-foreground/5">
                 <Bell className="w-4.5 h-4.5" />
               </button>
             </div>
  
             <Link href="/dashboard/settings" className="flex items-center gap-2 lg:gap-3 p-1 lg:p-1.5 pl-3 lg:pl-4 bg-foreground/5 border border-foreground/10 hover:bg-foreground/10 transition-all rounded-full cursor-pointer group shadow-inner">
-              <span className="hidden sm:inline text-[12px] font-medium text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 group-hover:text-foreground transition-colors font-inter">Admin</span>
+              <span className="hidden sm:inline text-[12px] font-medium text-foreground/80 dark:text-foreground/80 dark:text-foreground/80 dark:text-foreground/80 dark:text-foreground/60 group-hover:text-foreground transition-colors font-inter">Admin</span>
               <div className="h-7 w-7 rounded-full bg-foreground text-background flex items-center justify-center shadow-2xl transition-transform group-hover:scale-105 duration-500">
                 <span className="text-[10px] font-medium font-inter">KT</span>
               </div>

@@ -74,7 +74,7 @@ export default function OrdersPage() {
             <h1 className="font-heading text-[13px] uppercase tracking-widest text-foreground/80 flex items-center gap-2">
               Orders
               {orders.length > 0 && (
-                <span className="text-[8px] px-2 py-0.5 rounded-full bg-foreground/10 text-foreground/50 font-inter font-medium">
+                <span className="text-[8px] px-2 py-0.5 rounded-full bg-foreground/10 text-foreground/70 dark:text-foreground/50 font-inter font-medium">
                   {orders.length}
                 </span>
               )}
@@ -93,7 +93,7 @@ export default function OrdersPage() {
                <Package className="w-6 h-6 text-muted-foreground/10" />
             </div>
             <div className="space-y-1">
-              <h2 className="text-[11px] font-heading uppercase tracking-widest text-foreground/40">No Orders Yet</h2>
+              <h2 className="text-[11px] font-heading uppercase tracking-widest text-foreground/60 dark:text-foreground/40">No Orders Yet</h2>
               <p className="text-[9px] text-muted-foreground/30 font-medium">Your purchase history will appear here.</p>
             </div>
             <Link href="/" className="px-8 py-3 bg-foreground text-background rounded-full text-[9px] font-black uppercase tracking-[0.2em] hover:opacity-90 active:scale-[0.98] transition-all shadow-lg shadow-foreground/5">
@@ -172,12 +172,12 @@ export default function OrdersPage() {
                       </div>
                       <div className="text-[8px]">
                         <p className="uppercase tracking-widest text-muted-foreground/30 font-black">ID</p>
-                        <p className="font-mono text-foreground/50 font-medium uppercase truncate max-w-[80px]">{order.shipments[0].trackingNumber}</p>
+                        <p className="font-mono text-foreground/70 dark:text-foreground/50 font-medium uppercase truncate max-w-[80px]">{order.shipments[0].trackingNumber}</p>
                       </div>
                     </div>
                     <button 
                       onClick={() => window.open(`https://www.shiprocket.in/shipment-tracking/?awb=${order.shipments[0].trackingNumber}`, '_blank')}
-                      className="relative z-10 px-3 py-1.5 rounded-lg bg-foreground/5 hover:bg-foreground/10 text-[7px] font-black uppercase tracking-widest text-foreground/60 transition-colors"
+                      className="relative z-10 px-3 py-1.5 rounded-lg bg-foreground/5 hover:bg-foreground/10 text-[7px] font-black uppercase tracking-widest text-foreground/80 dark:text-foreground/60 transition-colors"
                     >
                         Track Ship
                     </button>

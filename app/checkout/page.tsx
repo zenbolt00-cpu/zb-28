@@ -188,7 +188,7 @@ export default function CheckoutPage() {
           <div className="flex items-center justify-between">
             <h1 className="font-heading text-[13px] uppercase tracking-widest text-foreground/80 flex items-center gap-2">
               Checkout
-              <span className="text-[8px] px-2 py-0.5 rounded-full bg-foreground/10 text-foreground/50 font-inter font-medium">
+              <span className="text-[8px] px-2 py-0.5 rounded-full bg-foreground/10 text-foreground/70 dark:text-foreground/50 font-inter font-medium">
                 Step {step}/2
               </span>
             </h1>
