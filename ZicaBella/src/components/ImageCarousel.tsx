@@ -1,5 +1,5 @@
 import React, { useRef, useState, useMemo, useEffect } from 'react';
-import { View, FlatList, Dimensions, StyleSheet, Animated, TouchableOpacity, Text } from 'react-native';
+import { View, FlatList, Dimensions, StyleSheet, TouchableOpacity } from 'react-native';
 import { Image } from 'expo-image';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import { BlurView } from 'expo-blur';
@@ -90,10 +90,15 @@ export default function ImageCarousel({
   
   const mainListRef = useRef<FlatList>(null);
   const thumbListRef = useRef<FlatList>(null);
-  const isJumping = useRef(false);
+  const didMountRef = useRef(false);
+  const previousExternalIndexRef = useRef<number | undefined>(externalActiveIndex);
 
   // Set initial scroll position if looping
   useEffect(() => {
+    if (!adjustedMedia.length) {
+      return;
+    }
+
     if (isLooping) {
       setTimeout(() => {
         mainListRef.current?.scrollToIndex({ 
@@ -105,16 +110,29 @@ export default function ImageCarousel({
   }, [isLooping]);
 
   useEffect(() => {
+    if (!adjustedMedia.length) {
+      return;
+    }
+
+    if (!didMountRef.current) {
+      didMountRef.current = true;
+      previousExternalIndexRef.current = externalActiveIndex;
+      return;
+    }
+
     if (externalActiveIndex !== undefined) {
       const targetIndex = isLooping ? externalActiveIndex + 1 : externalActiveIndex;
-      if (targetIndex >= 0 && targetIndex < adjustedMedia.length) {
+      if (externalActiveIndex !== previousExternalIndexRef.current && targetIndex >= 0 && targetIndex < adjustedMedia.length) {
         mainListRef.current?.scrollToIndex({ index: targetIndex, animated: true });
       }
     }
+
+    previousExternalIndexRef.current = externalActiveIndex;
   }, [externalActiveIndex, isLooping, adjustedMedia.length]);
 
   const scrollToMedia = (index: number) => {
     const targetIndex = isLooping ? index + 1 : index;
+    setInternalActiveIndex(index);
     onIndexChange?.(index);
     if (targetIndex >= 0 && targetIndex < adjustedMedia.length) {
       mainListRef.current?.scrollToIndex({ index: targetIndex, animated: true });
@@ -125,27 +143,6 @@ export default function ImageCarousel({
         animated: true,
         viewPosition: 0.5 
       });
-    }
-  };
-
-  const onScroll = (e: any) => {
-    const offsetX = e.nativeEvent.contentOffset.x;
-    const index = Math.round(offsetX / width);
-    
-    if (isLooping) {
-      if (index === 0) {
-        // We are at the cloned last item, jump to real last item
-        mainListRef.current?.scrollToIndex({ index: media.length, animated: false });
-        onIndexChange?.(media.length - 1);
-      } else if (index === adjustedMedia.length - 1) {
-        // We are at the cloned first item, jump to real first item
-        mainListRef.current?.scrollToIndex({ index: 1, animated: false });
-        onIndexChange?.(0);
-      } else {
-        onIndexChange?.(index - 1);
-      }
-    } else {
-      onIndexChange?.(index);
     }
   };
 
@@ -166,6 +163,7 @@ export default function ImageCarousel({
     }
 
     setInternalActiveIndex(realIndex);
+    onIndexChange?.(realIndex);
     // Sync thumbnails
     if (realIndex >= 0 && realIndex < media.length) {
       thumbListRef.current?.scrollToIndex({ 
@@ -183,12 +181,16 @@ export default function ImageCarousel({
       <FlatList
         ref={mainListRef}
         data={adjustedMedia}
+        extraData={activeIndex}
         horizontal
         pagingEnabled
         scrollEnabled={scrollEnabled}
         showsHorizontalScrollIndicator={false}
         keyExtractor={(_, index) => `media-${index}`}
         onMomentumScrollEnd={onMomentumScrollEnd}
+        decelerationRate="fast"
+        snapToAlignment="center"
+        disableIntervalMomentum={!isLooping}
         renderItem={({ item, index }) => (
           <MediaItem 
             item={item} 
@@ -203,6 +205,9 @@ export default function ImageCarousel({
           offset: width * index,
           index,
         })}
+        initialNumToRender={Math.min(adjustedMedia.length, 3)}
+        windowSize={3}
+        removeClippedSubviews
       />
 
       {showThumbnails && media.length > 1 && (

@@ -145,7 +145,7 @@ export default function HomeScreen() {
           {!loading && (products.length === 0 || error) && (
             <View style={styles.errorContainer}>
               <Typography size={10} color={colors.textSecondary} style={styles.errorText}>
-                {error || "Unable to load products. Please check your connection."}
+                {error || "Unable to load products right now. Please try again shortly."}
               </Typography>
               <TouchableOpacity onPress={refetch} style={[styles.retryBtn, { borderColor: colors.borderLight }]}>
                 <Typography size={9} color={colors.text} weight="600" style={styles.retryText}>RETRY</Typography>

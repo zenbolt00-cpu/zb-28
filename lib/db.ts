@@ -39,55 +39,44 @@ const createMockPrismaClient = (reason: string) => {
 };
 
 const prismaClientSingleton = () => {
-  const dbUrl = process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL;
-  
-  // Ensure DATABASE_URL is set in process.env because native Prisma looks for it
-  if (!process.env.DATABASE_URL && dbUrl) {
-    process.env.DATABASE_URL = dbUrl;
+  const pgUrl =
+    process.env.POSTGRES_PRISMA_URL ||
+    process.env.POSTGRES_URL ||
+    (process.env.DATABASE_URL && !process.env.DATABASE_URL.startsWith('file:')
+      ? process.env.DATABASE_URL
+      : undefined);
+
+  if (pgUrl && !process.env.DATABASE_URL?.startsWith('postgres')) {
+    process.env.DATABASE_URL = pgUrl;
   }
 
   const isBuild = process.env.NEXT_PHASE === 'phase-production-build';
-
-  // During build phase, always use mock to avoid DB connection requirements
   if (isBuild) {
     return createMockPrismaClient('build');
   }
 
-  // No DATABASE_URL set at all — use mock but log clearly
-  if (!dbUrl || dbUrl.includes('placeholder') || dbUrl === '') {
-    console.error('[DB] DATABASE_URL is not set. Admin features will not persist. Set DATABASE_URL in your environment variables.');
-    return createMockPrismaClient('no_database_url');
+  if (!pgUrl || pgUrl.includes('placeholder') || pgUrl === '') {
+    console.error('[DB] No Postgres URL found. Set POSTGRES_URL or DATABASE_URL (postgres://…).');
+    return createMockPrismaClient('no_postgres_url');
   }
 
   try {
-      // Local SQLite development fallback
-      if (dbUrl.startsWith('file:')) {
-        const sqlite = new Database(dbUrl.replace('file:', ''));
-        const adapter = new PrismaBetterSqlite3(sqlite);
-        return new PrismaClient({ adapter, log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'] });
-      }
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
-      // Production PostgreSQL
-      const connectionString = process.env.POSTGRES_URL || dbUrl;
-      
-      if (process.env.NODE_ENV === 'production') {
-        process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-      }
+    const pool = new Pool({
+      connectionString: pgUrl,
+      ssl: { rejectUnauthorized: false },
+    });
+    const adapter = new PrismaPg(pool);
 
-      const pool = new Pool({ 
-        connectionString,
-        ssl: { rejectUnauthorized: false }
-      });
-      const adapter = new PrismaPg(pool);
+    const client = new PrismaClient({
+      adapter,
+      log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
+    });
 
-      const client = new PrismaClient({
-        adapter,
-        log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-      });
-      
-      return client;
+    return client;
   } catch (error: any) {
-    console.error('[DB] Critical Prisma initialization error:', error.message, error.stack);
+    console.error('[DB] Critical Prisma initialization error:', error.message);
     return createMockPrismaClient(`init_error: ${error.message}`);
   }
 };

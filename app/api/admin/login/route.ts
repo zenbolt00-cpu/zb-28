@@ -139,6 +139,14 @@ export async function POST(request: Request) {
       path: '/',
     });
 
+    cookieStore.set('admin_username', cleanUsername, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      maxAge: 60 * 60 * 24 * 7,
+      path: '/',
+    });
+
     console.log(`✅ Admin login successful for: ${cleanUsername}`);
     return NextResponse.json({ success: true });
   } catch (error) {

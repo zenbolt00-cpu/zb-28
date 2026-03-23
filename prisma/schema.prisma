@@ -349,3 +349,116 @@ model ScanRecord {
   staffName    String   @default("Admin")
   createdAt    DateTime @default(now())
 }
+
+// --- Manufacturing module (isolated from shop products/orders) ---
+
+model MfgFabric {
+  id                      String               @id @default(cuid())
+  sku                     String               @unique
+  name                    String
+  costPerMeter            Float
+  weightValue             Float                @default(0)
+  weightUnit              String               @default("kg")
+  totalMeters             Float                @default(0)
+  status                  String               @default("ACTIVE")
+  lowStockMetersThreshold Float?
+  createdAt               DateTime             @default(now())
+  updatedAt               DateTime             @updatedAt
+  movements               MfgFabricMovement[]
+  productionBatches       MfgProductionBatch[]
+}
+
+model MfgFabricMovement {
+  id                 String              @id @default(cuid())
+  fabricId           String
+  fabric             MfgFabric           @relation(fields: [fabricId], references: [id], onDelete: Cascade)
+  occurredAt         DateTime            @default(now())
+  type               String
+  quantity           Float
+  quantityUnit       String
+  rateAtMovement     Float
+  totalValue         Float
+  remarks            String?
+  createdByName      String              @default("Admin")
+  correctsMovementId String?
+  productionBatchId  String?
+  batch              MfgProductionBatch? @relation(fields: [productionBatchId], references: [id], onDelete: SetNull)
+  balanceMetersAfter Float?
+  balanceWeightAfter Float?
+  createdAt          DateTime            @default(now())
+
+  @@index([fabricId, occurredAt])
+  @@index([productionBatchId])
+}
+
+model MfgProductionBatch {
+  id                   String                  @id @default(cuid())
+  batchCode            String                  @unique
+  productName          String
+  quantity             Int
+  currentStage         String
+  washCostTotal        Float                   @default(0)
+  fabricId             String?
+  fabric               MfgFabric?              @relation(fields: [fabricId], references: [id], onDelete: SetNull)
+  notes                String?
+  estimatedCostPerUnit Float?
+  createdAt            DateTime                @default(now())
+  updatedAt            DateTime                @updatedAt
+  movements            MfgFabricMovement[]
+  stageLogs            MfgProductionStageLog[]
+  miscExpenses         MfgMiscExpense[]
+  batchNotes           MfgBatchNote[]
+}
+
+model MfgProductionStageLog {
+  id            String               @id @default(cuid())
+  batchId       String
+  batch         MfgProductionBatch   @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  action        String
+  fromStage     String?
+  toStage       String?
+  payload       Json
+  costAmount    Float                @default(0)
+  createdByName String
+  createdAt     DateTime             @default(now())
+
+  @@index([batchId, createdAt])
+}
+
+model MfgMiscExpense {
+  id            String              @id @default(cuid())
+  batchId       String?
+  batch         MfgProductionBatch? @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  amount        Float
+  description   String
+  expenseType   String              @default("OTHER")
+  expenseDate   DateTime
+  createdByName String
+  createdAt     DateTime            @default(now())
+
+  @@index([batchId])
+}
+
+model MfgBatchNote {
+  id            String             @id @default(cuid())
+  batchId       String
+  batch         MfgProductionBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  content       String
+  createdByName String
+  createdAt     DateTime           @default(now())
+
+  @@index([batchId, createdAt])
+}
+
+model MfgAuditLog {
+  id         String   @id @default(cuid())
+  entityType String
+  entityId   String
+  action     String
+  details    Json?
+  actorName  String
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}

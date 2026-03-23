@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Share, ActivityIndicator, Dimensions, Alert, Animated,
+  ActivityIndicator, Dimensions, Alert, Animated,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -34,7 +34,7 @@ export default function ProductDetailScreen() {
   const route = useRoute<RouteProp<RootStackParamList, 'ProductDetail'>>();
   const { handle } = route.params;
   const colors = useColors();
-  const { theme, toggleTheme } = useThemeStore();
+  const { theme } = useThemeStore();
   const isDark = theme === 'dark';
 
   const { product, loading, error } = useProductByHandle(handle);
@@ -45,13 +45,11 @@ export default function ProductDetailScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('Description');
-  const [isAdding, setIsAdding] = useState(false);
-  const { bookmarks, addBookmark, removeBookmark, isBookmarked } = useBookmarkStore();
+  const { addBookmark, removeBookmark, isBookmarked } = useBookmarkStore();
   const bookmarked = isBookmarked(product?.id || '');
   const { addProduct, recentProducts } = useRecentStore();
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
-  const [isScrollLocked, setIsScrollLocked] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isGalleryVisible, setIsGalleryVisible] = useState(false);
   
@@ -78,12 +76,6 @@ export default function ProductDetailScreen() {
       }
     }
     
-    // Lock image carousel if we've scrolled down a bit
-    const shouldLock = currentY > 20;
-    if (shouldLock !== isScrollLocked) {
-      setIsScrollLocked(shouldLock);
-    }
-
     lastScrollY.current = currentY;
 
     // Also update the Animated value for header effects
@@ -113,7 +105,6 @@ export default function ProductDetailScreen() {
 
     if (!variant) return;
 
-    setIsAdding(true);
     addItem({
       productId: product.id,
       variantId: variant.id,
@@ -125,7 +116,6 @@ export default function ProductDetailScreen() {
     });
 
     haptics.addToCart();
-    setTimeout(() => setIsAdding(false), 800);
   };
 
   const handleBuyNow = () => {
@@ -183,19 +173,6 @@ export default function ProductDetailScreen() {
 
   const recommended = allProducts.filter((p: FlatProduct) => p.id !== product.id).slice(0, 6);
 
-  // Background Parallax
-  const bgTranslateY = scrollY.interpolate({
-    inputRange: [0, height],
-    outputRange: [0, height * 0.4],
-    extrapolate: 'clamp',
-  });
-
-  const bgScale = scrollY.interpolate({
-    inputRange: [-100, 0],
-    outputRange: [1.1, 1],
-    extrapolate: 'clamp',
-  });
-
   const blurIntensity = scrollY.interpolate({
     inputRange: [0, 200],
     outputRange: [0, 50],
@@ -209,6 +186,10 @@ export default function ProductDetailScreen() {
   });
 
   const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
+  const glassStroke = isDark ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.7)';
+  const glassFill = isDark ? 'rgba(8,12,20,0.62)' : 'rgba(255,255,255,0.72)';
+  const glassFillSoft = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.52)';
+  const glassFillStrong = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.82)';
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -239,22 +220,13 @@ export default function ProductDetailScreen() {
           { 
             height: height * 0.85,
             opacity: bgOpacity,
-            transform: [
-              { translateY: scrollY }, // Keep it sticky at the top
-              { scale: scrollY.interpolate({
-                  inputRange: [-200, 0],
-                  outputRange: [1.3, 1],
-                  extrapolate: 'clamp'
-                })
-              }
-            ]
+            transform: [{ translateY: scrollY }]
           }
         ]}>
           <ImageCarousel 
             media={product.allMedia || []} 
             height={height * 0.85}
             showThumbnails={false}
-            scrollEnabled={!isScrollLocked}
             externalActiveIndex={currentImageIndex}
             onIndexChange={setCurrentImageIndex}
             onPress={(index: number) => {
@@ -262,6 +234,24 @@ export default function ProductDetailScreen() {
               setIsGalleryVisible(true);
             }}
           />
+
+          <View style={styles.heroOverlay}>
+            <BlurView
+              intensity={isDark ? 55 : 75}
+              tint={isDark ? 'dark' : 'light'}
+              style={[
+                styles.heroBadge,
+                {
+                  borderColor: glassStroke,
+                  backgroundColor: glassFillSoft,
+                },
+              ]}
+            >
+              <Typography size={7} weight="600" color={colors.text} letterSpacing={1.2}>
+                {String(currentImageIndex + 1).padStart(2, '0')} / {String(Math.max(product.allMedia?.length || 1, 1)).padStart(2, '0')}
+              </Typography>
+            </BlurView>
+          </View>
 
           {/* Parallax Blur Overlay */}
           <AnimatedBlurView 
@@ -294,9 +284,10 @@ export default function ProductDetailScreen() {
                     style={[
                       styles.appleThumb,
                       { 
-                        borderColor: isSelected ? (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.15)') : (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'),
+                        borderColor: isSelected ? glassStroke : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.45)'),
                         borderWidth: isSelected ? 2 : 1,
-                        backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)'
+                        backgroundColor: isSelected ? glassFillStrong : glassFillSoft,
+                        transform: [{ scale: isSelected ? 1 : 0.96 }],
                       }
                     ]}
                     activeOpacity={0.7}
@@ -316,8 +307,8 @@ export default function ProductDetailScreen() {
 
         {/* Details Card */}
         <View style={[styles.detailsCard, { 
-          backgroundColor: isDark ? 'rgba(5,7,12,0.6)' : 'rgba(255,255,255,0.7)',
-          borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+          backgroundColor: glassFill,
+          borderColor: glassStroke,
           marginTop: 1, // Strict 1px gap from thumbnails
         }]}>
           <BlurView 
@@ -330,7 +321,7 @@ export default function ProductDetailScreen() {
           <View style={styles.mainInfo}>
             <View style={styles.titleRow}>
               <View style={{ flex: 1 }}>
-                <Typography heading size={14} color={colors.text} style={styles.title}>
+                <Typography size={11.5} color={colors.text} weight="600" letterSpacing={1.6} style={styles.title}>
                   {product.title}
                 </Typography>
                 <View style={styles.priceRow}>
@@ -350,7 +341,7 @@ export default function ProductDetailScreen() {
                   else addBookmark(product);
                   haptics.buttonTap();
                 }}
-                style={[styles.bookmarkCircle, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }]}
+                style={[styles.bookmarkCircle, { backgroundColor: glassFillSoft, borderColor: glassStroke }]}
               >
                 <Ionicons 
                   name={bookmarked ? "bookmark" : "bookmark-outline"} 
@@ -380,14 +371,14 @@ export default function ProductDetailScreen() {
                       style={[
                         styles.sizeBox, 
                         { 
-                          borderColor: isSelected ? colors.text : (isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'),
-                          backgroundColor: isSelected ? colors.foreground : (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)'),
-                          borderWidth: isSelected ? 1.5 : 1,
+                          borderColor: isSelected ? glassStroke : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.45)'),
+                          backgroundColor: isSelected ? glassFillStrong : glassFillSoft,
+                          borderWidth: isSelected ? 1.3 : 1,
                         }
                       ]}
-                      onPress={() => s && setSelectedSize(s)}
+                      onPress={() => s && handleSizeSelect(s)}
                     >
-                      <Typography size={8} weight="600" color={isSelected ? colors.background : colors.textSecondary}>
+                      <Typography size={8} weight="600" color={colors.text}>
                         {s?.toUpperCase()}
                       </Typography>
                     </TouchableOpacity>
@@ -403,14 +394,15 @@ export default function ProductDetailScreen() {
               style={[
                 styles.addBtn, 
                 { 
-                  borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)',
-                  backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)'
+                  borderColor: glassStroke,
+                  backgroundColor: glassFillSoft,
                 },
                 (product.isSoldOut) && styles.addBtnDisabled
               ]} 
               onPress={handleAddToCart}
             >
-              <Typography heading size={8} color={colors.text} weight="700">
+              <BlurView intensity={isDark ? 36 : 54} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+              <Typography size={8} color={colors.text} weight="700" letterSpacing={1.1}>
                 {product.isSoldOut ? 'SOLD OUT' : 'ADD TO BAG'}
               </Typography>
             </TouchableOpacity>
@@ -420,15 +412,16 @@ export default function ProductDetailScreen() {
                 style={[
                   styles.buyNowBtn, 
                   { 
-                    backgroundColor: colors.foreground,
-                    borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
-                    borderWidth: 1 
+                    backgroundColor: glassFillStrong,
+                    borderColor: glassStroke,
+                    borderWidth: 1,
                   }
                 ]} 
                 onPress={handleBuyNow}
                 activeOpacity={0.8}
               >
-                <Typography heading size={8} color={colors.background} weight="700">
+                <BlurView intensity={isDark ? 44 : 68} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+                <Typography size={8} color={colors.text} weight="700" letterSpacing={1.1}>
                   BUY NOW
                 </Typography>
               </TouchableOpacity>
@@ -452,8 +445,8 @@ export default function ProductDetailScreen() {
                       style={[
                         styles.pillTab, 
                         { 
-                          backgroundColor: isActive ? (isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.06)') : 'transparent',
-                          borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+                          backgroundColor: isActive ? glassFillStrong : 'transparent',
+                          borderColor: isActive ? glassStroke : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.4)'),
                           borderWidth: 1
                         }
                       ]}
@@ -467,7 +460,7 @@ export default function ProductDetailScreen() {
               </ScrollView>
             </View>
             
-            <View style={[styles.tabContentBox, { backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.015)' }]}>
+            <View style={[styles.tabContentBox, { backgroundColor: glassFillSoft, borderColor: glassStroke }]}>
               {activeTab === 'Description' && (
                 <View style={styles.contentInside}>
                   <Typography size={8} color={colors.textSecondary} style={styles.tabPaneText} numberOfLines={showFullDescription ? undefined : 3}>
@@ -632,10 +625,27 @@ const styles = StyleSheet.create({
   headerBtn: { width: 38, height: 38, borderRadius: 19, overflow: 'hidden', justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.1)', borderWidth: 1 },
   scrollContent: { paddingTop: 0 },
   heroSpacer: { height: height * 0.85 },
+  heroOverlay: {
+    position: 'absolute',
+    left: 20,
+    right: 20,
+    bottom: 20,
+    alignItems: 'flex-end',
+    zIndex: 3,
+  },
+  heroBadge: {
+    minWidth: 70,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 999,
+    overflow: 'hidden',
+    borderWidth: 1,
+    alignItems: 'center',
+  },
   detailsCard: { 
-    borderTopLeftRadius: 36, 
-    borderTopRightRadius: 36, 
-    paddingTop: 8, 
+    borderTopLeftRadius: 38, 
+    borderTopRightRadius: 38, 
+    paddingTop: 10, 
     overflow: 'hidden', 
     borderWidth: 1, 
     borderTopWidth: 1, 
@@ -643,25 +653,25 @@ const styles = StyleSheet.create({
     marginTop: 1, 
   },
   cardIndicator: { width: 36, height: 3, borderRadius: 1.5, alignSelf: 'center', marginBottom: 12, opacity: 0.15 },
-  mainInfo: { paddingHorizontal: 24, marginBottom: 8 },
+  mainInfo: { paddingHorizontal: 22, marginBottom: 6 },
   titleRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginBottom: 4 },
-  title: { flex: 1, textTransform: 'uppercase', letterSpacing: 2 },
+  title: { flex: 1, textTransform: 'uppercase', lineHeight: 16 },
   saleBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4 },
   saleBadgeText: { color: '#FFF', fontSize: 7, fontWeight: '700', textTransform: 'uppercase' },
-  priceRow: { flexDirection: 'row', alignItems: 'baseline', gap: 10, marginTop: 4 },
+  priceRow: { flexDirection: 'row', alignItems: 'baseline', gap: 8, marginTop: 6 },
   price: { fontSize: 12, fontWeight: '400' },
   comparePrice: { fontSize: 10, fontWeight: '300', textDecorationLine: 'line-through' },
-  section: { paddingHorizontal: 24, marginBottom: 16 },
-  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  section: { paddingHorizontal: 22, marginBottom: 14 },
+  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   sectionLabel: { fontSize: 7, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 1.5, opacity: 0.4 },
   guideBtn: { fontSize: 7, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 1, opacity: 0.4, textDecorationLine: 'underline' },
   sizeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   sizeBtn: { width: (width - 48 - 40) / 6, aspectRatio: 1, borderRadius: 8, borderWidth: 1, justifyContent: 'center', alignItems: 'center' },
   sizeBtnSoldOut: { opacity: 0.3 },
   sizeBtnText: { fontSize: 8, fontWeight: '500' },
-  actions: { paddingHorizontal: 24, gap: 10, marginBottom: 16 },
-  addBtn: { width: '100%', height: 50, borderRadius: 14, borderWidth: 1, justifyContent: 'center', alignItems: 'center', overflow: 'hidden' },
-  buyNowBtn: { width: '100%', height: 52, borderRadius: 14, justifyContent: 'center', alignItems: 'center', marginTop: 10, overflow: 'hidden' },
+  actions: { paddingHorizontal: 22, gap: 8, marginBottom: 14 },
+  addBtn: { width: '100%', height: 48, borderRadius: 18, borderWidth: 1, justifyContent: 'center', alignItems: 'center', overflow: 'hidden' },
+  buyNowBtn: { width: '100%', height: 48, borderRadius: 18, justifyContent: 'center', alignItems: 'center', overflow: 'hidden' },
   addBtnDisabled: { opacity: 0.5 },
   addBtnText: { fontSize: 8, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 2 },
   buyNowBtnText: { fontSize: 8, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 2 },
@@ -672,12 +682,12 @@ const styles = StyleSheet.create({
   tabItem: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12 },
   tabItemActive: { backgroundColor: 'rgba(0,0,0,0.05)' },
   tabText: { fontSize: 7, fontWeight: '600', letterSpacing: 1.5, textTransform: 'uppercase' },
-  bookmarkCircle: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+  bookmarkCircle: { width: 42, height: 42, borderRadius: 21, justifyContent: 'center', alignItems: 'center', borderWidth: 1 },
   tabContent: { paddingTop: 20 },
   tabPaneText: { fontSize: 8.5, lineHeight: 14, fontWeight: '400' },
   sizeRow: { flexDirection: 'row', gap: 8, width: '100%' },
   sizeSectionContainer: { marginTop: 8 },
-  sizeBox: { flex: 1, height: 40, borderRadius: 10, borderWidth: 1, justifyContent: 'center', alignItems: 'center' },
+  sizeBox: { flex: 1, height: 42, borderRadius: 14, borderWidth: 1, justifyContent: 'center', alignItems: 'center' },
   sizeBoxText: { fontSize: 8, fontWeight: '600' },
   lifestyleSection: { marginTop: 16, marginBottom: 16 },
   videoCard: { width: '100%', height: 600, overflow: 'hidden', position: 'relative' },
@@ -778,19 +788,19 @@ const styles = StyleSheet.create({
   },
   thumbScrollContent: {
     paddingHorizontal: 20,
-    gap: 10,
+    gap: 8,
   },
   appleThumb: {
-    width: 90,
-    height: 90,
-    borderRadius: 32,
+    width: 88,
+    height: 88,
+    borderRadius: 28,
     borderWidth: 1,
     overflow: 'hidden',
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    elevation: 2,
   },
   appleThumbImage: {
     width: '100%',
@@ -807,10 +817,10 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   tabContentBox: {
-    borderRadius: 16,
+    borderRadius: 22,
     marginTop: 12,
     overflow: 'hidden',
-    borderWidth: 0,
+    borderWidth: 1,
   },
   contentInside: {
     padding: 20,
