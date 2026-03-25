@@ -4,6 +4,7 @@ import { Image } from 'expo-image';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import { BlurView } from 'expo-blur';
 import { Media } from '../api/types';
+import { useColors } from '../constants/colors';
 
 const { width } = Dimensions.get('window');
 
@@ -77,6 +78,7 @@ export default function ImageCarousel({
   onIndexChange,
   loop = true
 }: Props) {
+  const colors = useColors();
   const [internalActiveIndex, setInternalActiveIndex] = useState(0);
   const isLooping = loop && media.length > 1;
 
@@ -137,7 +139,7 @@ export default function ImageCarousel({
     if (targetIndex >= 0 && targetIndex < adjustedMedia.length) {
       mainListRef.current?.scrollToIndex({ index: targetIndex, animated: true });
     }
-    if (index >= 0 && index < media.length) {
+    if (showThumbnails && index >= 0 && index < media.length) {
       thumbListRef.current?.scrollToIndex({ 
         index, 
         animated: true,
@@ -165,7 +167,7 @@ export default function ImageCarousel({
     setInternalActiveIndex(realIndex);
     onIndexChange?.(realIndex);
     // Sync thumbnails
-    if (realIndex >= 0 && realIndex < media.length) {
+    if (showThumbnails && realIndex >= 0 && realIndex < media.length) {
       thumbListRef.current?.scrollToIndex({ 
         index: realIndex, 
         animated: true,
@@ -185,11 +187,14 @@ export default function ImageCarousel({
         horizontal
         pagingEnabled
         scrollEnabled={scrollEnabled}
+        nestedScrollEnabled
+        directionalLockEnabled
         showsHorizontalScrollIndicator={false}
         keyExtractor={(_, index) => `media-${index}`}
         onMomentumScrollEnd={onMomentumScrollEnd}
         decelerationRate="fast"
         snapToAlignment="center"
+        scrollEventThrottle={16}
         disableIntervalMomentum={!isLooping}
         renderItem={({ item, index }) => (
           <MediaItem 
@@ -208,7 +213,31 @@ export default function ImageCarousel({
         initialNumToRender={Math.min(adjustedMedia.length, 3)}
         windowSize={3}
         removeClippedSubviews
+        onScrollToIndexFailed={({ index }) => {
+          setTimeout(() => {
+            mainListRef.current?.scrollToIndex({
+              index: Math.max(0, Math.min(index, adjustedMedia.length - 1)),
+              animated: false,
+            });
+          }, 50);
+        }}
       />
+
+      {!showThumbnails && media.length > 1 && (
+        <View pointerEvents="none" style={styles.paginationContainer}>
+          {media.map((_, index) => (
+            <View
+              key={`dot-${index}`}
+              style={[
+                styles.paginationDot,
+                index === activeIndex
+                  ? [styles.paginationDotActive, { backgroundColor: colors.text }]
+                  : [styles.paginationDotInactive, { backgroundColor: colors.background, borderColor: colors.textMuted }],
+              ]}
+            />
+          ))}
+        </View>
+      )}
 
       {showThumbnails && media.length > 1 && (
         <View style={styles.thumbnailContainer}>
@@ -226,18 +255,18 @@ export default function ImageCarousel({
                 onPress={() => scrollToMedia(index)}
                 style={[
                   styles.thumbnail,
-                  { borderColor: activeIndex === index ? '#FFF' : 'rgba(255,255,255,0.1)' }
+                  { borderColor: activeIndex === index ? colors.text : colors.border }
                 ]}
                 activeOpacity={0.8}
                 disabled={!scrollEnabled}
               >
-                <BlurView intensity={20} tint="light" style={StyleSheet.absoluteFill} />
+                <BlurView intensity={20} tint={colors.background === '#000000' ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
                 <Image 
                   source={{ uri: item.image?.url || (item as any).url || (item as any).src }} 
                   style={styles.thumbnailImage}
                   contentFit="cover"
                 />
-                {activeIndex !== index && <View style={styles.thumbnailOverlay} />}
+                {activeIndex !== index && <View style={[styles.thumbnailOverlay, { backgroundColor: colors.overlay }]} />}
               </TouchableOpacity>
             )}
           />
@@ -260,6 +289,28 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 90,
   },
+  paginationContainer: {
+    position: 'absolute',
+    bottom: 26,
+    left: 24,
+    right: 24,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+  },
+  paginationDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  paginationDotActive: {
+    width: 20,
+  },
+  paginationDotInactive: {
+    borderWidth: StyleSheet.hairlineWidth,
+    opacity: 0.7,
+  },
   thumbListContent: {
     paddingHorizontal: 24,
     alignItems: 'center',
@@ -279,6 +330,5 @@ const styles = StyleSheet.create({
   },
   thumbnailOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.2)',
   },
 });

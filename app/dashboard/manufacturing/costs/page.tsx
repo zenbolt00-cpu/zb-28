@@ -289,21 +289,53 @@ export default function CostLedgerPage() {
     : [];
 
   return (
-    <div className="space-y-8 pb-10 max-w-[1600px] mx-auto">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground font-inter">Cost Ledger</h1>
-        <p className="text-sm text-foreground/55 max-w-3xl leading-relaxed">
-          Live roll-up of fabric OUT linked to batches, stage transition costs, travel lines from logs,
-          and miscellaneous charges. Filters re-query the API; export reflects the current table.
-        </p>
-        {range && (
-          <p className="text-[11px] text-foreground/50 mt-2">
-            <span className="font-semibold text-foreground/60">Range (IST):</span>{" "}
-            <span className="font-mono">{formatDateTimeIST(range.from)}</span>
-            <span className="mx-1.5 text-foreground/30">→</span>
-            <span className="font-mono">{formatDateTimeIST(range.to)}</span>
+    <div className="w-full space-y-6 sm:space-y-8 pb-12 pt-4 lg:pt-10 max-w-[1500px] mx-auto">
+      <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-5">
+        <div className="space-y-1">
+          <h1 className="text-2xl lg:text-3xl font-bold text-foreground uppercase tracking-tighter leading-none">Cost Ledger</h1>
+          <p className="text-sm text-foreground/55 max-w-3xl leading-relaxed">
+            Live roll-up of fabric OUT linked to batches, stage transition costs, travel lines from logs,
+            and miscellaneous charges. Filters re-query the API; export reflects the current table.
           </p>
-        )}
+          {range && (
+            <p className="text-[11px] text-foreground/50 mt-2">
+              <span className="font-semibold text-foreground/60">Range (IST):</span>{" "}
+              <span className="font-mono">{formatDateTimeIST(range.from)}</span>
+              <span className="mx-1.5 text-foreground/30">→</span>
+              <span className="font-mono">{formatDateTimeIST(range.to)}</span>
+            </p>
+          )}
+        </div>
+        <div className="flex flex-wrap items-center gap-2 mt-4 lg:mt-0">
+          <button
+            type="button"
+            onClick={() => loadLedger()}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-foreground/10 text-[12px] font-semibold hover:bg-foreground/[0.04]"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+            Refresh
+          </button>
+          <button
+            type="button"
+            onClick={exportCsv}
+            disabled={batches.length === 0}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-foreground/10 text-[12px] font-semibold hover:bg-foreground/[0.04] disabled:opacity-40"
+          >
+            <Download className="w-4 h-4" />
+            Export CSV
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setMiscOpen(true);
+              setMiscErr({});
+            }}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-foreground text-background text-[12px] font-bold"
+          >
+            <Plus className="w-4 h-4" />
+            Add miscellaneous expense
+          </button>
+        </div>
       </header>
 
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
@@ -326,7 +358,7 @@ export default function CostLedgerPage() {
               </p>
               <div className="flex items-end justify-between gap-2 mt-3">
                 <p
-                  className={`text-2xl font-bold tabular-nums font-inter leading-none ${
+                  className={`text-2xl sm:text-3xl font-bold tabular-nums font-inter leading-none ${
                     c.highlight ? "text-foreground" : "text-foreground/90"
                   }`}
                 >
@@ -344,40 +376,9 @@ export default function CostLedgerPage() {
         )}
       </section>
 
-      <div className="flex flex-wrap gap-2">
-        <button
-          type="button"
-          onClick={() => loadLedger()}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-foreground/10 text-[12px] font-semibold hover:bg-foreground/[0.04]"
-        >
-          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-          Refresh
-        </button>
-        <button
-          type="button"
-          onClick={exportCsv}
-          disabled={batches.length === 0}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-foreground/10 text-[12px] font-semibold hover:bg-foreground/[0.04] disabled:opacity-40"
-        >
-          <Download className="w-4 h-4" />
-          Export CSV
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            setMiscOpen(true);
-            setMiscErr({});
-          }}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-foreground text-background text-[12px] font-bold"
-        >
-          <Plus className="w-4 h-4" />
-          Add miscellaneous expense
-        </button>
-      </div>
-
-      <section className="rounded-3xl border border-foreground/10 bg-foreground/[0.02] p-4 sm:p-5 space-y-3">
+      <section className="rounded-3xl border border-foreground/10 bg-foreground/[0.02] p-4 sm:p-5 space-y-4 shadow-sm">
         <h2 className="text-[11px] font-bold uppercase tracking-wider text-foreground/40">Filters</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
           <input
             type="datetime-local"
             value={from}
@@ -595,10 +596,10 @@ export default function CostLedgerPage() {
       {toast && (
         <div
           className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] max-w-[min(92vw,400px)] px-5 py-3 rounded-2xl text-sm font-semibold shadow-2xl text-center ${
-            toast.t === "ok" ? "bg-foreground text-background" : "bg-red-600 text-white"
+            toast?.t === "ok" ? "bg-foreground text-background" : "bg-red-600 text-white"
           }`}
         >
-          {toast.m}
+          {toast?.m}
         </div>
       )}
     </div>

@@ -397,6 +397,11 @@ model MfgProductionBatch {
   productName          String
   quantity             Int
   currentStage         String
+  isSampleDone         Boolean                 @default(false)
+  isCuttingDone        Boolean                 @default(false)
+  isPrintingDone       Boolean                 @default(false)
+  isEmbroideryDone     Boolean                 @default(false)
+  isWashingDone        Boolean                 @default(false)
   washCostTotal        Float                   @default(0)
   fabricId             String?
   fabric               MfgFabric?              @relation(fields: [fabricId], references: [id], onDelete: SetNull)
@@ -461,4 +466,14 @@ model MfgAuditLog {
 
   @@index([entityType, entityId])
   @@index([createdAt])
+}
+
+model MfgVendor {
+  id        String   @id @default(cuid())
+  name      String
+  address   String?
+  mobile    String?
+  category  String   // Fabric, Buttons, Threads, Screen Printing, Digital Printing, Washing, Embroidery, etc.
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

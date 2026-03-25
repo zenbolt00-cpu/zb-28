@@ -84,6 +84,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: "Fabric Inventory", href: "/dashboard/manufacturing/fabric", icon: Layers2 },
     { name: "Fabric Movement", href: "/dashboard/manufacturing/movement", icon: ArrowDownUp },
     { name: "Production Tracker", href: "/dashboard/manufacturing/production", icon: ClipboardList },
+    { name: "Manufacturing Vendors", href: "/dashboard/manufacturing/vendors", icon: Building2 }, // Using Building2 for vendors
     { name: "Cost Ledger", href: "/dashboard/manufacturing/costs", icon: Coins },
   ];
 
@@ -94,7 +95,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   );
 
   const NavLink = useCallback(
-    ({ item }: { item: { name: string; href: string; icon: React.ComponentType<{ className?: string; strokeWidth?: number }> } }) => {
+    ({ item }: { item: { name: string; href: string; icon: any } }) => {
       const active = isActive(item.href);
       const Icon = item.icon;
       return (
@@ -316,7 +317,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 Admin
               </span>
               <div className="h-7 w-7 rounded-full bg-foreground text-background flex items-center justify-center shadow-2xl transition-transform group-hover:scale-105 duration-500">
-                <span className="text-[10px] font-medium font-inter">KT</span>
+                <span className="text-[10px] font-medium font-inter">ZB</span>
               </div>
             </Link>
           </div>

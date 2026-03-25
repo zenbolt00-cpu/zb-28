@@ -21,12 +21,13 @@ const common = {
   razorpay: '#000000',
 };
 
-export const lightColors = {
+export const lightTheme = {
   ...common,
   primary: '#000000',
   background: '#FFFFFF',
   foreground: '#050506',
   surface: 'rgba(0, 0, 0, 0.03)',
+  surfaceElevated: '#FFFFFF',
   card: 'rgba(0, 0, 0, 0.03)',
   cardForeground: '#050506',
   text: '#050506',
@@ -44,14 +45,16 @@ export const lightColors = {
   iosDarkCard: 'rgba(0, 0, 0, 0.05)',
   glassBg: 'rgba(255, 255, 255, 0.55)',
   glassBorder: 'rgba(5, 5, 6, 0.08)',
+  overlay: 'rgba(5, 5, 6, 0.18)',
 };
 
-export const darkColors = {
+export const darkTheme = {
   ...common,
   primary: '#FFFFFF',
   background: '#000000',
   foreground: '#FFFFFF',
   surface: 'rgba(255, 255, 255, 0.03)',
+  surfaceElevated: '#0D0D0D',
   card: 'rgba(255, 255, 255, 0.03)',
   cardForeground: '#FFFFFF',
   text: '#FFFFFF',
@@ -69,11 +72,19 @@ export const darkColors = {
   iosDarkCard: 'rgba(255, 255, 255, 0.05)',
   glassBg: 'rgba(0, 0, 0, 0.55)',
   glassBorder: 'rgba(255, 255, 255, 0.1)',
+  overlay: 'rgba(0, 0, 0, 0.42)',
 };
+
+export const lightColors = lightTheme;
+export const darkColors = darkTheme;
+
+export const getColors = (theme: 'light' | 'dark') => (
+  theme === 'light' ? lightTheme : darkTheme
+);
 
 export const useColors = () => {
   const theme = useThemeStore((state) => state.theme);
-  return theme === 'light' ? lightColors : darkColors;
+  return getColors(theme);
 };
 
 // Legacy Export for existing components (will be light mode by default)

@@ -130,19 +130,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
 
+    const isProduction = process.env.NODE_ENV === 'production';
+
     const cookieStore = await cookies();
     cookieStore.set('admin_session', sessionToken, {
       httpOnly: true,
-      secure: true,
-      sameSite: 'strict',
+      secure: isProduction,
+      sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 7, // 1 week
       path: '/',
     });
 
     cookieStore.set('admin_username', cleanUsername, {
       httpOnly: true,
-      secure: true,
-      sameSite: 'strict',
+      secure: isProduction,
+      sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 7,
       path: '/',
     });

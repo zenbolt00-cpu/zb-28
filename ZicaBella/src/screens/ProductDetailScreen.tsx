@@ -27,6 +27,8 @@ import { Typography } from '../components/Typography';
 import ImageGalleryModal from '../components/ImageGalleryModal';
 
 const { width, height } = Dimensions.get('window');
+const HERO_HEIGHT = height * 0.78;
+const CONTENT_OVERLAP = 40;
 
 export default function ProductDetailScreen() {
   const insets = useSafeAreaInsets();
@@ -77,9 +79,6 @@ export default function ProductDetailScreen() {
     }
     
     lastScrollY.current = currentY;
-
-    // Also update the Animated value for header effects
-    scrollY.setValue(currentY);
   };
 
   const handleSizeSelect = (size: string) => {
@@ -179,9 +178,15 @@ export default function ProductDetailScreen() {
     extrapolate: 'clamp',
   });
 
+  const heroTranslateY = scrollY.interpolate({
+    inputRange: [-HERO_HEIGHT, 0, HERO_HEIGHT],
+    outputRange: [-HERO_HEIGHT * 0.12, 0, HERO_HEIGHT * 0.28],
+    extrapolate: 'clamp',
+  });
+
   const bgOpacity = scrollY.interpolate({
-    inputRange: [height * 0.4, height * 0.7],
-    outputRange: [1, 0],
+    inputRange: [0, HERO_HEIGHT * 0.8, HERO_HEIGHT * 1.2],
+    outputRange: [1, 1, 0.4],
     extrapolate: 'clamp',
   });
 
@@ -193,8 +198,6 @@ export default function ProductDetailScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Scrollable Content starts here, carousel will be its first (sticky) child */}
-
       <GlassHeader 
         title={product.title}
         showBack={true}
@@ -206,68 +209,77 @@ export default function ProductDetailScreen() {
         }}
       />
 
-      {/* ═══ SCROLLABLE CONTENT ═══ */}
-      <Animated.ScrollView
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
-
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {/* PARALLAX GALLERY BACKGROUND INSIDE SCROLLVIEW */}
-        <Animated.View style={[
-          styles.stickyBackgroundInside,
-          { 
-            height: height * 0.85,
+      <Animated.View
+        pointerEvents="box-none"
+        style={[
+          styles.fixedHeroMedia,
+          {
+            height: HERO_HEIGHT,
             opacity: bgOpacity,
-            transform: [{ translateY: scrollY }]
+            transform: [{ translateY: heroTranslateY }],
+          },
+        ]}
+      >
+        <ImageCarousel 
+          media={product.allMedia || []} 
+          height={HERO_HEIGHT}
+          showThumbnails={false}
+          externalActiveIndex={currentImageIndex}
+          onIndexChange={setCurrentImageIndex}
+          onPress={(index: number) => {
+            setCurrentImageIndex(index);
+            setIsGalleryVisible(true);
+          }}
+        />
+
+        <View style={styles.heroOverlay}>
+          <BlurView
+            intensity={isDark ? 55 : 75}
+            tint={isDark ? 'dark' : 'light'}
+            style={[
+              styles.heroBadge,
+              {
+                borderColor: glassStroke,
+                backgroundColor: glassFillSoft,
+              },
+            ]}
+          >
+            <Typography size={7} weight="600" color={colors.text} letterSpacing={1.2}>
+              {String(currentImageIndex + 1).padStart(2, '0')} / {String(Math.max(product.allMedia?.length || 1, 1)).padStart(2, '0')}
+            </Typography>
+          </BlurView>
+        </View>
+
+        <AnimatedBlurView 
+          pointerEvents="none"
+          intensity={blurIntensity} 
+          tint={isDark ? 'dark' : 'light'} 
+          style={StyleSheet.absoluteFill} 
+        />
+      </Animated.View>
+
+      <Animated.ScrollView
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          {
+            useNativeDriver: false,
+            listener: handleScroll,
           }
-        ]}>
-          <ImageCarousel 
-            media={product.allMedia || []} 
-            height={height * 0.85}
-            showThumbnails={false}
-            externalActiveIndex={currentImageIndex}
-            onIndexChange={setCurrentImageIndex}
-            onPress={(index: number) => {
-              setCurrentImageIndex(index);
-              setIsGalleryVisible(true);
-            }}
-          />
-
-          <View style={styles.heroOverlay}>
-            <BlurView
-              intensity={isDark ? 55 : 75}
-              tint={isDark ? 'dark' : 'light'}
-              style={[
-                styles.heroBadge,
-                {
-                  borderColor: glassStroke,
-                  backgroundColor: glassFillSoft,
-                },
-              ]}
-            >
-              <Typography size={7} weight="600" color={colors.text} letterSpacing={1.2}>
-                {String(currentImageIndex + 1).padStart(2, '0')} / {String(Math.max(product.allMedia?.length || 1, 1)).padStart(2, '0')}
-              </Typography>
-            </BlurView>
-          </View>
-
-          {/* Parallax Blur Overlay */}
-          <AnimatedBlurView 
-            intensity={blurIntensity} 
-            tint={isDark ? 'dark' : 'light'} 
-            style={StyleSheet.absoluteFill} 
-          />
-        </Animated.View>
-
-        <View style={styles.heroSpacer} pointerEvents="none" />
-
+        )}
+        scrollEventThrottle={16}
+        nestedScrollEnabled
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingTop: HERO_HEIGHT - CONTENT_OVERLAP },
+        ]}
+      >
         {/* Thumbnails Row - Now in the scrolling layer */}
         {(product.allMedia?.length || 0) > 1 && (
           <View style={styles.thumbnailSection}>
             <ScrollView 
               horizontal 
+              nestedScrollEnabled
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.thumbScrollContent}
               style={styles.thumbRow}
@@ -309,7 +321,7 @@ export default function ProductDetailScreen() {
         <View style={[styles.detailsCard, { 
           backgroundColor: glassFill,
           borderColor: glassStroke,
-          marginTop: 1, // Strict 1px gap from thumbnails
+          marginTop: 1,
         }]}>
           <BlurView 
             intensity={95} 
@@ -614,17 +626,16 @@ export default function ProductDetailScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  stickyBackgroundInside: { 
+  fixedHeroMedia: {
     position: 'absolute', 
     top: 0, 
     left: 0, 
     right: 0, 
-    zIndex: -1 
+    zIndex: 0,
   },
   headerActions: { position: 'absolute', left: 12, right: 12, zIndex: 100, flexDirection: 'row', justifyContent: 'space-between' },
   headerBtn: { width: 38, height: 38, borderRadius: 19, overflow: 'hidden', justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.1)', borderWidth: 1 },
-  scrollContent: { paddingTop: 0 },
-  heroSpacer: { height: height * 0.85 },
+  scrollContent: { paddingBottom: 0 },
   heroOverlay: {
     position: 'absolute',
     left: 20,
@@ -810,6 +821,7 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
   },
   thumbnailSection: {
+    marginTop: 12,
     paddingBottom: 0,
   },
   tabBarScroll: {

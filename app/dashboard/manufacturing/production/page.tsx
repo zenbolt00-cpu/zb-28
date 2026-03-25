@@ -21,6 +21,11 @@ type BatchRow = {
   productName: string;
   quantity: number;
   currentStage: string;
+  isSampleDone: boolean;
+  isCuttingDone: boolean;
+  isPrintingDone: boolean;
+  isEmbroideryDone: boolean;
+  isWashingDone: boolean;
   washCostTotal?: number;
   totalCostSoFar?: number;
   updatedAt: string;
@@ -63,56 +68,63 @@ function num(v: unknown): number {
   return Number.isFinite(x) ? x : 0;
 }
 
-function actionsForStage(stage: string): { key: ActionKey; label: string }[] {
-  switch (stage) {
+function actionsForBatch(batch: BatchRow): { key: ActionKey; label: string }[] {
+  const { currentStage, isSampleDone, isCuttingDone, isPrintingDone, isEmbroideryDone, isWashingDone } = batch;
+
+  // 1. If Sample is NOT done, and we haven't started cutting, show Sample options
+  if (!isSampleDone && !isCuttingDone && currentStage === "READY_FOR_PRODUCTION") {
+    return [
+      { key: "MARK_SAMPLE", label: "Mark as Sample" },
+      { key: "START_CUTTING", label: "Start Production (Cutting)" },
+    ];
+  }
+
+  if (currentStage === "SENT_SAMPLE") {
+    return [
+      { key: "QC_PASS", label: "Sample QC Pass (Approve for Production)" },
+      { key: "QC_REJECT", label: "Sample QC Reject" },
+    ];
+  }
+
+  // 2. Production Flow
+  switch (currentStage) {
     case "READY_FOR_PRODUCTION":
-      return [
-        { key: "START_CUTTING", label: "Start cutting" },
-        { key: "SEND_WASH", label: "Send to Wash" },
-        { key: "SEND_PRINTING", label: "Send to Printing" },
-        { key: "SEND_EMBROIDERY", label: "Send to Embroidery" },
-        { key: "MARK_SAMPLE", label: "Mark as Sample" },
-      ];
+      return [{ key: "START_CUTTING", label: "Start Cutting" }];
+
     case "IN_PRODUCTION_CUTTING":
       return [
-        { key: "SEND_WASH", label: "Send to Wash" },
         { key: "SEND_PRINTING", label: "Send to Printing" },
         { key: "SEND_EMBROIDERY", label: "Send to Embroidery" },
-        { key: "MARK_SAMPLE", label: "Mark as Sample" },
-        { key: "QC_PASS", label: "QC Pass" },
-        { key: "QC_REJECT", label: "QC Reject" },
+        { key: "SEND_WASH", label: "Send to Wash" },
+        { key: "QC_PASS", label: "Final QC Pass" },
+        { key: "QC_REJECT", label: "Final QC Reject" },
       ];
+
+    case "SENT_PRINTING":
+      return [{ key: "RETURN_PRINTING", label: "Returned from Printing" }];
+
+    case "SENT_EMBROIDERY":
+      return [{ key: "RETURN_EMBROIDERY", label: "Returned from Embroidery" }];
+
     case "SENT_WASH":
       return [{ key: "RETURN_WASH", label: "Returned from Wash" }];
-    case "SENT_PRINTING":
-      return [
-        { key: "RETURN_PRINTING", label: "Returned from Printing" },
-        { key: "SEND_WASH", label: "Send to Wash" },
-      ];
-    case "SENT_EMBROIDERY":
-      return [
-        { key: "RETURN_EMBROIDERY", label: "Returned from Embroidery" },
-        { key: "SEND_WASH", label: "Send to Wash" },
-      ];
+
     case "RETURNED_COMBINED":
-      return [
-        { key: "SEND_WASH", label: "Send to Wash" },
-        { key: "SEND_PRINTING", label: "Send to Printing" },
-        { key: "SEND_EMBROIDERY", label: "Send to Embroidery" },
-        { key: "MARK_SAMPLE", label: "Mark as Sample" },
-        { key: "QC_PASS", label: "QC Pass" },
-        { key: "QC_REJECT", label: "QC Reject" },
-      ];
-    case "SENT_SAMPLE":
-      return [
-        { key: "QC_PASS", label: "QC Pass" },
-        { key: "QC_REJECT", label: "QC Reject" },
-      ];
+      const actions: { key: ActionKey; label: string }[] = [];
+      if (!isPrintingDone) actions.push({ key: "SEND_PRINTING", label: "Send to Printing" });
+      if (!isEmbroideryDone) actions.push({ key: "SEND_EMBROIDERY", label: "Send to Embroidery" });
+      if (!isWashingDone) actions.push({ key: "SEND_WASH", label: "Send to Wash" });
+      
+      actions.push({ key: "QC_PASS", label: "Final QC Pass" });
+      actions.push({ key: "QC_REJECT", label: "Final QC Reject" });
+      return actions;
+
     case "QC_PASSED":
     case "REJECTED_REWORK":
-      return [{ key: "MARK_SAMPLE", label: "Mark as Sample" }];
+      return []; // Completed or locked for rework
+
     default:
-      return [{ key: "START_CUTTING", label: "Start cutting" }];
+      return [];
   }
 }
 
@@ -125,6 +137,7 @@ function stageProgressIndex(stage: string): number {
 export default function ProductionTrackerPage() {
   const [batches, setBatches] = useState<BatchRow[]>([]);
   const [fabrics, setFabrics] = useState<FabricOpt[]>([]);
+  const [vendors, setVendors] = useState<{ id: string; name: string; category: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<{ type: "ok" | "err"; msg: string } | null>(null);
   const [q, setQ] = useState("");
@@ -172,6 +185,14 @@ export default function ProductionTrackerPage() {
     );
   }, []);
 
+  const loadVendors = useCallback(async () => {
+    try {
+      const res = await mfgFetch("/api/admin/manufacturing/vendors");
+      const data = await res.json();
+      if (Array.isArray(data)) setVendors(data);
+    } catch {}
+  }, []);
+
   const loadBatches = useCallback(async () => {
     setLoading(true);
     try {
@@ -203,7 +224,8 @@ export default function ProductionTrackerPage() {
 
   useEffect(() => {
     loadFabrics();
-  }, [loadFabrics]);
+    loadVendors();
+  }, [loadFabrics, loadVendors]);
 
   useEffect(() => {
     const t = setTimeout(loadBatches, 280);
@@ -346,10 +368,10 @@ export default function ProductionTrackerPage() {
   };
 
   return (
-    <div className="space-y-8 pb-12 max-w-[1600px] mx-auto">
-      <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
+    <div className="w-full space-y-6 sm:space-y-8 pb-12 pt-4 lg:pt-10 max-w-[1500px] mx-auto">
+      <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-5">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground font-inter">
+          <h1 className="text-2xl lg:text-3xl font-bold text-foreground uppercase tracking-tighter leading-none">
             Production Tracker
           </h1>
           <p className="text-sm text-foreground/55 mt-1 max-w-2xl">
@@ -570,7 +592,7 @@ export default function ProductionTrackerPage() {
                 </div>
 
                 <div className="px-5 pb-4 flex flex-wrap gap-2">
-                  {actionsForStage(b.currentStage).map(({ key, label }) => (
+                  {actionsForBatch(b).map(({ key, label }: { key: ActionKey; label: string }) => (
                     <button
                       key={key}
                       type="button"
@@ -703,9 +725,19 @@ export default function ProductionTrackerPage() {
       {modal && (
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 bg-background/80 backdrop-blur-md">
           <div className="w-full max-w-md rounded-3xl border border-foreground/10 glass p-6 space-y-3 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-lg font-bold">{modal.action.replace(/_/g, " ")}</h2>
-            <p className="text-[11px] font-mono text-foreground/45">{modal.batch.batchCode}</p>
-            <ActionFields action={modal.action} act={act} setAct={setAct} actErr={actErr} />
+            {modal && (
+              <>
+                <h2 className="text-lg font-bold">{modal.action.replace(/_/g, " ")}</h2>
+                <p className="text-[11px] font-mono text-foreground/45">{modal.batch.batchCode}</p>
+                <ActionFields 
+                  action={modal.action} 
+                  act={act} 
+                  setAct={setAct} 
+                  actErr={actErr} 
+                  vendors={vendors}
+                />
+              </>
+            )}
             <div className="flex gap-2 justify-end pt-3 border-t border-foreground/10">
               <button
                 type="button"
@@ -739,12 +771,12 @@ export default function ProductionTrackerPage() {
       {toast && (
         <div
           className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] px-5 py-3 rounded-2xl text-sm font-semibold shadow-2xl ${
-            toast.type === "ok"
+            toast?.type === "ok"
               ? "bg-foreground text-background"
               : "bg-red-600 text-white"
           }`}
         >
-          {toast.msg}
+          {toast?.msg}
         </div>
       )}
     </div>
@@ -812,16 +844,31 @@ function ActionFields({
   act,
   setAct,
   actErr,
+  vendors,
 }: {
   action: ActionKey;
   act: ActionFormState;
   setAct: Dispatch<SetStateAction<ActionFormState>>;
   actErr: Record<string, string>;
+  vendors: { id: string; name: string; category: string }[];
 }) {
   const f = (k: keyof ActionFormState, label: string, type = "text", ta?: boolean) => (
     <div key={String(k)}>
       <label className="text-[11px] font-semibold text-foreground/50">{label}</label>
-      {ta ? (
+      {k === "vendor" ? (
+        <select
+          value={act[k]}
+          onChange={(e) => setAct((s) => ({ ...s, [k]: e.target.value }))}
+          className="mt-1 w-full rounded-xl border border-foreground/10 bg-foreground/[0.04] px-3 py-2.5 text-sm appearance-none"
+        >
+          <option value="">Select Vendor</option>
+          {vendors.map((v) => (
+            <option key={v.id} value={v.name}>
+              {v.name} ({v.category})
+            </option>
+          ))}
+        </select>
+      ) : ta ? (
         <textarea
           value={act[k]}
           onChange={(e) => setAct((s) => ({ ...s, [k]: e.target.value }))}

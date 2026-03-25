@@ -1,6 +1,6 @@
 import 'react-native-gesture-handler';
 import React, { useEffect } from 'react';
-import { StatusBar } from 'react-native';
+import { StatusBar, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
@@ -12,6 +12,7 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 
 import { useThemeStore } from './src/store/themeStore';
 import { useFonts } from 'expo-font';
+import { getColors } from './src/constants/colors';
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -22,6 +23,7 @@ export default function App() {
 
   const theme = useThemeStore(state => state.theme);
   const isDark = theme === 'dark';
+  const colors = getColors(theme);
 
   useEffect(() => {
     if (fontsLoaded) {
@@ -40,11 +42,11 @@ export default function App() {
   if (!fontsLoaded) return null;
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={styles.root}>
       <SafeAreaProvider>
         <StatusBar 
           barStyle={isDark ? "light-content" : "dark-content"} 
-          backgroundColor="transparent" 
+          backgroundColor={colors.background}
           translucent 
         />
         <RootNavigator />
@@ -52,3 +54,9 @@ export default function App() {
     </GestureHandlerRootView>
   );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+});

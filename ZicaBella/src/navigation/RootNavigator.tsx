@@ -1,12 +1,12 @@
-import React, { useEffect } from 'react';
-import { NavigationContainer, createNavigationContainerRef, DefaultTheme } from '@react-navigation/native';
+import React, { useEffect, useMemo } from 'react';
+import { NavigationContainer, createNavigationContainerRef, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as Haptics from 'expo-haptics';
 import { Accelerometer } from 'expo-sensors';
 import { View } from 'react-native';
 
 import { useThemeStore } from '../store/themeStore';
-import { useColors } from '../constants/colors';
+import { getColors, useColors } from '../constants/colors';
 import { useUIStore } from '../store/uiStore';
 
 import TabNavigator from './TabNavigator';
@@ -114,23 +114,28 @@ export const RootNavigator = () => {
   const colors = useColors();
   const isDark = themeStr === 'dark';
 
-  const AppTheme = {
-    ...DefaultTheme,
-    dark: isDark,
-    colors: {
-      ...DefaultTheme.colors,
-      primary: colors.primary,
-      background: 'transparent',
-      card: 'transparent',
-      text: colors.text,
-      border: 'transparent',
-      notification: '#FF3B30',
-    },
-  };
+  const navigationTheme = useMemo(() => {
+    const palette = getColors(themeStr);
+    const baseTheme = isDark ? DarkTheme : DefaultTheme;
+
+    return {
+      ...baseTheme,
+      dark: isDark,
+      colors: {
+        ...baseTheme.colors,
+        primary: palette.primary,
+        background: palette.background,
+        card: palette.surfaceElevated,
+        text: palette.text,
+        border: palette.border,
+        notification: palette.cartBadge,
+      },
+    };
+  }, [isDark, themeStr]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: isDark ? '#000' : '#FFF' }}>
-      <NavigationContainer ref={navigationRef} linking={linking as any} theme={AppTheme}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <NavigationContainer ref={navigationRef} linking={linking as any} theme={navigationTheme}>
         <Stack.Navigator id="RootStackNavigator" screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' } }}>
           {/* Core app with Tab Bar */}
           <Stack.Screen name="Main" component={TabNavigator} />

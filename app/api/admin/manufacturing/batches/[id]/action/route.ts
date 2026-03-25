@@ -33,7 +33,7 @@ export async function POST(
     const body = (await req.json()) as Record<string, unknown>;
     const action = String(body.action || "");
 
-    const batch = await prisma.mfgProductionBatch.findUnique({ where: { id } });
+    const batch = (await prisma.mfgProductionBatch.findUnique({ where: { id } })) as any;
     if (!batch) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
     const actor = await getManufacturingActorName();
@@ -45,9 +45,11 @@ export async function POST(
 
     switch (action) {
       case "START_CUTTING":
+        if (batch.isCuttingDone) return NextResponse.json({ error: "Cutting already completed" }, { status: 400 });
         toStage = "IN_PRODUCTION_CUTTING";
         break;
       case "SEND_WASH":
+        if (batch.isWashingDone) return NextResponse.json({ error: "Washing already completed" }, { status: 400 });
         toStage = "SENT_WASH";
         costAmount = computeCost(body);
         break;
@@ -57,6 +59,7 @@ export async function POST(
         washCostIncrement = costAmount;
         break;
       case "SEND_PRINTING":
+        if (batch.isPrintingDone) return NextResponse.json({ error: "Printing already completed" }, { status: 400 });
         toStage = "SENT_PRINTING";
         costAmount = computeCost(body);
         break;
@@ -65,6 +68,7 @@ export async function POST(
         costAmount = computeCost(body);
         break;
       case "SEND_EMBROIDERY":
+        if (batch.isEmbroideryDone) return NextResponse.json({ error: "Embroidery already completed" }, { status: 400 });
         toStage = "SENT_EMBROIDERY";
         costAmount = computeCost(body);
         break;
@@ -73,11 +77,16 @@ export async function POST(
         costAmount = computeCost(body);
         break;
       case "MARK_SAMPLE":
+        if (batch.isSampleDone) return NextResponse.json({ error: "Sample already completed" }, { status: 400 });
         toStage = "SENT_SAMPLE";
         costAmount = num(body.costAmount, 0);
         break;
       case "QC_PASS":
-        toStage = "QC_PASSED";
+        if (fromStage === "SENT_SAMPLE") {
+          toStage = "READY_FOR_PRODUCTION";
+        } else {
+          toStage = "QC_PASSED";
+        }
         costAmount = num(body.costAmount, 0);
         break;
       case "QC_REJECT":
@@ -101,14 +110,20 @@ export async function POST(
         },
       });
 
+      const updateData: any = {
+        currentStage: toStage,
+        ...(washCostIncrement ? { washCostTotal: { increment: washCostIncrement } } : {}),
+      };
+
+      if (action === "QC_PASS" && fromStage === "SENT_SAMPLE") updateData.isSampleDone = true;
+      if (action === "START_CUTTING") updateData.isCuttingDone = true;
+      if (action === "RETURN_PRINTING") updateData.isPrintingDone = true;
+      if (action === "RETURN_EMBROIDERY") updateData.isEmbroideryDone = true;
+      if (action === "RETURN_WASH") updateData.isWashingDone = true;
+
       return tx.mfgProductionBatch.update({
         where: { id },
-        data: {
-          currentStage: toStage,
-          ...(washCostIncrement
-            ? { washCostTotal: { increment: washCostIncrement } }
-            : {}),
-        },
+        data: updateData,
       });
     });
 
