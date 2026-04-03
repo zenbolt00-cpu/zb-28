@@ -1,7 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Loader2, Plus, RefreshCw, Trash2, Edit2, Phone, MapPin, Building2, Search, Check } from "lucide-react";
+import { 
+  Loader2, Plus, RefreshCw, Trash2, Edit2, Phone, MapPin, Building2, Search, Check, 
+  Briefcase, Globe, User, ShieldCheck, Heart, Zap, 
+  Scissors, Palette as PaletteIcon, Sparkles, Waves, Package 
+} from "lucide-react";
+
 import { motion, AnimatePresence } from "framer-motion";
 import { mfgFetch } from "@/lib/manufacturing/mfg-fetch";
 
@@ -29,6 +34,21 @@ const CATEGORIES = [
   "Logistics",
   "Other",
 ];
+
+const CAT_ICONS: Record<string, any> = {
+  "Fabric": Globe,
+  "Buttons": Zap,
+  "Threads": Heart,
+  "Screen Printing": PaletteIcon,
+  "Digital Printing": Zap,
+  "Washing": Waves,
+  "Embroidery": Sparkles,
+  "Trimmings": Scissors,
+  "Labels & Tags": ShieldCheck,
+  "Packing Material": Package,
+  "Logistics": Building2,
+  "Other": Briefcase,
+};
 
 export default function VendorsPage() {
   const [vendors, setVendors] = useState<Vendor[]>([]);
@@ -225,42 +245,46 @@ export default function VendorsPage() {
         className="glass-card rounded-[2rem] lg:rounded-[3rem] p-6 lg:p-8 flex flex-col gap-6"
       >
         {/* Filters & Search */}
-        <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-          <div className="relative w-full max-w-md">
-             <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-foreground/40" />
+        <div className="flex flex-col xl:flex-row gap-6 items-start xl:items-center justify-between">
+          <div className="relative w-full max-w-lg group">
+             <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-foreground/30 group-focus-within:text-foreground transition-colors" />
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Search vendors..."
-              className="w-full bg-background border border-foreground/10 rounded-xl pl-10 pr-4 py-3 text-[12px] font-medium text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-foreground/30 transition-all shadow-sm"
+              placeholder="Search manufacturing nodes..."
+              className="w-full bg-background/50 border border-foreground/10 rounded-2xl pl-12 pr-4 py-4 text-[13px] font-medium text-foreground placeholder:text-foreground/30 focus:outline-none focus:border-foreground/30 transition-all shadow-sm focus:shadow-xl focus:bg-background"
             />
           </div>
 
-          <div className="bg-foreground/[0.02] rounded-xl p-1 border border-foreground/5 w-full lg:w-auto">
-            <div className="flex overflow-x-auto custom-scrollbar gap-1 hide-scroll py-1 px-1">
+          <div className="bg-foreground/[0.03] backdrop-blur-xl rounded-2xl p-1.5 border border-foreground/5 w-full xl:w-auto overflow-hidden shadow-inner">
+            <div className="flex overflow-x-auto custom-scrollbar gap-2 py-1 px-1 hide-scroll">
               <button
                 onClick={() => setFilterCategory(null)}
-                className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider whitespace-nowrap transition-all ${
+                className={`px-5 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] whitespace-nowrap transition-all flex items-center gap-2 ${
                   !filterCategory
-                    ? "bg-foreground text-background shadow-md"
-                    : "text-foreground/60 hover:bg-foreground/[0.05] hover:text-foreground"
+                    ? "bg-foreground text-background shadow-2xl scale-[1.02]"
+                    : "text-foreground/40 hover:bg-foreground/[0.05] hover:text-foreground"
                 }`}
               >
-                All
+                All Entities
               </button>
-              {CATEGORIES.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setFilterCategory(cat)}
-                  className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider whitespace-nowrap transition-all ${
-                    filterCategory === cat
-                      ? "bg-foreground text-background shadow-md"
-                      : "text-foreground/60 hover:bg-foreground/[0.05] hover:text-foreground"
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
+              {CATEGORIES.map((cat) => {
+                const Icon = CAT_ICONS[cat] || Briefcase;
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => setFilterCategory(cat)}
+                    className={`px-5 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] whitespace-nowrap transition-all flex items-center gap-2 group ${
+                      filterCategory === cat
+                        ? "bg-foreground text-background shadow-2xl scale-[1.02]"
+                        : "text-foreground/40 hover:bg-foreground/[0.05] hover:text-foreground"
+                    }`}
+                  >
+                    <Icon className={`w-3.5 h-3.5 ${filterCategory === cat ? "text-background" : "text-foreground/30 group-hover:text-foreground"}`} strokeWidth={2.5} />
+                    {cat}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -279,56 +303,62 @@ export default function VendorsPage() {
             <p className="text-[11px] text-foreground/40 mt-1">Adjust search or filters</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
-            {filteredVendors.map((v, i) => (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: i * 0.05 }}
-                key={v.id}
-                className="bg-background border border-foreground/[0.08] hover:border-foreground/20 rounded-[1.5rem] p-5 lg:p-6 shadow-sm hover:shadow-md transition-all group flex flex-col"
-              >
-                <div className="flex justify-between items-start gap-4 mb-4">
-                  <div className="w-10 h-10 rounded-xl bg-foreground/5 flex items-center justify-center shrink-0 border border-foreground/10 group-hover:bg-foreground group-hover:text-background transition-colors duration-500">
-                     <Building2 className="w-4 h-4 text-foreground/60 group-hover:text-background" strokeWidth={1.5} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8">
+            {filteredVendors.map((v, i) => {
+              const Icon = CAT_ICONS[v.category] || Building2;
+              return (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                  whileHover={{ y: -5, scale: 1.01 }}
+                  key={v.id}
+                  className="bg-background/40 backdrop-blur-3xl border border-foreground/[0.06] hover:border-foreground/15 rounded-[2rem] p-6 lg:p-8 shadow-sm hover:shadow-2xl transition-all duration-500 group flex flex-col relative overflow-hidden"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-foreground/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                  
+                  <div className="flex justify-between items-start gap-4 mb-8 relative z-10">
+                    <div className="w-12 h-12 rounded-2xl bg-foreground/5 flex items-center justify-center shrink-0 border border-foreground/5 group-hover:bg-foreground group-hover:text-background transition-all duration-500 shadow-inner">
+                       <Icon className="w-5 h-5 text-foreground/40 group-hover:text-background" strokeWidth={2.5} />
+                    </div>
+                    <span className="px-4 py-1.5 rounded-full bg-foreground/[0.04] border border-foreground/5 text-[9px] font-bold text-foreground/40 uppercase tracking-[0.2em] leading-none">
+                      {v.category}
+                    </span>
                   </div>
-                  <span className="px-3 py-1 rounded-full bg-foreground/[0.03] border border-foreground/[0.08] text-[9px] font-bold text-foreground/70 uppercase tracking-widest leading-none">
-                    {v.category}
-                  </span>
-                </div>
-                
-                <h3 className="text-[15px] font-bold text-foreground leading-tight tracking-tight mb-4">
-                  {v.name}
-                </h3>
-                
-                <div className="space-y-3 flex-1 mb-6">
-                  <div className="flex items-center gap-3 text-[11px] font-medium text-foreground/70">
-                    <div className="w-6 h-6 rounded-md bg-foreground/5 flex items-center justify-center shrink-0"><Phone className="w-3 h-3 opacity-60" /></div>
-                    <span className="truncate">{v.mobile || "No phone added"}</span>
+                  
+                  <h3 className="text-xl lg:text-2xl font-bold text-foreground leading-tight tracking-tighter mb-8 group-hover:text-foreground/80 transition-colors relative z-10">
+                    {v.name}
+                  </h3>
+                  
+                  <div className="space-y-4 flex-1 mb-8 relative z-10 border-t border-foreground/5 pt-6">
+                    <div className="flex items-center gap-4 text-[12px] font-bold text-foreground/50 tracking-tight">
+                      <div className="w-8 h-8 rounded-xl bg-foreground/[0.03] flex items-center justify-center shrink-0 border border-foreground/5"><Phone className="w-3.5 h-3.5 opacity-40 group-hover:opacity-100 transition-opacity" strokeWidth={2.5} /></div>
+                      <span className="truncate font-mono">{v.mobile || "N/A"}</span>
+                    </div>
+                     <div className="flex items-start gap-4 text-[12px] font-bold text-foreground/50 tracking-tight leading-relaxed">
+                      <div className="w-8 h-8 rounded-xl bg-foreground/[0.03] flex items-center justify-center shrink-0 mt-0.5 border border-foreground/5"><MapPin className="w-3.5 h-3.5 opacity-40 group-hover:opacity-100 transition-opacity" strokeWidth={2.5} /></div>
+                      <span className="line-clamp-2">{v.address || "No address log"}</span>
+                    </div>
                   </div>
-                   <div className="flex items-start gap-3 text-[11px] font-medium text-foreground/70">
-                    <div className="w-6 h-6 rounded-md bg-foreground/5 flex items-center justify-center shrink-0 mt-0.5"><MapPin className="w-3 h-3 opacity-60" /></div>
-                    <span className="line-clamp-2 leading-snug">{v.address || "No address added"}</span>
+  
+                  <div className="flex gap-3 pt-6 border-t border-foreground/[0.03] relative z-10">
+                    <button
+                      onClick={() => openEdit(v)}
+                      className="flex-1 px-4 py-3 bg-background/50 border border-foreground/10 rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40 hover:text-foreground hover:bg-foreground hover:text-background transition-all flex items-center justify-center gap-2 shadow-sm active:scale-95"
+                    >
+                      <Edit2 className="w-3 h-3" strokeWidth={2.5} />
+                      Modify
+                    </button>
+                    <button
+                      onClick={() => handleDelete(v.id)}
+                      className="w-12 h-12 bg-rose-500/5 hover:bg-rose-500 border border-rose-500/10 hover:border-rose-500 rounded-xl flex items-center justify-center transition-all text-rose-500 hover:text-white shadow-sm active:scale-90 group/del"
+                    >
+                      <Trash2 className="w-4 h-4 transition-transform group-hover/del:scale-110" />
+                    </button>
                   </div>
-                </div>
-
-                <div className="flex gap-2 pt-4 border-t border-foreground/[0.05]">
-                  <button
-                    onClick={() => openEdit(v)}
-                    className="flex-1 px-3 py-2 bg-background border border-foreground/10 rounded-xl text-[10px] font-bold text-foreground/70 hover:text-foreground hover:bg-foreground/5 transition-colors flex items-center justify-center gap-1.5 shadow-sm"
-                  >
-                    <Edit2 className="w-3 h-3" />
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(v.id)}
-                    className="px-3 py-2 bg-rose-500/5 hover:bg-rose-500/10 border border-rose-500/10 rounded-xl flex items-center justify-center transition-colors text-rose-500"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              );
+            })}
           </div>
         )}
       </motion.div>

@@ -12,7 +12,32 @@ import {
   MFG_STAGE_EMOJI,
   MFG_STAGE_KEYS,
 } from "@/lib/manufacturing/constants";
+import { 
+  Package, 
+  Scissors, 
+  Shirt, 
+  Palette as PaletteIcon, 
+  Sparkles, 
+  Waves, 
+  CheckCircle2, 
+  Beaker, 
+  Award, 
+  AlertOctagon 
+} from "lucide-react";
 import { BatchDrawer } from "../_components/BatchDrawer";
+
+const STAGE_ICONS: Record<string, any> = {
+  READY_FOR_PRODUCTION: Package,
+  IN_PRODUCTION_CUTTING: Scissors,
+  IN_PRODUCTION_STITCHING: Shirt,
+  SENT_PRINTING: PaletteIcon,
+  SENT_EMBROIDERY: Sparkles,
+  SENT_WASH: Waves,
+  RETURNED_COMBINED: CheckCircle2,
+  SENT_SAMPLE: Beaker,
+  QC_PASSED: Award,
+  REJECTED_REWORK: AlertOctagon,
+};
 
 type FabricOpt = { id: string; sku: string; name: string; costPerMeter: number };
 
@@ -482,22 +507,25 @@ export default function ProductionTrackerPage() {
         className="glass-card rounded-[2rem] lg:rounded-[3rem] p-6 lg:p-8 flex flex-col gap-6"
       >
         {/* Stage Pipeline */}
-        <div className="bg-foreground/[0.02] rounded-xl p-1 border border-foreground/5 overflow-hidden">
-          <div className="flex overflow-x-auto custom-scrollbar gap-1 py-1 px-1">
-            {MFG_STAGE_KEYS.map((key) => (
-              <button
-                key={key}
-                onClick={() => setFilterStage((s) => (s === key ? null : key))}
-                className={`px-4 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-wider whitespace-nowrap transition-all flex items-center gap-2 ${
-                  filterStage === key
-                    ? "bg-foreground text-background shadow-md"
-                    : "text-foreground/60 hover:bg-foreground/[0.05] hover:text-foreground"
-                }`}
-              >
-                <span>{MFG_STAGE_EMOJI[key]}</span>
-                {MFG_STAGE_LABEL[key]}
-              </button>
-            ))}
+        <div className="bg-foreground/[0.03] backdrop-blur-xl rounded-2xl p-1.5 border border-foreground/5 overflow-hidden shadow-inner">
+          <div className="flex overflow-x-auto custom-scrollbar gap-2 py-1 px-1 hide-scroll">
+            {MFG_STAGE_KEYS.map((key) => {
+              const Icon = STAGE_ICONS[key] || Activity;
+              return (
+                <button
+                  key={key}
+                  onClick={() => setFilterStage((s) => (s === key ? null : key))}
+                  className={`px-5 py-3 rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] whitespace-nowrap transition-all flex items-center gap-2.5 group ${
+                    filterStage === key
+                      ? "bg-foreground text-background shadow-2xl scale-[1.02]"
+                      : "text-foreground/40 hover:bg-foreground/[0.05] hover:text-foreground"
+                  }`}
+                >
+                  <Icon className={`w-3.5 h-3.5 ${filterStage === key ? "text-background" : "text-foreground/40 group-hover:text-foreground"}`} strokeWidth={2.5} />
+                  {MFG_STAGE_LABEL[key]}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -576,69 +604,76 @@ export default function ProductionTrackerPage() {
             </div>
           </div>
         ) : (
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             {batches.map((b) => {
               const ex = expanded[b.id];
               const ed = expandData[b.id] as { breakdown?: Record<string, number> } | null;
               const pct = progressPct(b.currentStage);
+              const StageIcon = STAGE_ICONS[b.currentStage] || Activity;
+              
               return (
-                <div
+                <motion.div
                   key={b.id}
-                  className="bg-background border border-foreground/[0.08] hover:border-foreground/20 rounded-[1.5rem] shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col relative"
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  whileHover={{ y: -4, scale: 1.01 }}
+                  className="bg-background/40 backdrop-blur-3xl border border-foreground/[0.06] hover:border-foreground/15 rounded-[2rem] shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden flex flex-col relative group/card"
                 >
                   {/* Progress bar background at top */}
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-foreground/5">
+                  <div className="absolute top-0 left-0 right-0 h-1.5 bg-foreground/[0.03]">
                     <motion.div 
                        initial={{ width: 0 }}
                        animate={{ width: `${pct}%` }}
-                       className="h-full bg-foreground" 
+                       className="h-full bg-gradient-to-r from-foreground/40 to-foreground shadow-[0_0_10px_rgba(0,0,0,0.1)]" 
                     />
                   </div>
 
                   <button
                     type="button"
                     onClick={() => openDrawer(b.id)}
-                    className="w-full text-left p-5 pt-6 pb-4 focus:outline-none flex flex-col h-full"
+                    className="w-full text-left p-6 lg:p-8 pt-8 pb-4 focus:outline-none flex flex-col h-full group"
                   >
-                    <div className="flex justify-between items-start gap-4 mb-3">
-                      <div className="font-mono text-[11px] font-bold text-foreground/40 bg-foreground/5 px-2 py-1 rounded-md">{b.batchCode}</div>
+                    <div className="flex justify-between items-start gap-4 mb-6">
+                      <div className="font-mono text-[10px] font-bold text-foreground/40 backdrop-blur-md bg-foreground/[0.03] px-3 py-1.5 rounded-full border border-foreground/5">{b.batchCode}</div>
                       <span
-                        className={`px-2 py-1 rounded-md text-[9px] font-bold uppercase tracking-widest leading-none flex items-center gap-1 ${
+                        className={`px-3 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-[0.2em] leading-none flex items-center gap-2 border ${
                           MFG_STAGE_BADGE_CLASS[b.currentStage] || "bg-foreground/5 text-foreground/60 border border-foreground/10"
                         }`}
                       >
-                        {MFG_STAGE_EMOJI[b.currentStage]} {MFG_STAGE_LABEL[b.currentStage]}
+                        <StageIcon className="w-3 h-3" strokeWidth={2.5} />
+                        {MFG_STAGE_LABEL[b.currentStage]}
                       </span>
                     </div>
-                    <h3 className="text-lg font-bold text-foreground leading-tight tracking-tight mb-4">
+                    
+                    <h3 className="text-xl lg:text-2xl font-bold text-foreground leading-tight tracking-tighter mb-6 group-hover:text-foreground/80 transition-colors">
                       {b.productName}
                     </h3>
                     
-                    <div className="grid grid-cols-3 gap-3 mb-4 flex-1">
-                      <div className="bg-foreground/[0.02] rounded-lg p-2.5 border border-foreground/5 space-y-1">
-                        <div className="text-[9px] font-bold text-foreground/40 uppercase tracking-widest">Units</div>
-                        <div className="text-[13px] font-bold text-foreground tabular-nums leading-none">{b.quantity}</div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6 w-full">
+                      <div className="bg-foreground/[0.02] backdrop-blur-md rounded-2xl p-4 border border-foreground/5 space-y-1.5 group-hover:bg-foreground/[0.04] transition-colors">
+                        <div className="text-[9px] font-bold text-foreground/30 uppercase tracking-[0.2em]">Units</div>
+                        <div className="text-[18px] font-bold text-foreground tabular-nums leading-none tracking-tight">{b.quantity}</div>
                       </div>
-                      <div className="bg-foreground/[0.02] rounded-lg p-2.5 border border-foreground/5 space-y-1">
-                        <div className="text-[9px] font-bold text-foreground/40 uppercase tracking-widest">Valuation</div>
-                        <div className="text-[13px] font-bold text-foreground tabular-nums leading-none">{formatInr(num(b.totalCostSoFar))}</div>
+                      <div className="bg-foreground/[0.02] backdrop-blur-md rounded-2xl p-4 border border-foreground/5 space-y-1.5 group-hover:bg-foreground/[0.04] transition-colors">
+                        <div className="text-[9px] font-bold text-foreground/30 uppercase tracking-[0.2em]">Valuation</div>
+                        <div className="text-[18px] font-bold text-foreground tabular-nums leading-none tracking-tight">{formatInr(num(b.totalCostSoFar))}</div>
                       </div>
-                      <div className="bg-foreground/[0.02] rounded-lg p-2.5 border border-foreground/5 space-y-1 text-right">
-                        <div className="text-[9px] font-bold text-foreground/40 uppercase tracking-widest">Wash</div>
-                        <div className="text-[13px] font-bold text-foreground tabular-nums leading-none">{formatInr(num(b.washCostTotal))}</div>
+                      <div className="bg-foreground/[0.02] backdrop-blur-md rounded-2xl p-4 border border-foreground/5 space-y-1.5 group-hover:bg-foreground/[0.04] transition-colors">
+                        <div className="text-[9px] font-bold text-foreground/30 uppercase tracking-[0.2em]">Wash Spend</div>
+                        <div className="text-[18px] font-bold text-foreground tabular-nums leading-none tracking-tight">{formatInr(num(b.washCostTotal))}</div>
                       </div>
                     </div>
 
                     {b.fabric && (
-                      <div className="flex items-center gap-2 mt-4 text-[11px] font-medium text-foreground/60">
-                        <div className="w-5 h-5 rounded flex items-center justify-center bg-foreground/5"><LayoutGrid className="w-3 h-3 opacity-60" /></div>
-                        <span className="font-mono">{b.fabric.sku}</span>
-                        <span className="truncate flex-1 text-foreground/40">{b.fabric.name}</span>
+                      <div className="flex items-center gap-3 mt-auto pt-4 text-[11px] font-medium text-foreground/50 border-t border-foreground/5">
+                        <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-foreground/5 border border-foreground/5"><LayoutGrid className="w-3.5 h-3.5 opacity-60" /></div>
+                        <span className="font-mono font-bold tracking-tight text-foreground/70">{b.fabric.sku}</span>
+                        <span className="truncate flex-1 font-medium">{b.fabric.name}</span>
                       </div>
                     )}
                   </button>
 
-                  <div className="px-5 pb-5 pt-3 border-t border-foreground/5 bg-foreground/[0.01]">
+                  <div className="px-6 lg:px-8 pb-6 pt-2">
                     <div className="flex flex-wrap gap-2 mb-3">
                       {actionsForBatch(b).map(({ key, label }) => (
                         <button
@@ -689,7 +724,7 @@ export default function ProductionTrackerPage() {
                       )}
                     </AnimatePresence>
                   </div>
-                </div>
+                </motion.div>
               );
             })}
           </div>

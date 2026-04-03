@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { X, Loader2, Plus } from "lucide-react";
+import { X, Loader2, Plus, Info, ListTree, History, MessageSquare, PlusCircle, Check, Package } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { mfgFetch } from "@/lib/manufacturing/mfg-fetch";
 import { formatDateTimeIST } from "@/lib/manufacturing/ist";
 import { formatInr } from "@/lib/manufacturing/inr";
@@ -150,194 +151,258 @@ export function BatchDrawer({
 
   return (
     <>
-      <button
-        type="button"
-        className="fixed inset-0 z-[120] bg-background/70 backdrop-blur-sm"
-        aria-label="Close drawer"
-        onClick={onClose}
-      />
-      <aside
-        className="fixed right-0 top-0 z-[130] h-full w-full max-w-lg border-l border-foreground/10 glass shadow-2xl flex flex-col bg-background/95"
-        role="dialog"
-        aria-modal
-      >
-        <div className="flex items-center justify-between px-5 py-4 border-b border-foreground/10">
-          <h2 className="text-sm font-semibold text-foreground font-inter">Batch detail</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-2 rounded-xl hover:bg-foreground/10 text-foreground/70"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-6 custom-scrollbar">
-          {loading && !data ? (
-            <div className="flex justify-center py-20 text-foreground/40">
-              <Loader2 className="w-8 h-8 animate-spin" />
-            </div>
-          ) : err && !data ? (
-            <p className="text-red-500 text-sm">{err}</p>
-          ) : b ? (
-            <>
-              <div>
-                <p className="text-[10px] uppercase tracking-wider text-foreground/45 font-mono">
-                  {b.batchCode}
-                </p>
-                <p className="text-lg font-bold text-foreground mt-1">{b.productName}</p>
-                <p className="text-xs text-foreground/55 mt-2">
-                  Qty {b.quantity} ·{" "}
-                  <span className="text-foreground/80">
-                    {MFG_STAGE_LABEL[b.currentStage] || b.currentStage}
-                  </span>
-                </p>
-                {b.fabric && (
-                  <p className="text-xs text-foreground/55 mt-1">
-                    Fabric: <span className="font-mono">{b.fabric.sku}</span> {b.fabric.name}
-                  </p>
-                )}
-                <p className="text-xs text-foreground/40 mt-2">
-                  Updated {formatDateTimeIST(b.updatedAt)} IST
-                </p>
-              </div>
-
-              {data && (
-                <div className="rounded-2xl border border-foreground/10 bg-foreground/[0.03] p-4 space-y-2">
-                  <h3 className="text-[11px] font-bold uppercase text-foreground/40">
-                    Cost breakdown
-                  </h3>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <span className="text-foreground/50">Fabric</span>
-                    <span className="text-right tabular-nums">{formatInr(data.breakdown.fabricCost)}</span>
-                    <span className="text-foreground/50">Wash</span>
-                    <span className="text-right tabular-nums">
-                      {formatInr(data.breakdown.washCost)} ({formatInr(data.breakdown.washCostPerUnit)}
-                      /u)
-                    </span>
-                    <span className="text-foreground/50">Printing</span>
-                    <span className="text-right tabular-nums">
-                      {formatInr(data.breakdown.printingCost)}
-                    </span>
-                    <span className="text-foreground/50">Embroidery</span>
-                    <span className="text-right tabular-nums">
-                      {formatInr(data.breakdown.embroideryCost)}
-                    </span>
-                    <span className="text-foreground/50">Travel</span>
-                    <span className="text-right tabular-nums">
-                      {formatInr(data.breakdown.travelLogistics)}
-                    </span>
-                    <span className="text-foreground/50">Misc</span>
-                    <span className="text-right tabular-nums">
-                      {formatInr(data.breakdown.miscellaneous)}
-                    </span>
-                    <span className="text-foreground font-semibold">Total</span>
-                    <span className="text-right tabular-nums font-bold text-amber-600 dark:text-amber-300">
-                      {formatInr(data.breakdown.totalCost)}
-                    </span>
-                    <span className="text-foreground/50">Per unit</span>
-                    <span className="text-right tabular-nums">{formatInr(data.breakdown.costPerUnit)}</span>
+      <AnimatePresence>
+        {open && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[120] bg-background/40 backdrop-blur-md"
+              onClick={onClose}
+            />
+            <motion.aside
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 30, stiffness: 300 }}
+              className="fixed right-0 top-0 z-[130] h-full w-full max-w-lg border-l border-foreground/10 bg-background/80 backdrop-blur-2xl shadow-2xl flex flex-col"
+              role="dialog"
+              aria-modal
+            >
+              <div className="flex items-center justify-between px-8 py-6 border-b border-foreground/5">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-foreground/5 flex items-center justify-center border border-foreground/5">
+                    <Info className="w-4 h-4 text-foreground/40" />
                   </div>
+                  <h2 className="text-[11px] font-bold uppercase tracking-[0.4em] text-foreground/40">Batch Perspective</h2>
                 </div>
-              )}
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="w-10 h-10 rounded-full hover:bg-foreground/5 flex items-center justify-center text-foreground/40 hover:text-foreground transition-all active:scale-95 border border-transparent hover:border-foreground/10"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
 
-              <div>
-                <h3 className="text-[11px] font-bold uppercase text-foreground/40 mb-2">Timeline</h3>
-                <ul className="space-y-3 border-l border-foreground/15 pl-3 ml-1">
-                  {data?.timeline.map((t) => (
-                    <li key={t.id} className="text-xs">
-                      <p className="text-foreground/85 font-medium">{t.action}</p>
-                      <p className="text-foreground/45">
-                        {formatDateTimeIST(t.createdAt)} IST · {t.createdByName}
-                      </p>
-                      {t.costAmount > 0 && (
-                        <p className="text-amber-600 dark:text-amber-300/90 tabular-nums">
-                          {formatInr(t.costAmount)}
-                        </p>
+              <div className="flex-1 overflow-y-auto px-8 py-8 space-y-10 custom-scrollbar relative">
+                {loading && !data ? (
+                  <div className="flex flex-col items-center justify-center py-24 gap-4">
+                    <Loader2 className="w-8 h-8 animate-spin text-foreground/20" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-foreground/30">Harvesting data</span>
+                  </div>
+                ) : err && !data ? (
+                  <div className="p-4 rounded-2xl bg-rose-500/5 border border-rose-500/10 text-rose-500 text-[12px] font-bold text-center">
+                    {err}
+                  </div>
+                ) : b ? (
+                  <>
+                    <div className="relative group">
+                      <div className="font-mono text-[10px] font-bold text-foreground/30 uppercase tracking-[0.2em] mb-2 flex items-center gap-2">
+                         <div className="w-1 h-1 rounded-full bg-foreground/20" /> {b.batchCode}
+                      </div>
+                      <h1 className="text-3xl font-bold text-foreground tracking-tighter leading-none mb-4 uppercase">
+                        {b.productName}
+                      </h1>
+                      
+                      <div className="flex flex-wrap items-center gap-3">
+                        <div className={`px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest border border-foreground/5 bg-foreground/[0.03] text-foreground/60`}>
+                          {b.quantity} UNITS
+                        </div>
+                        <div className={`px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest border border-foreground/5 bg-foreground/[0.03] text-foreground/60`}>
+                          {MFG_STAGE_LABEL[b.currentStage] || b.currentStage}
+                        </div>
+                      </div>
+
+                      {b.fabric && (
+                        <div className="mt-6 flex items-center gap-3 p-4 rounded-2xl bg-foreground/[0.02] border border-foreground/5 group-hover:bg-foreground/[0.03] transition-all">
+                           <div className="w-10 h-10 rounded-xl bg-background border border-foreground/5 flex items-center justify-center shadow-sm">
+                             <Package className="w-4.5 h-4.5 text-foreground/40" />
+                           </div>
+                           <div>
+                             <div className="text-[10px] font-bold text-foreground/30 uppercase tracking-widest leading-none mb-1">Fabric Association</div>
+                             <div className="text-[13px] font-bold text-foreground/80"><span className="font-mono">{b.fabric.sku}</span> · {b.fabric.name}</div>
+                           </div>
+                        </div>
                       )}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+                      
+                      <div className="text-[10px] font-bold text-foreground/20 mt-4 uppercase tracking-widest">
+                        Updated {formatDateTimeIST(b.updatedAt)} IST
+                      </div>
+                    </div>
 
-              <div>
-                <h3 className="text-[11px] font-bold uppercase text-foreground/40 mb-2">Notes</h3>
-                <ul className="space-y-2 mb-3">
-                  {data?.batchNotes.map((n) => (
-                    <li
-                      key={n.id}
-                      className="text-xs rounded-xl bg-foreground/[0.04] p-2 border border-foreground/10"
-                    >
-                      <p className="text-foreground/85">{n.content}</p>
-                      <p className="text-foreground/40 mt-1">
-                        {n.createdByName} · {formatDateTimeIST(n.createdAt)} IST
-                      </p>
-                    </li>
-                  ))}
-                </ul>
-                <textarea
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  placeholder="Add a note…"
-                  rows={2}
-                  className="w-full rounded-xl bg-foreground/[0.04] border border-foreground/10 px-3 py-2 text-sm"
-                />
-                <button
-                  type="button"
-                  onClick={saveNote}
-                  className="mt-2 inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-foreground text-background text-xs font-semibold"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  Add note
-                </button>
-              </div>
+                    {data && (
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <ListTree className="w-3.5 h-3.5 text-foreground/30" />
+                          <h3 className="text-[10px] font-bold uppercase tracking-[0.3em] text-foreground/30">Refinery Breakdown</h3>
+                        </div>
+                        <div className="rounded-[2rem] border border-foreground/5 bg-foreground/[0.02] p-8 space-y-4">
+                          <div className="grid grid-cols-2 gap-y-4 text-[13px]">
+                            <span className="text-foreground/40 font-medium tracking-tight">Fabric Capital</span>
+                            <span className="text-right font-bold tabular-nums text-foreground/80">{formatInr(data.breakdown.fabricCost)}</span>
+                            
+                            <span className="text-foreground/40 font-medium tracking-tight">Refinery Wash</span>
+                            <div className="text-right">
+                              <div className="font-bold tabular-nums text-foreground/80">{formatInr(data.breakdown.washCost)}</div>
+                              <div className="text-[9px] font-bold text-foreground/30 uppercase tracking-widest">({formatInr(data.breakdown.washCostPerUnit)}/u)</div>
+                            </div>
+                            
+                            <span className="text-foreground/40 font-medium tracking-tight">Spectrum Printing</span>
+                            <span className="text-right font-bold tabular-nums text-foreground/80">{formatInr(data.breakdown.printingCost)}</span>
+                            
+                            <span className="text-foreground/40 font-medium tracking-tight">Artisan Embroidery</span>
+                            <span className="text-right font-bold tabular-nums text-foreground/80">{formatInr(data.breakdown.embroideryCost)}</span>
+                            
+                            <span className="text-foreground/40 font-medium tracking-tight">Logistics Pool</span>
+                            <span className="text-right font-bold tabular-nums text-foreground/80">{formatInr(data.breakdown.travelLogistics)}</span>
+                            
+                            <span className="text-foreground/40 font-medium tracking-tight">Metadata Misc</span>
+                            <span className="text-right font-bold tabular-nums text-foreground/80">{formatInr(data.breakdown.miscellaneous)}</span>
+                            
+                            <div className="col-span-2 my-2 border-t border-foreground/5" />
+                            
+                            <span className="text-foreground font-bold tracking-tighter uppercase">Net Valuation</span>
+                            <span className="text-right tabular-nums font-bold text-[20px] text-foreground flex items-center justify-end gap-1">
+                              {formatInr(data.breakdown.totalCost)}
+                            </span>
+                            
+                            <span className="text-foreground/40 font-bold uppercase tracking-widest text-[9px]">Nodes CPU</span>
+                            <span className="text-right tabular-nums font-bold text-foreground/60">{formatInr(data.breakdown.costPerUnit)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
-              <div>
-                <h3 className="text-[11px] font-bold uppercase text-foreground/40 mb-2">
-                  Add misc charge
-                </h3>
-                <input
-                  type="number"
-                  placeholder="Amount ₹"
-                  value={miscAmount}
-                  onChange={(e) => setMiscAmount(e.target.value)}
-                  className="w-full rounded-xl bg-foreground/[0.04] border border-foreground/10 px-3 py-2 text-sm mb-2"
-                />
-                <select
-                  value={miscType}
-                  onChange={(e) => setMiscType(e.target.value)}
-                  className="w-full rounded-xl bg-foreground/[0.04] border border-foreground/10 px-3 py-2 text-sm mb-2"
-                >
-                  <option value="PACKAGING">Packaging</option>
-                  <option value="COURIER">Courier</option>
-                  <option value="LABOUR">Labour</option>
-                  <option value="OTHER">Other</option>
-                </select>
-                <input
-                  placeholder="Description"
-                  value={miscDesc}
-                  onChange={(e) => setMiscDesc(e.target.value)}
-                  className="w-full rounded-xl bg-foreground/[0.04] border border-foreground/10 px-3 py-2 text-sm"
-                />
-                <button
-                  type="button"
-                  onClick={saveMisc}
-                  className="mt-2 w-full py-2.5 rounded-xl bg-amber-500/15 text-amber-800 dark:text-amber-200 border border-amber-500/25 text-xs font-semibold"
-                >
-                  Save misc expense
-                </button>
-              </div>
+                    <div className="space-y-6">
+                      <div className="flex items-center gap-2 mb-2">
+                        <History className="w-3.5 h-3.5 text-foreground/30" />
+                        <h3 className="text-[10px] font-bold uppercase tracking-[0.3em] text-foreground/30">Immutable Timeline</h3>
+                      </div>
+                      <div className="relative pl-6 border-l border-foreground/5 space-y-8">
+                        {data?.timeline.map((t) => (
+                          <div key={t.id} className="relative group/time">
+                            <div className="absolute -left-[29px] top-1 w-2.5 h-2.5 rounded-full bg-background border border-foreground/20 group-hover/time:bg-foreground transition-all duration-500" />
+                            <p className="text-[13px] font-bold text-foreground/80 tracking-tight mb-1">{t.action}</p>
+                            <div className="flex items-center gap-2 text-[10px] font-bold text-foreground/30 uppercase tracking-widest">
+                              <span>{formatDateTimeIST(t.createdAt).split(',')[0]}</span>
+                              <span>·</span>
+                              <span>{t.createdByName}</span>
+                            </div>
+                            {t.costAmount > 0 && (
+                              <div className="mt-2 text-[12px] font-bold text-foreground/60 tabular-nums">
+                                + {formatInr(t.costAmount)}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
 
-              {err && data && <p className="text-red-500 text-xs">{err}</p>}
-            </>
-          ) : null}
-        </div>
-      </aside>
-      {toast && (
-        <div className="fixed bottom-6 right-6 z-[140] px-4 py-2 rounded-xl bg-foreground text-background text-xs font-medium shadow-xl">
-          {toast}
-        </div>
-      )}
+                    <div className="space-y-6">
+                      <div className="flex items-center justify-between gap-2 mb-2">
+                        <div className="flex items-center gap-2">
+                          <MessageSquare className="w-3.5 h-3.5 text-foreground/30" />
+                          <h3 className="text-[10px] font-bold uppercase tracking-[0.3em] text-foreground/30">Technical Notes</h3>
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        {data?.batchNotes.map((n) => (
+                          <div
+                            key={n.id}
+                            className="text-[12px] rounded-2xl bg-foreground/[0.02] p-4 border border-foreground/5 relative group/note overflow-hidden"
+                          >
+                            <div className="absolute inset-0 bg-gradient-to-br from-foreground/5 to-transparent opacity-0 group-hover/note:opacity-100 transition-opacity pointer-events-none" />
+                            <p className="text-foreground/80 font-medium leading-relaxed relative z-10">{n.content}</p>
+                            <div className="text-[9px] font-bold text-foreground/30 mt-3 uppercase tracking-widest relative z-10">
+                              {n.createdByName} · {formatDateTimeIST(n.createdAt)}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-4 space-y-3">
+                         <textarea
+                          value={note}
+                          onChange={(e) => setNote(e.target.value)}
+                          placeholder="Enter spectrum metadata..."
+                          rows={3}
+                          className="w-full rounded-2xl bg-foreground/[0.03] border border-foreground/5 px-5 py-4 text-sm focus:outline-none focus:border-foreground/20 transition-all placeholder:text-foreground/20"
+                        />
+                        <button
+                          type="button"
+                          onClick={saveNote}
+                          className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-foreground text-background text-[10px] font-bold uppercase tracking-[0.2em] hover:opacity-90 transition-all active:scale-95 shadow-xl shadow-foreground/10"
+                        >
+                          <PlusCircle className="w-3.5 h-3.5" strokeWidth={2.5} />
+                          Commit Note
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="pt-10 border-t border-foreground/5 space-y-6">
+                      <div className="flex items-center gap-2 mb-2">
+                        <PlusCircle className="w-3.5 h-3.5 text-foreground/30" />
+                        <h3 className="text-[10px] font-bold uppercase tracking-[0.3em] text-foreground/30">Inbound Misc Charge</h3>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="col-span-2">
+                          <input
+                            type="number"
+                            placeholder="Principal Amount ₹"
+                            value={miscAmount}
+                            onChange={(e) => setMiscAmount(e.target.value)}
+                            className="w-full rounded-2xl bg-foreground/[0.03] border border-foreground/5 px-5 py-4 text-sm focus:outline-none focus:border-foreground/20 transition-all"
+                          />
+                        </div>
+                        <select
+                          value={miscType}
+                          onChange={(e) => setMiscType(e.target.value)}
+                          className="w-full rounded-2xl bg-foreground/[0.03] border border-foreground/5 px-5 py-4 text-sm focus:outline-none focus:border-foreground/20 transition-all appearance-none"
+                        >
+                          <option value="PACKAGING">Packaging</option>
+                          <option value="COURIER">Courier</option>
+                          <option value="LABOUR">Labour</option>
+                          <option value="OTHER">Other Type</option>
+                        </select>
+                        <input
+                          placeholder="Rationale"
+                          value={miscDesc}
+                          onChange={(e) => setMiscDesc(e.target.value)}
+                          className="w-full rounded-2xl bg-foreground/[0.03] border border-foreground/5 px-5 py-4 text-sm focus:outline-none focus:border-foreground/20 transition-all"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={saveMisc}
+                        className="w-full py-4 rounded-2xl bg-amber-500/10 text-amber-600 border border-amber-500/10 text-[10px] font-bold uppercase tracking-[0.3em] hover:bg-amber-500 hover:text-white transition-all shadow-lg shadow-amber-500/10"
+                      >
+                        Confirm Misc Expense
+                      </button>
+                    </div>
+
+                    {err && data && <p className="text-rose-500 text-[10px] font-bold uppercase tracking-widest text-center">{err}</p>}
+                  </>
+                ) : null}
+              </div>
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {toast && (
+          <motion.div 
+             initial={{ opacity: 0, y: 20, x: '-50%' }}
+             animate={{ opacity: 1, y: 0, x: '-50%' }}
+             exit={{ opacity: 0, y: 20, x: '-50%' }}
+             className="fixed bottom-10 left-1/2 z-[140] px-6 py-3 rounded-2xl bg-foreground text-background text-[11px] font-bold uppercase tracking-widest shadow-2xl flex items-center gap-3 border border-background/10"
+          >
+            <Check className="w-4 h-4 text-emerald-400" />
+            {toast}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
