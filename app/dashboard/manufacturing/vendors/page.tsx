@@ -1,9 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Loader2, Plus, RefreshCw, Trash2, Edit2, Phone, MapPin, Building2, Search } from "lucide-react";
+import { Loader2, Plus, RefreshCw, Trash2, Edit2, Phone, MapPin, Building2, Search, Check } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { mfgFetch } from "@/lib/manufacturing/mfg-fetch";
-import { formatDateTimeIST } from "@/lib/manufacturing/ist";
 
 type Vendor = {
   id: string;
@@ -145,263 +145,289 @@ export default function VendorsPage() {
   });
 
   return (
-    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-[1500px] mx-auto pb-12 pt-4">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-2">
-        <div className="space-y-1">
-          <div className="px-2 py-0.5 bg-foreground/[0.03] rounded-md text-[7px] font-normal text-foreground/50 uppercase tracking-[0.3em] w-fit tracking-widest font-inter">manufacturing hub</div>
-          <h1 className="text-lg font-normal text-foreground uppercase tracking-[0.2em] mb-0.5 leading-none mt-1 font-inter">
-            Vendors & Partners
-          </h1>
-          <p className="text-[9px] text-foreground/40 font-normal uppercase tracking-[0.2em] mt-1">
-            Spectrum Node Directory — {vendors.length} registered manufacturing terminals. Immutable partner ledger.
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="pb-20 space-y-10 relative z-10"
+    >
+      {/* Vibrant Orb Backgrounds */}
+      <div className="absolute -right-24 -top-24 w-96 h-96 bg-foreground/5 blur-3xl rounded-full pointer-events-none" />
+      <div className="absolute -left-24 top-1/2 w-72 h-72 bg-foreground/5 blur-3xl rounded-full pointer-events-none" />
+
+      <AnimatePresence>
+        {toast && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20, x: '-50%' }}
+            animate={{ opacity: 1, y: 0, x: '-50%' }}
+            exit={{ opacity: 0, y: -20, x: '-50%' }}
+            className={`fixed top-8 left-1/2 z-[200] max-w-[90vw] w-max px-4 py-3 rounded-[1rem] text-[12px] font-bold shadow-2xl flex items-center justify-center gap-2 border backdrop-blur-xl ${
+              toast.type === "ok" 
+                ? "bg-background/90 text-foreground border-foreground/10" 
+                : "bg-rose-500 text-white border-rose-500/20"
+            }`}
+          >
+            {toast.type === "ok" && <Check className="w-4 h-4 text-emerald-500" />}
+            {toast.msg}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-10 px-4 pt-4 mb-12 relative z-10">
+        <div className="space-y-4">
+          <div className="flex items-center gap-4 mb-2 lg:mb-6">
+            <div className="w-14 h-14 rounded-2xl bg-foreground/5 flex items-center justify-center text-foreground/50 dark:text-foreground/30 border border-foreground/5 shadow-2xl">
+              <Building2 className="w-7 h-7" />
+            </div>
+            <div>
+              <h1 className="text-4xl md:text-5xl font-bold text-foreground uppercase tracking-tighter leading-none">
+                Vendors
+              </h1>
+              <p className="text-[11px] text-foreground/50 dark:text-foreground/30 font-bold uppercase tracking-[0.4em] mt-2">
+                Manufacturing Partners
+              </p>
+            </div>
+          </div>
+          <p className="text-[11px] lg:text-[12px] text-foreground/70 tracking-wide max-w-xl font-medium leading-relaxed">
+             Manage manufacturing partners, assign categories, and maintain contact info. Centralized directory for all production nodes.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
+        
+        <div className="flex items-center gap-3">
+           <button
             onClick={loadVendors}
             disabled={loading}
-            className="flex items-center gap-2 px-5 py-2.5 bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-foreground/[0.05] rounded-md text-[8px] font-normal uppercase tracking-[0.2em] text-foreground/80 dark:text-foreground/60 transition-all active:scale-95"
+            className="flex items-center gap-3 px-6 py-3 bg-background dark:bg-white/[0.03] border border-foreground/[0.08] text-foreground rounded-2xl text-[10px] font-bold uppercase tracking-[0.3em] hover:bg-foreground/[0.02] disabled:opacity-50 transition-all shadow-sm active:scale-95"
           >
-            <RefreshCw className={`w-3 h-3 ${loading ? "animate-spin" : ""}`} strokeWidth={1.5} />
-            REFRESH
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} strokeWidth={2.5} />
+            Refresh
           </button>
           <button
-            type="button"
             onClick={() => {
               setEditingId(null);
               setForm({ name: "", address: "", mobile: "", category: "Fabric", customCategory: "" });
               setModalOpen(true);
             }}
-            className="flex items-center gap-2 px-5 py-2.5 bg-foreground text-background border border-foreground rounded-md text-[8px] font-normal uppercase tracking-[0.2em] transition-all active:scale-95 shadow-lg shadow-foreground/5"
+            className="flex items-center gap-3 px-8 py-3 bg-foreground text-background rounded-2xl text-[10px] font-bold uppercase tracking-[0.3em] hover:opacity-90 disabled:opacity-50 transition-all active:scale-95 shadow-xl shadow-foreground/20"
           >
-            <Plus className="w-3.5 h-3.5" strokeWidth={1.5} />
-            ADD VENDOR
+            <Plus className="w-4 h-4" strokeWidth={2.5} />
+            Add Vendor
           </button>
         </div>
       </div>
 
-      {/* Filters & Search */}
-      <div className="flex flex-col gap-4">
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="SEARCH SPECTRUM PARTNERS…"
-          className="w-full max-w-md bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-4 py-2 text-[10px] font-normal text-foreground placeholder:text-foreground/20 focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em]"
-        />
+      {/* Main Container */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1, duration: 0.8 }}
+        className="glass-card rounded-[2rem] lg:rounded-[3rem] p-6 lg:p-8 flex flex-col gap-6"
+      >
+        {/* Filters & Search */}
+        <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+          <div className="relative w-full max-w-md">
+             <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-foreground/40" />
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Search vendors..."
+              className="w-full bg-background border border-foreground/10 rounded-xl pl-10 pr-4 py-3 text-[12px] font-medium text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-foreground/30 transition-all shadow-sm"
+            />
+          </div>
 
-        <div className="bg-white/50 dark:bg-white/[0.01] backdrop-blur-3xl rounded-[1rem] p-1 border border-foreground/[0.02] shadow-sm">
-          <div className="flex overflow-x-auto scrollbar-hide py-1 px-1 gap-1">
-            <button
-              onClick={() => setFilterCategory(null)}
-              className={`px-4 py-2 rounded-md text-[7px] font-normal uppercase tracking-[0.3em] whitespace-nowrap transition-all duration-300 border ${
-                !filterCategory
-                  ? "bg-foreground text-background border-foreground shadow-lg shadow-foreground/5"
-                  : "text-foreground/40 border-transparent hover:bg-foreground/[0.03] hover:text-foreground/60"
-              }`}
-            >
-              ALL NODES
-            </button>
-            {CATEGORIES.map((cat) => (
+          <div className="bg-foreground/[0.02] rounded-xl p-1 border border-foreground/5 w-full lg:w-auto">
+            <div className="flex overflow-x-auto custom-scrollbar gap-1 hide-scroll py-1 px-1">
               <button
-                key={cat}
-                onClick={() => setFilterCategory(cat)}
-                className={`px-4 py-2 rounded-md text-[7px] font-normal uppercase tracking-[0.3em] whitespace-nowrap transition-all duration-300 border ${
-                  filterCategory === cat
-                    ? "bg-foreground text-background border-foreground shadow-lg shadow-foreground/5"
-                    : "text-foreground/40 border-transparent hover:bg-foreground/[0.03] hover:text-foreground/60"
+                onClick={() => setFilterCategory(null)}
+                className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider whitespace-nowrap transition-all ${
+                  !filterCategory
+                    ? "bg-foreground text-background shadow-md"
+                    : "text-foreground/60 hover:bg-foreground/[0.05] hover:text-foreground"
                 }`}
               >
-                {cat}
+                All
               </button>
-            ))}
+              {CATEGORIES.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setFilterCategory(cat)}
+                  className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider whitespace-nowrap transition-all ${
+                    filterCategory === cat
+                      ? "bg-foreground text-background shadow-md"
+                      : "text-foreground/60 hover:bg-foreground/[0.05] hover:text-foreground"
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
 
-      {loading && vendors.length === 0 ? (
-        <div className="py-24 flex flex-col items-center justify-center gap-3">
-          <Loader2 className="w-8 h-8 animate-spin text-foreground/20" strokeWidth={1} />
-          <p className="text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em]">Synching with directory…</p>
-        </div>
-      ) : filteredVendors.length === 0 ? (
-        <div className="bg-white/50 dark:bg-white/[0.01] backdrop-blur-3xl rounded-[1rem] border border-dashed border-foreground/[0.05] py-20 px-6 text-center">
-          <p className="text-foreground/40 text-[9px] uppercase tracking-[0.2em] max-w-md mx-auto">
-            No partner nodes match the current spectrum filter.
-          </p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filteredVendors.map((v) => (
-            <div
-              key={v.id}
-              className="group bg-white/50 dark:bg-white/[0.01] backdrop-blur-3xl rounded-[1rem] border border-foreground/[0.05] shadow-sm hover:border-foreground/10 transition-all duration-500 overflow-hidden flex flex-col"
-            >
-              <div className="p-5 flex flex-col flex-1">
-                <div className="flex justify-between items-start gap-3">
-                  <div className="space-y-1">
-                    <div className="text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em]">Node Type</div>
-                    <span className="px-2 py-0.5 rounded-md bg-foreground/[0.03] border border-foreground/[0.05] text-[7px] font-normal text-foreground/60 uppercase tracking-[0.2em]">
-                      {v.category}
-                    </span>
+        <div className="border-t border-foreground/5" />
+
+        {loading && vendors.length === 0 ? (
+          <div className="py-24 flex flex-col items-center justify-center gap-4">
+            <Loader2 className="w-6 h-6 animate-spin text-foreground/40" />
+            <p className="text-[11px] font-bold text-foreground/40 uppercase tracking-widest">Loading vendors...</p>
+          </div>
+        ) : filteredVendors.length === 0 ? (
+          <div className="py-24 flex flex-col items-center justify-center text-center">
+            <Building2 className="w-12 h-12 text-foreground/20 mb-4" />
+            <p className="text-[13px] font-bold text-foreground/60">No vendors found</p>
+            <p className="text-[11px] text-foreground/40 mt-1">Adjust search or filters</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
+            {filteredVendors.map((v, i) => (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: i * 0.05 }}
+                key={v.id}
+                className="bg-background border border-foreground/[0.08] hover:border-foreground/20 rounded-[1.5rem] p-5 lg:p-6 shadow-sm hover:shadow-md transition-all group flex flex-col"
+              >
+                <div className="flex justify-between items-start gap-4 mb-4">
+                  <div className="w-10 h-10 rounded-xl bg-foreground/5 flex items-center justify-center shrink-0 border border-foreground/10 group-hover:bg-foreground group-hover:text-background transition-colors duration-500">
+                     <Building2 className="w-4 h-4 text-foreground/60 group-hover:text-background" strokeWidth={1.5} />
                   </div>
-                  <Building2 className="w-4 h-4 text-foreground/10 group-hover:text-foreground/20 transition-colors" strokeWidth={1} />
+                  <span className="px-3 py-1 rounded-full bg-foreground/[0.03] border border-foreground/[0.08] text-[9px] font-bold text-foreground/70 uppercase tracking-widest leading-none">
+                    {v.category}
+                  </span>
                 </div>
                 
-                <h3 className="text-[13px] font-normal text-foreground uppercase tracking-[0.05em] mt-5 leading-tight font-inter truncate">
+                <h3 className="text-[15px] font-bold text-foreground leading-tight tracking-tight mb-4">
                   {v.name}
                 </h3>
                 
-                <p className="text-[8px] text-foreground/20 uppercase tracking-widest mt-1.5">
-                  ID: {v.id.slice(-8).toUpperCase()} // EST. {new Date(v.createdAt).getFullYear()}
-                </p>
-
-                <div className="mt-6 space-y-3 flex-1">
-                  <div className="space-y-1">
-                    <div className="text-[7px] font-normal text-foreground/20 uppercase tracking-[0.3em]">Telecom Node</div>
-                    <div className="flex items-center gap-2 text-[10px] text-foreground/60 tabular-nums">
-                      <Phone className="w-2.5 h-2.5 opacity-30" strokeWidth={1.5} />
-                      {v.mobile || "NULL_TERMINAL"}
-                    </div>
+                <div className="space-y-3 flex-1 mb-6">
+                  <div className="flex items-center gap-3 text-[11px] font-medium text-foreground/70">
+                    <div className="w-6 h-6 rounded-md bg-foreground/5 flex items-center justify-center shrink-0"><Phone className="w-3 h-3 opacity-60" /></div>
+                    <span className="truncate">{v.mobile || "No phone added"}</span>
                   </div>
-                  <div className="space-y-1">
-                    <div className="text-[7px] font-normal text-foreground/20 uppercase tracking-[0.3em]">Geospatial Link</div>
-                    <div className="flex items-start gap-2 text-[10px] text-foreground/60 leading-relaxed uppercase tracking-tight line-clamp-2">
-                      <MapPin className="w-2.5 h-2.5 opacity-30 mt-0.5" strokeWidth={1.5} />
-                      {v.address || "NULL_COORDINATES"}
-                    </div>
+                   <div className="flex items-start gap-3 text-[11px] font-medium text-foreground/70">
+                    <div className="w-6 h-6 rounded-md bg-foreground/5 flex items-center justify-center shrink-0 mt-0.5"><MapPin className="w-3 h-3 opacity-60" /></div>
+                    <span className="line-clamp-2 leading-snug">{v.address || "No address added"}</span>
                   </div>
                 </div>
 
-                <div className="pt-6 flex gap-1.5">
+                <div className="flex gap-2 pt-4 border-t border-foreground/[0.05]">
                   <button
                     onClick={() => openEdit(v)}
-                    className="flex-1 px-3 py-2 bg-foreground/[0.03] border border-foreground/[0.05] rounded-md text-[7px] font-normal uppercase tracking-[0.2em] text-foreground/40 hover:text-foreground/80 transition-all hover:bg-foreground/[0.05] flex items-center justify-center gap-1.5"
+                    className="flex-1 px-3 py-2 bg-background border border-foreground/10 rounded-xl text-[10px] font-bold text-foreground/70 hover:text-foreground hover:bg-foreground/5 transition-colors flex items-center justify-center gap-1.5 shadow-sm"
                   >
-                    <Edit2 className="w-2.5 h-2.5" />
-                    Modify
+                    <Edit2 className="w-3 h-3" />
+                    Edit
                   </button>
                   <button
                     onClick={() => handleDelete(v.id)}
-                    className="px-3 py-2 bg-rose-500/[0.03] border border-rose-500/[0.05] rounded-md text-[7px] font-normal uppercase tracking-[0.2em] text-rose-500/40 hover:text-rose-500/80 transition-all hover:bg-rose-500/[0.05]"
+                    className="px-3 py-2 bg-rose-500/5 hover:bg-rose-500/10 border border-rose-500/10 rounded-xl flex items-center justify-center transition-colors text-rose-500"
                   >
-                    <Trash2 className="w-2.5 h-2.5" />
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-          {/* Add/Edit Modal */}
-      {modalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-md animate-in fade-in">
-          <div className="w-full max-w-lg bg-white/90 dark:bg-black/80 backdrop-blur-2xl rounded-[1rem] border border-foreground/[0.05] shadow-2xl p-6 space-y-6 max-h-[92vh] overflow-y-auto font-inter">
-            <div className="space-y-1">
-              <h2 className="text-[11px] font-normal text-foreground uppercase tracking-[0.2em] leading-none">{editingId ? "MODIFY SPECTRUM PARTNER" : "INITIATE PARTNER NODE"}</h2>
-              <p className="text-[9px] text-foreground/40 uppercase tracking-[0.2em]">Partner metrics will be synchronized across the spectrum ledger.</p>
-            </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
+      </motion.div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">Partner Nomenclature *</label>
-                <input
-                  required
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  placeholder="E.G. APEX TEXTILES"
-                  className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em]"
-                />
+      {/* Add/Edit Modal */}
+      <AnimatePresence>
+        {modalOpen && (
+          <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 lg:p-6 bg-background/80 backdrop-blur-md">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="w-full max-w-lg glass rounded-[2rem] border border-foreground/10 shadow-2xl p-6 lg:p-8 space-y-6 max-h-[92vh] overflow-y-auto"
+            >
+              <div>
+                <h2 className="text-xl lg:text-2xl font-bold tracking-tight text-foreground">{editingId ? "Edit Vendor" : "Add Vendor"}</h2>
+                <p className="text-[12px] text-foreground/60 mt-1 tracking-wide">Enter vendor details carefully.</p>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">Functional Category</label>
-                <select
-                  value={form.category}
-                  onChange={(e) => setForm({ ...form, category: e.target.value })}
-                  className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em] appearance-none"
-                >
-                  {CATEGORIES.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat.toUpperCase()}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {form.category === "Other" && (
-                <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2">
-                  <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">Custom Protocol *</label>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold uppercase tracking-widest text-foreground/60 ml-1">Vendor Name *</label>
                   <input
                     required
-                    value={form.customCategory}
-                    onChange={(e) => setForm({ ...form, customCategory: e.target.value })}
-                    placeholder="E.G. SPECIALIZED DYEING"
-                    className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em]"
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    placeholder="e.g. Apex Textiles"
+                    className="w-full bg-background border border-foreground/10 rounded-xl px-4 py-3 text-[13px] font-medium text-foreground focus:outline-none focus:border-foreground/30 transition-all shadow-sm"
                   />
                 </div>
-              )}
 
-              <div className="space-y-1.5">
-                <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">Telecom Link</label>
-                <input
-                  value={form.mobile}
-                  onChange={(e) => setForm({ ...form, mobile: e.target.value })}
-                  placeholder="+91 00000 00000"
-                  className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all font-inter"
-                />
-              </div>
+                 <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold uppercase tracking-widest text-foreground/60 ml-1">Category</label>
+                  <select
+                    value={form.category}
+                    onChange={(e) => setForm({ ...form, category: e.target.value })}
+                    className="w-full bg-background border border-foreground/10 rounded-xl px-4 py-3 text-[13px] font-medium text-foreground focus:outline-none focus:border-foreground/30 transition-all shadow-sm appearance-none"
+                  >
+                    {CATEGORIES.map((cat) => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
 
-              <div className="space-y-1.5">
-                <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">Geospatial Coordinates</label>
-                <textarea
-                  value={form.address}
-                  onChange={(e) => setForm({ ...form, address: e.target.value })}
-                  rows={3}
-                  placeholder="STREET, CITY, PINCODE"
-                  className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em]"
-                />
-              </div>
+                {form.category === "Other" && (
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-1.5">
+                    <label className="text-[11px] font-bold uppercase tracking-widest text-foreground/60 ml-1">Custom Category *</label>
+                    <input
+                      required
+                      value={form.customCategory}
+                      onChange={(e) => setForm({ ...form, customCategory: e.target.value })}
+                      placeholder="e.g. Specialized Dyeing"
+                      className="w-full bg-background border border-foreground/10 rounded-xl px-4 py-3 text-[13px] font-medium text-foreground focus:outline-none focus:border-foreground/30 transition-all shadow-sm"
+                    />
+                  </motion.div>
+                )}
 
-              <div className="flex gap-2 justify-end pt-6 border-t border-foreground/[0.05]">
-                <button
-                  type="button"
-                  onClick={() => setModalOpen(false)}
-                  className="px-5 py-2 rounded-md text-[8px] font-normal uppercase tracking-[0.2em] text-foreground/40 hover:text-foreground/60 transition-all"
-                >
-                  Cancel
-                </button>
-                <button
-                  disabled={submitting}
-                  type="submit"
-                  className="px-8 py-2 bg-foreground text-background rounded-md text-[8px] font-normal uppercase tracking-[0.3em] shadow-lg shadow-foreground/5 hover:opacity-90 disabled:opacity-50 transition-all font-inter"
-                >
-                  {submitting ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  ) : editingId ? (
-                    "COMMIT CHANGES"
-                  ) : (
-                    "INITIATE PARTNER"
-                  )}
-                </button>
-              </div>
-            </form>
+                 <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold uppercase tracking-widest text-foreground/60 ml-1">Mobile</label>
+                  <input
+                    value={form.mobile}
+                    onChange={(e) => setForm({ ...form, mobile: e.target.value })}
+                    placeholder="+91 98765 43210"
+                    className="w-full bg-background border border-foreground/10 rounded-xl px-4 py-3 text-[13px] font-medium text-foreground focus:outline-none focus:border-foreground/30 transition-all shadow-sm font-mono"
+                  />
+                </div>
+
+                 <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold uppercase tracking-widest text-foreground/60 ml-1">Address</label>
+                  <textarea
+                    value={form.address}
+                    onChange={(e) => setForm({ ...form, address: e.target.value })}
+                    rows={3}
+                    placeholder="Street address, City, Pincode"
+                    className="w-full bg-background border border-foreground/10 rounded-xl px-4 py-3 text-[13px] font-medium text-foreground focus:outline-none focus:border-foreground/30 transition-all shadow-sm resize-none"
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-6">
+                  <button
+                    type="button"
+                    onClick={() => setModalOpen(false)}
+                    className="flex-1 px-4 py-3 bg-background border border-foreground/10 rounded-xl text-[11px] font-bold text-foreground/70 hover:text-foreground hover:bg-foreground/5 transition-all shadow-sm"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    disabled={submitting}
+                    type="submit"
+                    className="flex-[2] flex items-center justify-center gap-2 px-4 py-3 bg-foreground text-background rounded-xl text-[11px] font-bold uppercase tracking-[0.1em] hover:opacity-90 disabled:opacity-50 transition-all shadow-lg shadow-foreground/10"
+                  >
+                    {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : editingId ? "Save Changes" : "Create Vendor"}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
           </div>
-        </div>
-      )}
-
-      {toast && (
-        <div
-          className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-[200] px-6 py-4 rounded-[2rem] text-[10px] font-normal uppercase tracking-[0.2em] shadow-2xl animate-in fade-in slide-in-from-bottom-4 border border-foreground/[0.05] backdrop-blur-xl ${
-            toast?.type === "ok"
-              ? "bg-foreground text-background"
-              : "bg-rose-500 text-white"
-          }`}
-        >
-          {toast?.msg}
-        </div>
-      )}
-    </div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }

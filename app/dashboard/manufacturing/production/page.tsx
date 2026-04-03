@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState, type Dispatch, type SetStateAction } from "react";
-import { Loader2, Plus, RefreshCw, LayoutGrid, Table2, ChevronDown, ChevronUp } from "lucide-react";
+import { Loader2, Plus, RefreshCw, LayoutGrid, Table2, ChevronDown, ChevronUp, Check, Search, Activity } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { mfgFetch } from "@/lib/manufacturing/mfg-fetch";
 import { formatDateTimeIST } from "@/lib/manufacturing/ist";
 import { formatInr } from "@/lib/manufacturing/inr";
@@ -383,375 +384,467 @@ export default function ProductionTrackerPage() {
   };
 
   return (
-    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-[1500px] mx-auto pb-12">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-2">
-        <div className="space-y-1">
-          <div className="px-2 py-0.5 bg-foreground/[0.03] rounded-md text-[7px] font-normal text-foreground/50 uppercase tracking-[0.3em] w-fit tracking-widest">manufacturing hub</div>
-          <h1 className="text-lg font-normal text-foreground uppercase tracking-[0.2em] mb-0.5 leading-none mt-1 font-inter">
-            Production Tracker
-          </h1>
-          <p className="text-[9px] text-foreground/40 font-normal uppercase tracking-[0.2em] mt-1">
-            Real-time pipeline monitoring — {batches.length} active batches. Transitions are recorded in the immutable spectrum ledger.
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="pb-20 space-y-10 relative z-10"
+    >
+      {/* Vibrant Orb Backgrounds */}
+      <div className="absolute -right-24 -top-24 w-96 h-96 bg-foreground/5 blur-3xl rounded-full pointer-events-none" />
+      <div className="absolute -left-24 top-1/2 w-72 h-72 bg-foreground/5 blur-3xl rounded-full pointer-events-none" />
+
+      <AnimatePresence>
+        {toast && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20, x: '-50%' }}
+            animate={{ opacity: 1, y: 0, x: '-50%' }}
+            exit={{ opacity: 0, y: -20, x: '-50%' }}
+            className={`fixed top-8 left-1/2 z-[200] max-w-[90vw] w-max px-4 py-3 rounded-[1rem] text-[12px] font-bold shadow-2xl flex items-center justify-center gap-2 border backdrop-blur-xl ${
+              toast.type === "ok" 
+                ? "bg-background/90 text-foreground border-foreground/10" 
+                : "bg-rose-500 text-white border-rose-500/20"
+            }`}
+          >
+            {toast.type === "ok" && <Check className="w-4 h-4 text-emerald-500" />}
+            {toast.msg}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-10 px-4 pt-4 mb-12 relative z-10">
+        <div className="space-y-4">
+          <div className="flex items-center gap-4 mb-2 lg:mb-6">
+            <div className="w-14 h-14 rounded-2xl bg-foreground/5 flex items-center justify-center text-foreground/50 dark:text-foreground/30 border border-foreground/5 shadow-2xl">
+              <Activity className="w-7 h-7" />
+            </div>
+            <div>
+              <h1 className="text-4xl md:text-5xl font-bold text-foreground uppercase tracking-tighter leading-none">
+                Production
+              </h1>
+              <p className="text-[11px] text-foreground/50 dark:text-foreground/30 font-bold uppercase tracking-[0.4em] mt-2">
+                Tracker & Lifecycle
+              </p>
+            </div>
+          </div>
+          <p className="text-[11px] lg:text-[12px] text-foreground/70 tracking-wide max-w-xl font-medium leading-relaxed">
+             Real-time pipeline monitoring — {batches.length} active batches. Transitions are recorded in the immutable spectrum ledger.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="bg-foreground/[0.03] p-1.5 rounded-xl flex border border-foreground/5 backdrop-blur-sm">
+            <button
+              onClick={() => setView("card")}
+              className={`p-2 rounded-lg transition-all ${
+                view === "card" ? "bg-background shadow-md text-foreground" : "text-foreground/40 hover:text-foreground"
+              }`}
+            >
+              <LayoutGrid className="w-4 h-4" />
+            </button>
+             <button
+              onClick={() => setView("table")}
+              className={`p-2 rounded-lg transition-all ${
+                view === "table" ? "bg-background shadow-md text-foreground" : "text-foreground/40 hover:text-foreground"
+              }`}
+            >
+              <Table2 className="w-4 h-4" />
+            </button>
+          </div>
+
           <button
-            type="button"
-            onClick={() => loadBatches()}
-            className="flex items-center gap-2 px-5 py-2.5 bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-foreground/[0.05] rounded-md text-[8px] font-normal uppercase tracking-[0.2em] text-foreground/80 dark:text-foreground/60 transition-all active:scale-95"
+            onClick={loadBatches}
+            disabled={loading}
+            className="flex items-center gap-3 px-6 py-3 bg-background dark:bg-white/[0.03] border border-foreground/[0.08] text-foreground rounded-2xl text-[10px] font-bold uppercase tracking-[0.3em] hover:bg-foreground/[0.02] disabled:opacity-50 transition-all shadow-sm active:scale-95"
           >
-            <RefreshCw className={`w-3 h-3 ${loading ? "animate-spin" : ""}`} strokeWidth={1.5} />
-            REFRESH
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} strokeWidth={2.5} />
+            Refresh
+          </button>
+
+          <button
+            onClick={() => {
+              setNewOpen(true);
+              setNbErr({});
+            }}
+            className="flex items-center gap-3 px-8 py-3 bg-foreground text-background rounded-2xl text-[10px] font-bold uppercase tracking-[0.3em] hover:opacity-90 transition-all active:scale-95 shadow-xl shadow-foreground/20"
+          >
+            <Plus className="w-4 h-4" strokeWidth={2.5} />
+            Initiate Batch
           </button>
         </div>
       </div>
 
-      {/* Stage Pipeline */}
-      <div className="bg-white/50 dark:bg-white/[0.01] backdrop-blur-3xl rounded-[1rem] p-1 border border-foreground/[0.02] shadow-sm">
-        <div className="flex overflow-x-auto scrollbar-hide py-1 px-1 gap-1">
-          {MFG_STAGE_KEYS.map((key) => (
-            <button
-              key={key}
-              onClick={() => setFilterStage((s) => (s === key ? null : key))}
-              className={`px-4 py-2 rounded-md text-[7px] font-normal uppercase tracking-[0.3em] whitespace-nowrap transition-all duration-300 border ${
-                filterStage === key
-                  ? "bg-foreground text-background border-foreground shadow-lg shadow-foreground/5"
-                  : "text-foreground/40 border-transparent hover:bg-foreground/[0.03] hover:text-foreground/60"
-              }`}
-            >
-              <span className="mr-1.5">{MFG_STAGE_EMOJI[key]}</span>
-              {MFG_STAGE_LABEL[key]}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <input
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-        placeholder="Search batch ID or style…"
-        className="w-full max-w-md rounded-2xl border border-foreground/10 bg-foreground/[0.04] px-4 py-3 text-sm focus:ring-2 focus:ring-foreground/15 outline-none transition-shadow"
-      />
-
-      {loading && batches.length === 0 ? (
-        <div className="py-24 flex justify-center text-foreground/40">
-          <Loader2 className="w-10 h-10 animate-spin" />
-        </div>
-      ) : batches.length === 0 ? (
-        <div className="rounded-3xl border border-dashed border-foreground/15 bg-foreground/[0.02] py-20 px-6 text-center">
-          <p className="text-foreground/50 text-sm max-w-md mx-auto">
-            No batches match. Create a new batch with style, quantity, optional fabric consumption
-            (logs fabric OUT automatically), and starting stage.
-          </p>
-        </div>
-      ) : view === "table" ? (
-        <div className="w-full rounded-3xl border border-foreground/10 overflow-hidden bg-foreground/[0.02]">
-          <div className="overflow-x-auto w-full custom-scrollbar">
-            <table className="w-full text-left text-xs min-w-[800px]">
-              <thead className="bg-foreground/[0.05] text-foreground/45 uppercase text-[10px] font-bold">
-              <tr>
-                <th className="px-4 py-3">Batch</th>
-                <th className="px-4 py-3">Style</th>
-                <th className="px-4 py-3">Qty</th>
-                <th className="px-4 py-3">Stage</th>
-                <th className="px-4 py-3">Fabric</th>
-                <th className="px-4 py-3">Cost so far</th>
-                <th className="px-4 py-3">Updated (IST)</th>
-                <th className="px-4 py-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-foreground/5">
-              {batches.map((b) => (
-                <tr key={b.id} className="hover:bg-foreground/[0.02]">
-                  <td className="px-4 py-3 font-mono text-[11px]">{b.batchCode}</td>
-                  <td className="px-4 py-3 font-medium">{b.productName}</td>
-                  <td className="px-4 py-3">{b.quantity}</td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`inline-flex px-2 py-0.5 rounded-lg border text-[10px] font-bold ${
-                        MFG_STAGE_BADGE_CLASS[b.currentStage] || ""
-                      }`}
-                    >
-                      {MFG_STAGE_LABEL[b.currentStage] || b.currentStage}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-foreground/60">
-                    {b.fabric ? (
-                      <span className="font-mono text-[10px]">{b.fabric.sku}</span>
-                    ) : (
-                      "—"
-                    )}
-                  </td>
-                  <td className="px-4 py-3 tabular-nums">{formatInr(num(b.totalCostSoFar))}</td>
-                  <td className="px-4 py-3 text-foreground/50 whitespace-nowrap">
-                    {formatDateTimeIST(b.updatedAt)}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <button
-                      type="button"
-                      onClick={() => openDrawer(b.id)}
-                      className="text-[11px] font-bold text-foreground/60 hover:text-foreground mr-2"
-                    >
-                      Detail
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+       <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1, duration: 0.8 }}
+        className="glass-card rounded-[2rem] lg:rounded-[3rem] p-6 lg:p-8 flex flex-col gap-6"
+      >
+        {/* Stage Pipeline */}
+        <div className="bg-foreground/[0.02] rounded-xl p-1 border border-foreground/5 overflow-hidden">
+          <div className="flex overflow-x-auto custom-scrollbar gap-1 py-1 px-1">
+            {MFG_STAGE_KEYS.map((key) => (
+              <button
+                key={key}
+                onClick={() => setFilterStage((s) => (s === key ? null : key))}
+                className={`px-4 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-wider whitespace-nowrap transition-all flex items-center gap-2 ${
+                  filterStage === key
+                    ? "bg-foreground text-background shadow-md"
+                    : "text-foreground/60 hover:bg-foreground/[0.05] hover:text-foreground"
+                }`}
+              >
+                <span>{MFG_STAGE_EMOJI[key]}</span>
+                {MFG_STAGE_LABEL[key]}
+              </button>
+            ))}
           </div>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-          {batches.map((b) => {
-            const ex = expanded[b.id];
-            const ed = expandData[b.id] as { breakdown?: Record<string, number> } | null;
-            const pct = progressPct(b.currentStage);
-            return (
-              <div
-                key={b.id}
-                className="group bg-white/50 dark:bg-white/[0.01] backdrop-blur-3xl rounded-[1rem] border border-foreground/[0.05] shadow-sm hover:border-foreground/10 transition-all duration-500 overflow-hidden flex flex-col"
-              >
-                <button
-                  type="button"
-                  onClick={() => openDrawer(b.id)}
-                  className="w-full text-left p-5 pb-3 focus:outline-none"
+
+        <div className="relative w-full max-w-md">
+           <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-foreground/40" />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search batch ID or style…"
+            className="w-full bg-background border border-foreground/10 rounded-xl pl-10 pr-4 py-3 text-[12px] font-medium text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-foreground/30 transition-all shadow-sm"
+          />
+        </div>
+
+        {loading && batches.length === 0 ? (
+          <div className="py-24 flex flex-col items-center gap-3 text-foreground/40">
+            <Loader2 className="w-8 h-8 animate-spin" />
+            <span className="text-[10px] font-bold uppercase tracking-widest text-foreground/50">Computing nodes</span>
+          </div>
+        ) : batches.length === 0 ? (
+          <div className="py-20 flex flex-col items-center justify-center text-center">
+            <LayoutGrid className="w-12 h-12 text-foreground/20 mb-4" />
+            <p className="text-[13px] font-bold text-foreground/60">No batches match</p>
+            <p className="text-[11px] text-foreground/40 mt-1 max-w-sm">Create a new batch with style, quantity, optional fabric consumption to log automatically.</p>
+          </div>
+        ) : view === "table" ? (
+          <div className="w-full rounded-2xl border border-foreground/10 overflow-hidden bg-background shadow-sm">
+            <div className="overflow-x-auto w-full custom-scrollbar">
+              <table className="w-full text-left whitespace-nowrap">
+                <thead className="bg-foreground/[0.02] border-b border-foreground/10 text-[10px] uppercase font-bold text-foreground/50 tracking-widest">
+                <tr>
+                  <th className="px-5 py-4">Batch</th>
+                  <th className="px-5 py-4">Style</th>
+                  <th className="px-5 py-4">Qty</th>
+                  <th className="px-5 py-4">Stage</th>
+                  <th className="px-5 py-4">Fabric</th>
+                  <th className="px-5 py-4">Cost so far</th>
+                  <th className="px-5 py-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-foreground/5">
+                {batches.map((b) => (
+                  <tr key={b.id} className="hover:bg-foreground/[0.02] transition-colors group">
+                    <td className="px-5 py-4 font-mono text-[11px] font-medium text-foreground/70">{b.batchCode}</td>
+                    <td className="px-5 py-4 font-bold text-[13px] text-foreground">{b.productName}</td>
+                    <td className="px-5 py-4 font-medium text-[12px]">{b.quantity}</td>
+                    <td className="px-5 py-4">
+                      <span
+                        className={`inline-flex px-2 py-1 rounded-md text-[10px] font-bold tracking-wider ${
+                          MFG_STAGE_BADGE_CLASS[b.currentStage] || "bg-foreground/5 text-foreground/60"
+                        }`}
+                      >
+                       {MFG_STAGE_EMOJI[b.currentStage]} {MFG_STAGE_LABEL[b.currentStage] || b.currentStage}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4 text-foreground/60 font-medium">
+                      {b.fabric ? (
+                        <span className="font-mono text-[11px]">{b.fabric.sku}</span>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                    <td className="px-5 py-4 font-bold text-[13px]">{formatInr(num(b.totalCostSoFar))}</td>
+                    <td className="px-5 py-4 text-right">
+                      <button
+                        type="button"
+                        onClick={() => openDrawer(b.id)}
+                        className="text-[11px] font-bold uppercase tracking-wider text-foreground/50 hover:text-foreground transition-colors"
+                      >
+                        Details
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            </div>
+          </div>
+        ) : (
+           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+            {batches.map((b) => {
+              const ex = expanded[b.id];
+              const ed = expandData[b.id] as { breakdown?: Record<string, number> } | null;
+              const pct = progressPct(b.currentStage);
+              return (
+                <div
+                  key={b.id}
+                  className="bg-background border border-foreground/[0.08] hover:border-foreground/20 rounded-[1.5rem] shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col relative"
                 >
-                  <div className="flex justify-between items-start gap-3">
-                    <div className="space-y-1">
-                      <div className="text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em]">Node ID</div>
-                      <div className="font-mono text-[10px] text-foreground/50">{b.batchCode}</div>
-                    </div>
-                    <span
-                      className={`px-2 py-0.5 rounded-md text-[7px] font-normal uppercase tracking-[0.2em] ${
-                        MFG_STAGE_BADGE_CLASS[b.currentStage] || "bg-foreground/5 text-foreground/40 border border-foreground/10"
-                      }`}
-                    >
-                      {MFG_STAGE_EMOJI[b.currentStage]} {MFG_STAGE_LABEL[b.currentStage]}
-                    </span>
-                  </div>
-                  <h3 className="text-[13px] font-normal text-foreground uppercase tracking-[0.05em] mt-4 leading-tight font-inter">
-                    {b.productName}
-                  </h3>
-                  
-                  <div className="grid grid-cols-3 gap-4 mt-4">
-                    <div className="space-y-1">
-                      <div className="text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em]">Units</div>
-                      <div className="text-[10px] font-normal text-foreground/70 tabular-nums">{b.quantity}</div>
-                    </div>
-                    <div className="space-y-1">
-                      <div className="text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em]">Valuation</div>
-                      <div className="text-[10px] font-normal text-foreground/70 tabular-nums">{formatInr(num(b.totalCostSoFar))}</div>
-                    </div>
-                    <div className="space-y-1 text-right">
-                      <div className="text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em]">Wash Pool</div>
-                      <div className="text-[10px] font-normal text-foreground/70 tabular-nums">{formatInr(num(b.washCostTotal))}</div>
-                    </div>
-                  </div>
-
-                  {b.fabric && (
-                    <div className="mt-4 pt-3 border-t border-foreground/[0.03] space-y-1">
-                      <div className="text-[7px] font-normal text-foreground/20 uppercase tracking-[0.3em]">Primary Spectrum Node</div>
-                      <div className="text-[9px] text-foreground/40 font-mono tracking-wider">
-                        {b.fabric.sku} // {b.fabric.name}
-                      </div>
-                    </div>
-                  )}
-                </button>
-
-                <div className="px-5 pb-2">
-                  <div className="h-[1.5px] rounded-full bg-foreground/[0.03] overflow-hidden">
-                    <div
-                      className="h-full bg-foreground/40 transition-all duration-1000 ease-out"
-                      style={{ width: `${pct}%` }}
+                  {/* Progress bar background at top */}
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-foreground/5">
+                    <motion.div 
+                       initial={{ width: 0 }}
+                       animate={{ width: `${pct}%` }}
+                       className="h-full bg-foreground" 
                     />
                   </div>
-                  <div className="flex justify-between items-center mt-1.5">
-                    <span className="text-[7px] font-normal text-foreground/20 uppercase tracking-[0.3em]">Pipeline Progress</span>
-                    <span className="text-[8px] font-normal text-foreground/40 tabular-nums tracking-widest">{pct}%</span>
-                  </div>
-                </div>
 
-                <div className="px-5 pb-5 flex flex-wrap gap-1.5 mt-2">
-                  {actionsForBatch(b).map(({ key, label }) => (
-                    <button
-                      key={key}
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openAction(b, key);
-                      }}
-                      className="px-3 py-1.5 bg-foreground text-background border border-foreground rounded-md text-[7px] font-normal uppercase tracking-[0.2em] transition-all hover:bg-foreground/90 whitespace-nowrap"
-                    >
-                      {label}
-                    </button>
-                  ))}
                   <button
                     type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleExpand(b.id);
-                    }}
-                    className="px-3 py-1.5 bg-foreground/[0.03] border border-foreground/[0.05] rounded-md text-[7px] font-normal uppercase tracking-[0.2em] text-foreground/40 hover:text-foreground/80 transition-all flex items-center gap-1 whitespace-nowrap"
+                    onClick={() => openDrawer(b.id)}
+                    className="w-full text-left p-5 pt-6 pb-4 focus:outline-none flex flex-col h-full"
                   >
-                    {ex ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                    Breakdown
-                  </button>
-                </div>
-
-                {ex && (
-                  <div className="border-t border-foreground/[0.05] px-5 py-4 bg-foreground/[0.01] animate-in fade-in slide-in-from-top-2">
-                    {expandLoad[b.id] ? (
-                      <div className="py-2 flex justify-center">
-                        <Loader2 className="w-4 h-4 animate-spin text-foreground/10" strokeWidth={1} />
+                    <div className="flex justify-between items-start gap-4 mb-3">
+                      <div className="font-mono text-[11px] font-bold text-foreground/40 bg-foreground/5 px-2 py-1 rounded-md">{b.batchCode}</div>
+                      <span
+                        className={`px-2 py-1 rounded-md text-[9px] font-bold uppercase tracking-widest leading-none flex items-center gap-1 ${
+                          MFG_STAGE_BADGE_CLASS[b.currentStage] || "bg-foreground/5 text-foreground/60 border border-foreground/10"
+                        }`}
+                      >
+                        {MFG_STAGE_EMOJI[b.currentStage]} {MFG_STAGE_LABEL[b.currentStage]}
+                      </span>
+                    </div>
+                    <h3 className="text-lg font-bold text-foreground leading-tight tracking-tight mb-4">
+                      {b.productName}
+                    </h3>
+                    
+                    <div className="grid grid-cols-3 gap-3 mb-4 flex-1">
+                      <div className="bg-foreground/[0.02] rounded-lg p-2.5 border border-foreground/5 space-y-1">
+                        <div className="text-[9px] font-bold text-foreground/40 uppercase tracking-widest">Units</div>
+                        <div className="text-[13px] font-bold text-foreground tabular-nums leading-none">{b.quantity}</div>
                       </div>
-                    ) : ed?.breakdown ? (
-                      <BreakdownMini b={ed.breakdown as Record<string, number>} />
-                    ) : (
-                      <p className="text-[9px] text-foreground/20 uppercase tracking-widest text-center">No metadata found.</p>
+                      <div className="bg-foreground/[0.02] rounded-lg p-2.5 border border-foreground/5 space-y-1">
+                        <div className="text-[9px] font-bold text-foreground/40 uppercase tracking-widest">Valuation</div>
+                        <div className="text-[13px] font-bold text-foreground tabular-nums leading-none">{formatInr(num(b.totalCostSoFar))}</div>
+                      </div>
+                      <div className="bg-foreground/[0.02] rounded-lg p-2.5 border border-foreground/5 space-y-1 text-right">
+                        <div className="text-[9px] font-bold text-foreground/40 uppercase tracking-widest">Wash</div>
+                        <div className="text-[13px] font-bold text-foreground tabular-nums leading-none">{formatInr(num(b.washCostTotal))}</div>
+                      </div>
+                    </div>
+
+                    {b.fabric && (
+                      <div className="flex items-center gap-2 mt-4 text-[11px] font-medium text-foreground/60">
+                        <div className="w-5 h-5 rounded flex items-center justify-center bg-foreground/5"><LayoutGrid className="w-3 h-3 opacity-60" /></div>
+                        <span className="font-mono">{b.fabric.sku}</span>
+                        <span className="truncate flex-1 text-foreground/40">{b.fabric.name}</span>
+                      </div>
                     )}
+                  </button>
+
+                  <div className="px-5 pb-5 pt-3 border-t border-foreground/5 bg-foreground/[0.01]">
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {actionsForBatch(b).map(({ key, label }) => (
+                        <button
+                          key={key}
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openAction(b, key);
+                          }}
+                          className="px-3 py-1.5 bg-foreground text-background rounded-lg text-[9px] font-bold uppercase tracking-wider transition-all hover:opacity-90 shadow-sm"
+                        >
+                          {label}
+                        </button>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleExpand(b.id);
+                        }}
+                        className="px-3 py-1.5 bg-background border border-foreground/10 rounded-lg text-[9px] font-bold uppercase tracking-wider text-foreground/60 hover:text-foreground transition-all flex items-center gap-1 ml-auto shadow-sm"
+                      >
+                        {ex ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                        Breakdown
+                      </button>
+                    </div>
+
+                    <AnimatePresence>
+                      {ex && (
+                        <motion.div 
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="pt-3 pb-1">
+                            {expandLoad[b.id] ? (
+                              <div className="py-4 flex justify-center">
+                                <Loader2 className="w-4 h-4 animate-spin text-foreground/40" />
+                              </div>
+                            ) : ed?.breakdown ? (
+                              <BreakdownMini b={ed.breakdown as Record<string, number>} />
+                            ) : (
+                              <p className="text-[10px] text-foreground/40 uppercase tracking-widest text-center py-4">No metadata found.</p>
+                            )}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </motion.div>
 
       {/* New batch modal */}
-      {newOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-md animate-in fade-in">
-          <div className="w-full max-w-lg bg-white/90 dark:bg-black/80 backdrop-blur-2xl rounded-[1rem] border border-foreground/[0.05] shadow-2xl p-6 space-y-6 max-h-[92vh] overflow-y-auto font-inter">
-            <div className="space-y-1">
-              <h2 className="text-[11px] font-normal text-foreground uppercase tracking-[0.2em] leading-none">INITIATE NEW SPECTRUM BATCH</h2>
-              <p className="text-[9px] text-foreground/40 uppercase tracking-[0.2em]">Batch ID auto-generates linked to current date timeline.</p>
-            </div>
-            
-            <div className="space-y-4">
-              <Field
-                label="Style / product nomenclature *"
-                value={nb.productName}
-                onChange={(v) => setNb((s) => ({ ...s, productName: v }))}
-                error={nbErr.productName}
-              />
-              <Field
-                label="Unit Quantity (NODES) *"
-                type="number"
-                value={nb.quantity}
-                onChange={(v) => setNb((s) => ({ ...s, quantity: v }))}
-                error={nbErr.quantity}
-              />
-              <div className="space-y-1.5">
-                <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">Spectrum Node association</label>
-                <select
-                  value={nb.fabricId}
-                  onChange={(e) => setNb((s) => ({ ...s, fabricId: e.target.value }))}
-                  className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em] appearance-none"
-                >
-                  <option value="">NONE (NULL-ASSOCIATION)</option>
-                  {fabrics.map((f) => (
-                    <option key={f.id} value={f.id}>
-                      {f.sku} — {f.name}
-                    </option>
-                  ))}
-                </select>
+      <AnimatePresence>
+        {newOpen && (
+          <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 lg:p-6 bg-background/80 backdrop-blur-md">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="w-full max-w-lg glass rounded-[2rem] border border-foreground/10 shadow-2xl p-6 lg:p-8 max-h-[92vh] overflow-y-auto flex flex-col gap-6"
+            >
+              <div>
+                <h2 className="text-xl lg:text-2xl font-bold tracking-tight text-foreground">Initiate Batch</h2>
+                <p className="text-[12px] text-foreground/60 mt-1 tracking-wide">Batch ID auto-generates linked to current date.</p>
               </div>
-              {nb.fabricId ? (
+              
+              <div className="space-y-5">
                 <Field
-                  label="Fabric spectrum meters (logs OUT) *"
-                  type="number"
-                  value={nb.fabricMeters}
-                  onChange={(v) => setNb((s) => ({ ...s, fabricMeters: v }))}
-                  error={nbErr.fabricMeters}
+                  label="Style / Product Name *"
+                  value={nb.productName}
+                  onChange={(v) => setNb((s) => ({ ...s, productName: v }))}
+                  error={nbErr.productName}
                 />
-              ) : null}
-              <div className="space-y-1.5">
-                <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">Initial Entry Stage</label>
-                <select
-                  value={nb.currentStage}
-                  onChange={(e) => setNb((s) => ({ ...s, currentStage: e.target.value }))}
-                  className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em] appearance-none font-inter"
-                >
-                  {MFG_STAGE_KEYS.map((k) => (
-                    <option key={k} value={k}>
-                      {MFG_STAGE_LABEL[k]}
-                    </option>
-                  ))}
-                </select>
+                <Field
+                  label="Unit Quantity *"
+                  type="number"
+                  value={nb.quantity}
+                  onChange={(v) => setNb((s) => ({ ...s, quantity: v }))}
+                  error={nbErr.quantity}
+                />
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold uppercase tracking-widest text-foreground/60 ml-1">Fabric Association</label>
+                  <select
+                    value={nb.fabricId}
+                    onChange={(e) => setNb((s) => ({ ...s, fabricId: e.target.value }))}
+                    className="w-full bg-background border border-foreground/10 rounded-xl px-4 py-3 text-[13px] font-medium text-foreground focus:outline-none focus:border-foreground/30 shadow-sm appearance-none"
+                  >
+                    <option value="">None (Optional)</option>
+                    {fabrics.map((f) => (
+                      <option key={f.id} value={f.id}>
+                        {f.sku} — {f.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                {nb.fabricId ? (
+                  <motion.div initial={{ opacity:0, height: 0 }} animate={{ opacity:1, height: 'auto' }}>
+                    <Field
+                      label="Fabric meters (logs OUT) *"
+                      type="number"
+                      value={nb.fabricMeters}
+                      onChange={(v) => setNb((s) => ({ ...s, fabricMeters: v }))}
+                      error={nbErr.fabricMeters}
+                    />
+                  </motion.div>
+                ) : null}
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold uppercase tracking-widest text-foreground/60 ml-1">Initial Stage</label>
+                  <select
+                    value={nb.currentStage}
+                    onChange={(e) => setNb((s) => ({ ...s, currentStage: e.target.value }))}
+                    className="w-full bg-background border border-foreground/10 rounded-xl px-4 py-3 text-[13px] font-medium text-foreground focus:outline-none focus:border-foreground/30 shadow-sm appearance-none"
+                  >
+                    {MFG_STAGE_KEYS.map((k) => (
+                      <option key={k} value={k}>
+                        {MFG_STAGE_LABEL[k]}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <Field
+                  label="Internal Notes"
+                  textarea
+                  value={nb.notes}
+                  onChange={(v) => setNb((s) => ({ ...s, notes: v }))}
+                />
+                <Field
+                  label="Est cost per unit (₹)"
+                  type="number"
+                  value={nb.estCpu}
+                  onChange={(v) => setNb((s) => ({ ...s, estCpu: v }))}
+                />
               </div>
-              <Field
-                label="Internal Audit Notes"
-                textarea
-                value={nb.notes}
-                onChange={(v) => setNb((s) => ({ ...s, notes: v }))}
-              />
-              <Field
-                label="Projected nodes cpu (₹, optional)"
-                type="number"
-                value={nb.estCpu}
-                onChange={(v) => setNb((s) => ({ ...s, estCpu: v }))}
-              />
-            </div>
 
-            <div className="flex gap-2 justify-end pt-6 border-t border-foreground/[0.05]">
-              <button
-                type="button"
-                onClick={() => setNewOpen(false)}
-                className="px-5 py-2 rounded-md text-[8px] font-normal uppercase tracking-[0.2em] text-foreground/40 hover:text-foreground/60 transition-all"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={createBatch}
-                className="px-8 py-2 bg-foreground text-background rounded-md text-[8px] font-normal uppercase tracking-[0.3em] shadow-lg shadow-foreground/5 hover:opacity-90 transition-all"
-              >
-                INITIATE BATCH
-              </button>
-            </div>
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setNewOpen(false)}
+                  className="flex-1 px-4 py-3 bg-background border border-foreground/10 rounded-xl text-[11px] font-bold text-foreground/70 hover:text-foreground hover:bg-foreground/5 transition-all shadow-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={createBatch}
+                  className="flex-[2] flex items-center justify-center px-4 py-3 bg-foreground text-background rounded-xl text-[11px] font-bold uppercase tracking-[0.1em] hover:opacity-90 transition-all shadow-lg shadow-foreground/10"
+                >
+                  Initiate Batch
+                </button>
+              </div>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
 
       {/* Action modal */}
-      {modal && (
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 bg-background/80 backdrop-blur-md animate-in fade-in">
-          <div className="w-full max-w-md bg-white/90 dark:bg-black/80 backdrop-blur-2xl rounded-[1rem] border border-foreground/[0.05] shadow-2xl p-6 space-y-6 max-h-[90vh] overflow-y-auto font-inter">
-            <div className="space-y-1">
-              <h2 className="text-[11px] font-normal text-foreground uppercase tracking-[0.2em] leading-none">{modal.action.replace(/_/g, " ")}</h2>
-              <p className="text-[9px] text-foreground/40 uppercase tracking-[0.2em]">RECORDING TRANSITION FOR NODE: {modal.batch.batchCode}</p>
-            </div>
-            
-            <div className="space-y-4">
-              <ActionFields 
-                action={modal.action} 
-                act={act} 
-                setAct={setAct} 
-                actErr={actErr} 
-                vendors={vendors}
-              />
-            </div>
+      <AnimatePresence>
+        {modal && (
+          <div className="fixed inset-0 z-[160] flex items-end sm:items-center justify-center p-4 lg:p-6 bg-background/80 backdrop-blur-md">
+            <motion.div 
+               initial={{ opacity: 0, scale: 0.95, y: 20 }}
+               animate={{ opacity: 1, scale: 1, y: 0 }}
+               exit={{ opacity: 0, scale: 0.95, y: 20 }}
+               className="w-full max-w-md glass rounded-[2rem] border border-foreground/10 shadow-2xl p-6 lg:p-8 flex flex-col gap-6 max-h-[92vh] overflow-y-auto"
+            >
+              <div>
+                <h2 className="text-xl lg:text-2xl font-bold tracking-tight text-foreground">{modal.action.replace(/_/g, " ")}</h2>
+                <p className="text-[12px] text-foreground/60 mt-1 tracking-wide">Recording transition for batch: <span className="font-mono text-foreground">{modal.batch.batchCode}</span></p>
+              </div>
+              
+              <div className="space-y-4">
+                <ActionFields 
+                  action={modal.action} 
+                  act={act} 
+                  setAct={setAct} 
+                  actErr={actErr} 
+                  vendors={vendors}
+                />
+              </div>
 
-            <div className="flex gap-2 justify-end pt-6 border-t border-foreground/[0.05]">
-              <button
-                type="button"
-                onClick={() => setModal(null)}
-                className="px-5 py-2 rounded-md text-[8px] font-normal uppercase tracking-[0.2em] text-foreground/40 hover:text-foreground/60 transition-all"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={submitAction}
-                className="px-8 py-2 bg-foreground text-background rounded-md text-[8px] font-normal uppercase tracking-[0.3em] shadow-lg shadow-foreground/5 hover:opacity-90 transition-all"
-              >
-                RECORD SYNC
-              </button>
-            </div>
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setModal(null)}
+                  className="flex-1 px-4 py-3 bg-background border border-foreground/10 rounded-xl text-[11px] font-bold text-foreground/70 hover:text-foreground hover:bg-foreground/5 transition-all shadow-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={submitAction}
+                  className="flex-[2] flex items-center justify-center px-4 py-3 bg-foreground text-background rounded-xl text-[11px] font-bold uppercase tracking-[0.1em] hover:opacity-90 transition-all shadow-lg shadow-foreground/10"
+                >
+                  Record Sync
+                </button>
+              </div>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
 
       <BatchDrawer
         batchId={drawerId}
@@ -762,19 +855,7 @@ export default function ProductionTrackerPage() {
         }}
         onSaved={() => loadBatches()}
       />
-
-      {toast && (
-        <div
-          className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] px-5 py-3 rounded-2xl text-sm font-semibold shadow-2xl ${
-            toast?.type === "ok"
-              ? "bg-foreground text-background"
-              : "bg-red-600 text-white"
-          }`}
-        >
-          {toast?.msg}
-        </div>
-      )}
-    </div>
+    </motion.div>
   );
 }
 
@@ -789,23 +870,23 @@ function Field(props: {
   const { label, value, onChange, type = "text", textarea, error } = props;
   return (
     <div className="space-y-1.5">
-      <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">{label}</label>
+      <label className="text-[11px] font-bold uppercase tracking-widest text-foreground/60 ml-1">{label}</label>
       {textarea ? (
         <textarea
           value={value}
           onChange={(e) => onChange(e.target.value)}
           rows={3}
-          className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em]"
+          className="w-full bg-background border border-foreground/10 rounded-xl px-4 py-3 text-[13px] font-medium text-foreground focus:outline-none focus:border-foreground/30 shadow-sm"
         />
       ) : (
         <input
           type={type}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all font-inter"
+          className="w-full bg-background border border-foreground/10 rounded-xl px-4 py-3 text-[13px] font-medium text-foreground focus:outline-none focus:border-foreground/30 shadow-sm"
         />
       )}
-      {error && <p className="text-rose-500 text-[7px] mt-1 uppercase tracking-widest">{error}</p>}
+      {error && <p className="text-rose-500 text-[10px] font-bold mt-1 uppercase tracking-widest ml-1">{error}</p>}
     </div>
   );
 }
@@ -826,9 +907,9 @@ function BreakdownMini({ b }: { b: Record<string, number> }) {
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-x-8 gap-y-3">
         {rows.map(([label, key]) => (
-          <div key={key} className="flex flex-col gap-1">
-            <span className="text-[7px] font-normal text-foreground/20 uppercase tracking-[0.3em] font-inter">{label}</span>
-            <span className="text-[10px] tabular-nums font-normal text-foreground/70">{formatInr(Number(b[key] ?? 0))}</span>
+          <div key={key} className="flex flex-col gap-1 border-b border-foreground/5 pb-2">
+            <span className="text-[9px] font-bold text-foreground/40 uppercase tracking-widest">{label}</span>
+            <span className="text-[12px] font-medium tabular-nums text-foreground/80">{formatInr(Number(b[key] ?? 0))}</span>
           </div>
         ))}
       </div>
@@ -851,14 +932,14 @@ function ActionFields({
 }) {
   const f = (k: keyof ActionFormState, label: string, type = "text", ta?: boolean) => (
     <div key={String(k)} className="space-y-1.5">
-      <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">{label}</label>
+      <label className="text-[11px] font-bold uppercase tracking-widest text-foreground/60 ml-1">{label}</label>
       {k === "vendor" ? (
         <select
           value={act[k]}
           onChange={(e) => setAct((s) => ({ ...s, [k]: e.target.value }))}
-          className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em] appearance-none"
+          className="w-full bg-background border border-foreground/10 rounded-xl px-4 py-3 text-[13px] font-medium text-foreground focus:outline-none focus:border-foreground/30 shadow-sm appearance-none"
         >
-          <option value="">SELECT NODE…</option>
+          <option value="">Select Vendor...</option>
           {vendors.map((v) => (
             <option key={v.id} value={v.name}>
               {v.name} ({v.category})
@@ -870,18 +951,18 @@ function ActionFields({
           value={act[k]}
           onChange={(e) => setAct((s) => ({ ...s, [k]: e.target.value }))}
           rows={2}
-          className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em]"
+          className="w-full bg-background border border-foreground/10 rounded-xl px-4 py-3 text-[13px] font-medium text-foreground focus:outline-none focus:border-foreground/30 shadow-sm"
         />
       ) : (
         <input
           type={type}
           value={act[k]}
           onChange={(e) => setAct((s) => ({ ...s, [k]: e.target.value }))}
-          className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all"
+          className="w-full bg-background border border-foreground/10 rounded-xl px-4 py-3 text-[13px] font-medium text-foreground focus:outline-none focus:border-foreground/30 shadow-sm"
         />
       )}
       {actErr[k as string] && (
-        <p className="text-rose-500 text-[7px] mt-1 uppercase tracking-widest">{actErr[k as string]}</p>
+        <p className="text-rose-500 text-[10px] font-bold mt-1 uppercase tracking-widest ml-1">{actErr[k as string]}</p>
       )}
     </div>
   );

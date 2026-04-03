@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Loader2, Plus, RefreshCw, Download, TrendingDown, TrendingUp } from "lucide-react";
+import { Loader2, Plus, RefreshCw, Download, TrendingDown, TrendingUp, Activity, Check } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { MFG_STAGE_LABEL } from "@/lib/manufacturing/constants";
 import { mfgFetch } from "@/lib/manufacturing/mfg-fetch";
 import { formatDateTimeIST } from "@/lib/manufacturing/ist";
@@ -289,329 +290,368 @@ export default function CostLedgerPage() {
     : [];
 
   return (
-    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-[1500px] mx-auto pb-12 pt-4">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-2">
-        <div className="space-y-1">
-          <div className="px-2 py-0.5 bg-foreground/[0.03] rounded-md text-[7px] font-normal text-foreground/50 uppercase tracking-[0.3em] w-fit tracking-widest font-inter">manufacturing hub</div>
-          <h1 className="text-lg font-normal text-foreground uppercase tracking-[0.2em] mb-0.5 leading-none mt-1 font-inter">
-            Cost & Valuation Ledger
-          </h1>
-          <p className="text-[9px] text-foreground/40 font-normal uppercase tracking-[0.2em] mt-1">
-            Spectrum Financial Audit — Real-time cost attribution across all node stages.
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="pb-20 space-y-10 relative z-10"
+    >
+      {/* Vibrant Orb Backgrounds */}
+      <div className="absolute -right-24 -top-24 w-96 h-96 bg-foreground/5 blur-3xl rounded-full pointer-events-none" />
+      <div className="absolute -left-24 top-1/2 w-72 h-72 bg-foreground/5 blur-3xl rounded-full pointer-events-none" />
+
+      <AnimatePresence>
+        {toast && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20, x: '-50%' }}
+            animate={{ opacity: 1, y: 0, x: '-50%' }}
+            exit={{ opacity: 0, y: -20, x: '-50%' }}
+            className={`fixed top-8 left-1/2 z-[200] max-w-[90vw] w-max px-4 py-3 rounded-[1rem] text-[12px] font-bold shadow-2xl flex items-center justify-center gap-2 border backdrop-blur-xl ${
+              toast.t === "ok" 
+                ? "bg-background/90 text-foreground border-foreground/10" 
+                : "bg-rose-500 text-white border-rose-500/20"
+            }`}
+          >
+            {toast.t === "ok" && <Check className="w-4 h-4 text-emerald-500" />}
+            {toast.m}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-10 px-4 pt-4 mb-12 relative z-10">
+        <div className="space-y-4">
+          <div className="flex items-center gap-4 mb-2 lg:mb-6">
+            <div className="w-14 h-14 rounded-2xl bg-foreground/5 flex items-center justify-center text-foreground/50 dark:text-foreground/30 border border-foreground/5 shadow-2xl">
+              <Activity className="w-7 h-7" />
+            </div>
+            <div>
+              <h1 className="text-4xl md:text-5xl font-bold text-foreground uppercase tracking-tighter leading-none">
+                Cost Ledger
+              </h1>
+              <p className="text-[11px] text-foreground/50 dark:text-foreground/30 font-bold uppercase tracking-[0.4em] mt-2">
+                Spectrum Financial Audit
+              </p>
+            </div>
+          </div>
+           <p className="text-[11px] lg:text-[12px] text-foreground/70 tracking-wide max-w-xl font-medium leading-relaxed">
+             Real-time cost attribution across all node stages. Audit trail of manufacturing capital flows.
           </p>
           {range && (
-            <div className="flex items-center gap-2 mt-2">
-              <span className="text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em]">Audit Window</span>
-              <span className="text-[8px] font-normal text-foreground/60 tabular-nums uppercase tracking-tighter">
-                {formatDateTimeIST(range.from).split(',')[0]} → {formatDateTimeIST(range.to).split(',')[0]}
-              </span>
-            </div>
+            <p className="text-[10px] font-bold text-foreground/40 mt-2 uppercase tracking-[0.3em]">
+              Audit Window: <span className="text-foreground/80">{formatDateTimeIST(range.from).split(',')[0]} — {formatDateTimeIST(range.to).split(',')[0]}</span>
+            </p>
           )}
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        
+        <div className="flex flex-wrap items-center gap-3">
           <button
-            type="button"
-            onClick={() => loadLedger()}
+            onClick={loadLedger}
             disabled={loading}
-            className="flex items-center gap-2 px-5 py-2.5 bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-foreground/[0.05] rounded-md text-[8px] font-normal uppercase tracking-[0.2em] text-foreground/80 dark:text-foreground/60 transition-all active:scale-95"
+            className="flex items-center gap-3 px-6 py-3 bg-background dark:bg-white/[0.03] border border-foreground/[0.08] text-foreground rounded-2xl text-[10px] font-bold uppercase tracking-[0.3em] hover:bg-foreground/[0.02] disabled:opacity-50 transition-all shadow-sm active:scale-95"
           >
-            <RefreshCw className={`w-3 h-3 ${loading ? "animate-spin" : ""}`} strokeWidth={1.5} />
-            REFRESH
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} strokeWidth={2.5} />
+            Refresh
           </button>
+          
           <button
-            type="button"
             onClick={exportCsv}
             disabled={batches.length === 0}
-            className="flex items-center gap-2 px-5 py-2.5 bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-foreground/[0.05] rounded-md text-[8px] font-normal uppercase tracking-[0.2em] text-foreground/80 dark:text-foreground/60 transition-all active:scale-95 disabled:opacity-40"
+             className="flex items-center gap-3 px-6 py-3 bg-background dark:bg-white/[0.03] border border-foreground/[0.08] text-foreground rounded-2xl text-[10px] font-bold uppercase tracking-[0.3em] hover:bg-foreground/[0.02] disabled:opacity-50 transition-all shadow-sm active:scale-95"
           >
-            <Download className="w-3.5 h-3.5" strokeWidth={1.5} />
-            EXPORT SPECTRUM
+            <Download className="w-3.5 h-3.5" strokeWidth={2.5} />
+            Export CSV
           </button>
+ 
           <button
-            type="button"
             onClick={() => {
               setMiscOpen(true);
               setMiscErr({});
             }}
-            className="flex items-center gap-2 px-5 py-2.5 bg-foreground text-background border border-foreground rounded-md text-[8px] font-normal uppercase tracking-[0.2em] transition-all active:scale-95 shadow-lg shadow-foreground/5"
+            className="flex items-center gap-3 px-8 py-3 bg-foreground text-background rounded-2xl text-[10px] font-bold uppercase tracking-[0.3em] hover:opacity-90 transition-all active:scale-95 shadow-xl shadow-foreground/20"
           >
-            <Plus className="w-3.5 h-3.5" strokeWidth={1.5} />
-            RECORD MISC
+            <Plus className="w-4 h-4" strokeWidth={2.5} />
+            Record Misc
           </button>
         </div>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 relative z-10">
         {loading && !summary ? (
-          <div className="col-span-full flex flex-col items-center justify-center py-16 gap-3">
-             <Loader2 className="w-8 h-8 animate-spin text-foreground/20" strokeWidth={1} />
-             <p className="text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em]">Synching Ledger nodes…</p>
+          <div className="col-span-full py-12 flex flex-col items-center justify-center">
+            <Loader2 className="w-6 h-6 animate-spin text-foreground/40 mb-3" />
+            <span className="text-[10px] font-bold uppercase tracking-widest text-foreground/50">Computing ledger</span>
           </div>
         ) : (
-          cards.map((c) => (
-            <div
+          cards.map((c, i) => (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: i * 0.05, duration: 0.5 }}
               key={c.key}
-              className={`bg-white/50 dark:bg-white/[0.01] backdrop-blur-3xl rounded-[1rem] p-4 border transition-all duration-500 shadow-sm flex flex-col justify-between group ${
-                c.highlight
-                  ? "border-foreground/20 ring-1 ring-foreground/5 bg-foreground/[0.01]"
-                  : "border-foreground/[0.05] hover:border-foreground/10"
+              className={`glass-card p-5 lg:p-6 relative overflow-hidden group rounded-[1.5rem] lg:rounded-[2rem] ${
+                c.highlight 
+                  ? "border-foreground/10 bg-foreground/[0.02] shadow-sm"
+                  : ""
               }`}
             >
-              <div className="space-y-1">
-                <div className="text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em] leading-none group-hover:text-foreground/50 transition-colors">
-                  {c.label}
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="text-[15px] font-normal text-foreground tabular-nums tracking-tight font-inter">
-                    {summary ? formatInr(summary[c.key]) : "₹ 0.00"}
-                  </div>
+               <div className="flex justify-between items-start mb-3 lg:mb-4">
+                <p className={`text-[10px] lg:text-[11px] font-bold uppercase tracking-[0.2em] ${c.highlight ? "text-foreground" : "text-foreground/40"} `}>{c.label}</p>
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center border shadow-inner ${
+                    c.highlight ? "bg-foreground text-background border-transparent" : "bg-foreground/5 text-foreground/50 border-foreground/5"
+                }`}>
+                  <Activity className="w-3.5 h-3.5" strokeWidth={1.5} />
                 </div>
               </div>
-              <div className="mt-4 flex items-center justify-between">
-                <DeltaBadge delta={trendDeltas?.[c.key]} />
-                <span className="text-[6px] font-normal text-foreground/10 uppercase tracking-[0.2em]">Delta-Ref</span>
+
+              <div className="relative z-10">
+                <p className={`text-xl lg:text-3xl font-bold tracking-tighter mb-2 ${
+                    c.highlight ? "text-foreground" : "text-foreground/90"
+                }`}>
+                  {summary ? formatInr(summary[c.key]) : "₹ 0.00"}
+                </p>
+                <div className="flex items-center gap-2">
+                   <DeltaBadge delta={trendDeltas?.[c.key]} />
+                   {trendDeltas?.[c.key] !== undefined && trendDeltas?.[c.key] !== 0 && (
+                     <span className="text-[9px] font-bold text-foreground/40 uppercase tracking-widest leading-none mt-[1px]">vs Pre</span>
+                   )}
+                </div>
               </div>
-            </div>
+            </motion.div>
           ))
         )}
       </div>
 
-      {/* Filters */}
-      <div className="bg-white/50 dark:bg-white/[0.01] backdrop-blur-3xl rounded-[1rem] p-4 border border-foreground/[0.05] shadow-sm space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em]">Query Filters</div>
-          <p className="text-[8px] text-foreground/20 uppercase tracking-[0.1em]">
-            Default: Current calendar node (IST window)
-          </p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-2">
-          <input
-            type="datetime-local"
-            value={from}
-            onChange={(e) => setFrom(e.target.value)}
-            className="bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all font-inter"
-          />
-          <input
-            type="datetime-local"
-            value={to}
-            onChange={(e) => setTo(e.target.value)}
-            className="bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all font-inter"
-          />
-          <select
-            value={batchId}
-            onChange={(e) => setBatchId(e.target.value)}
-            className="bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em] appearance-none"
-          >
-            <option value="">ALL SPECTRUM BATCHES</option>
-            {batchOptions.map((b) => (
-              <option key={b.id} value={b.id}>
-                {b.batchCode}
-              </option>
-            ))}
-          </select>
-          <select
-            value={stage}
-            onChange={(e) => setStage(e.target.value)}
-            className="bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em] appearance-none"
-          >
-            <option value="">ALL NODE STAGES</option>
-            {Object.entries(MFG_STAGE_LABEL).map(([k, v]) => (
-              <option key={k} value={k}>
-                {v.toUpperCase()}
-              </option>
-            ))}
-          </select>
-          <button
-            type="button"
-            onClick={() => loadLedger()}
-            className="bg-foreground text-background rounded-md px-3 py-2 text-[8px] font-normal uppercase tracking-[0.2em] shadow-lg shadow-foreground/5 hover:opacity-90 transition-all"
-          >
-            APPLY SPECTRUM FILTER
-          </button>
-        </div>
-      </div>
-
-      {/* Ledger Table */}
-      <div className="bg-white/50 dark:bg-white/[0.01] backdrop-blur-3xl rounded-[1rem] border border-foreground/[0.05] shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-[11px] font-inter min-w-[1100px]">
-            <thead className="bg-foreground/[0.02] border-b border-foreground/[0.05]">
-              <tr>
-                <th className="px-4 py-4 text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em]">Batch / Style</th>
-                <th className="px-4 py-4 text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em]">Stage</th>
-                <th className="px-4 py-4 text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em]">Fabric</th>
-                <th className="px-4 py-4 text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em]">Wash</th>
-                <th className="px-4 py-4 text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em]">Wash/U</th>
-                <th className="px-4 py-4 text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em]">Print</th>
-                <th className="px-4 py-4 text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em]">Emb.</th>
-                <th className="px-4 py-4 text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em]">Travel</th>
-                <th className="px-4 py-4 text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em]">Misc</th>
-                <th className="px-4 py-4 text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em]">Total</th>
-                <th className="px-4 py-4 text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em]">₹ / Unit</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-foreground/[0.02]">
-              {loading && batches.length === 0 ? (
-                <tr>
-                  <td colSpan={11} className="px-4 py-16 text-center">
-                    <Loader2 className="w-6 h-6 animate-spin inline text-foreground/10" strokeWidth={1} />
-                  </td>
-                </tr>
-              ) : batches.length === 0 ? (
-                <tr>
-                  <td colSpan={11} className="px-4 py-16 text-center text-foreground/30 text-[9px] uppercase tracking-[0.2em]">
-                    No spectrum data matched the current query.
-                  </td>
-                </tr>
-              ) : (
-                batches.map((b) => (
-                  <tr key={b.batchId} className="hover:bg-foreground/[0.01] transition-colors">
-                    <td className="px-4 py-4">
-                      <div className="font-normal text-foreground/40 text-[8px] uppercase tracking-wider tabular-nums">{b.batchCode}</div>
-                      <div className="font-normal text-foreground uppercase tracking-tight text-[11px] mt-1">{b.productName}</div>
-                      <div className="text-[7px] text-foreground/30 uppercase tracking-[0.2em] mt-1">Nodes: {b.quantity}</div>
-                    </td>
-                    <td className="px-4 py-4">
-                      <span className="text-[9px] font-normal text-foreground/60 uppercase tracking-[0.1em]">
-                        {MFG_STAGE_LABEL[b.currentStage] || b.currentStage}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4 tabular-nums text-foreground/70">{formatInr(b.fabricCost)}</td>
-                    <td className="px-4 py-4 tabular-nums text-foreground/70">{formatInr(b.washCost)}</td>
-                    <td className="px-4 py-4 tabular-nums text-foreground/40">{formatInr(num(b.washCostPerUnit))}</td>
-                    <td className="px-4 py-4 tabular-nums text-foreground/70">{formatInr(b.printingCost)}</td>
-                    <td className="px-4 py-4 tabular-nums text-foreground/70">{formatInr(b.embroideryCost)}</td>
-                    <td className="px-4 py-4 tabular-nums text-foreground/70">{formatInr(b.travelLogistics)}</td>
-                    <td className="px-4 py-4 tabular-nums text-foreground/70">{formatInr(b.miscellaneous)}</td>
-                    <td className="px-4 py-4 tabular-nums font-normal text-foreground underline decoration-foreground/5 decoration-dotted underline-offset-4">{formatInr(b.totalCost)}</td>
-                    <td className="px-4 py-4 tabular-nums">
-                      <span className={`px-2 py-1 rounded-md text-[10px] font-normal ${
-                          b.costPerUnit > COST_PER_UNIT_WARN_THRESHOLD
-                            ? "bg-rose-500/5 text-rose-500"
-                            : "text-foreground/80"
-                        }`}>
-                        {formatInr(b.costPerUnit)}
-                      </span>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Misc Expense Modal */}
-      {miscOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-md animate-in fade-in">
-          <div className="w-full max-w-md bg-white/90 dark:bg-black/80 backdrop-blur-2xl rounded-[1rem] border border-foreground/[0.05] shadow-2xl p-6 space-y-6 max-h-[90vh] overflow-y-auto font-inter">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2, duration: 0.8 }}
+        className="glass-card rounded-[2rem] lg:rounded-[3rem] p-6 lg:p-8 flex flex-col gap-6"
+      >
+        {/* Filters */}
+        <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-end justify-between">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 w-full lg:flex-1">
             <div className="space-y-1">
-              <h2 className="text-[11px] font-normal text-foreground uppercase tracking-[0.2em] leading-none">RECORD MISCELLANEOUS EXPENSE</h2>
-              <p className="text-[9px] text-foreground/40 uppercase tracking-[0.2em]">Batch linkage is optional; unallocated units roll into period net valuation.</p>
+              <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/50 ml-1">From Date</label>
+              <input
+                type="datetime-local"
+                value={from}
+                onChange={(e) => setFrom(e.target.value)}
+                className="w-full bg-background border border-foreground/10 rounded-xl px-3 py-2.5 text-[12px] font-medium text-foreground focus:outline-none focus:border-foreground/30 shadow-sm transition-all"
+              />
             </div>
-
-            <div className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">Spectrum Batch Linkage</label>
-                <select
-                  value={miscBatch}
-                  onChange={(e) => setMiscBatch(e.target.value)}
-                  className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em] appearance-none"
-                >
-                  <option value="">UNALLOCATED (NULL-LINK)</option>
-                  {batchOptions.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.batchCode}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">Expense Protocol</label>
-                <select
-                  value={miscExpenseType}
-                  onChange={(e) => setMiscExpenseType(e.target.value)}
-                  className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em] appearance-none"
-                >
-                  {MISC_EXPENSE_TYPES.map((t) => (
-                    <option key={t.value} value={t.value}>
-                      {t.label.toUpperCase()}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">Valuation Amount (₹) *</label>
-                <input
-                  type="number"
-                  inputMode="decimal"
-                  step="0.01"
-                  value={miscAmount}
-                  onChange={(e) => setMiscAmount(e.target.value)}
-                  className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all tabular-nums font-inter"
-                />
-                {miscErr.amount && <p className="text-rose-500 text-[7px] mt-1 uppercase tracking-widest">{miscErr.amount}</p>}
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">Technical Description *</label>
-                <input
-                  value={miscDesc}
-                  onChange={(e) => setMiscDesc(e.target.value)}
-                  placeholder="E.G. PACKAGING, COURIER, LABOUR"
-                  className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em]"
-                />
-                {miscErr.description && (
-                  <p className="text-rose-500 text-[7px] mt-1 uppercase tracking-widest">{miscErr.description}</p>
-                )}
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">Log Date</label>
-                <input
-                  type="date"
-                  value={miscDate}
-                  onChange={(e) => setMiscDate(e.target.value)}
-                  className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all font-inter"
-                />
-              </div>
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/50 ml-1">To Date</label>
+              <input
+                type="datetime-local"
+                value={to}
+                onChange={(e) => setTo(e.target.value)}
+                className="w-full bg-background border border-foreground/10 rounded-xl px-3 py-2.5 text-[12px] font-medium text-foreground focus:outline-none focus:border-foreground/30 shadow-sm transition-all"
+              />
             </div>
-
-            <div className="flex gap-2 justify-end pt-6 border-t border-foreground/[0.05]">
-              <button
-                type="button"
-                onClick={() => setMiscOpen(false)}
-                className="px-5 py-2 rounded-md text-[8px] font-normal uppercase tracking-[0.2em] text-foreground/40 hover:text-foreground/60 transition-all"
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/50 ml-1">Batch Code</label>
+              <select
+                value={batchId}
+                onChange={(e) => setBatchId(e.target.value)}
+                className="w-full bg-background border border-foreground/10 rounded-xl px-3 py-2.5 text-[12px] font-medium text-foreground focus:outline-none focus:border-foreground/30 shadow-sm transition-all appearance-none"
               >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={saveMisc}
-                className="px-8 py-2 bg-foreground text-background rounded-md text-[8px] font-normal uppercase tracking-[0.3em] shadow-lg shadow-foreground/5 hover:opacity-90 transition-all"
+                <option value="">All Batches</option>
+                {batchOptions.map((b) => (
+                  <option key={b.id} value={b.id}>{b.batchCode}</option>
+                ))}
+              </select>
+            </div>
+             <div className="space-y-1">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/50 ml-1">Stage</label>
+              <select
+                value={stage}
+                onChange={(e) => setStage(e.target.value)}
+                className="w-full bg-background border border-foreground/10 rounded-xl px-3 py-2.5 text-[12px] font-medium text-foreground focus:outline-none focus:border-foreground/30 shadow-sm transition-all appearance-none"
               >
-                COMMIT EXPENSE
-              </button>
+                <option value="">All Stages</option>
+                {Object.entries(MFG_STAGE_LABEL).map(([k, v]) => (
+                  <option key={k} value={k}>{v}</option>
+                ))}
+              </select>
             </div>
           </div>
         </div>
-      )}
 
-      {toast && (
-        <div
-          className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-[200] px-6 py-4 rounded-[2rem] text-[10px] font-normal uppercase tracking-[0.2em] shadow-2xl animate-in fade-in slide-in-from-bottom-4 border border-foreground/[0.05] backdrop-blur-xl ${
-            toast?.t === "ok"
-              ? "bg-foreground text-background"
-              : "bg-rose-500 text-white"
-          }`}
-        >
-          {toast?.m}
+        <div className="border-t border-foreground/5" />
+
+        {/* Ledger Table */}
+        <div className="flex-1 overflow-x-auto custom-scrollbar">
+          <div className="min-w-[1000px] lg:min-w-0">
+             <table className="w-full text-left whitespace-nowrap">
+              <thead>
+                <tr className="border-b border-foreground/5 text-[10px] uppercase font-bold text-foreground/40 tracking-[0.2em]">
+                  <th className="px-4 py-4">Batch Details</th>
+                  <th className="px-4 py-4">Stage</th>
+                  <th className="px-4 py-4">Fabric</th>
+                  <th className="px-4 py-4">Wash</th>
+                  <th className="px-4 py-4">Print</th>
+                  <th className="px-4 py-4">Emb</th>
+                  <th className="px-4 py-4">Misc</th>
+                  <th className="px-4 py-4 relative">
+                     <span className="bg-foreground/5 px-2 py-1 rounded text-foreground/80 absolute top-1/2 -translate-y-1/2">Total</span>
+                  </th>
+                  <th className="px-4 py-4 relative">
+                     <span className="bg-foreground/5 px-2 py-1 rounded text-foreground/80 absolute top-1/2 -translate-y-1/2">₹ / Unit</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-foreground/[0.03]">
+                {loading && batches.length === 0 ? (
+                  <tr>
+                    <td colSpan={10} className="px-4 py-16 text-center">
+                      <div className="flex flex-col items-center gap-2">
+                        <Loader2 className="w-5 h-5 animate-spin text-foreground/40" />
+                        <span className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Loading entries</span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : batches.length === 0 ? (
+                  <tr>
+                    <td colSpan={10} className="px-4 py-16 text-center">
+                       <p className="text-[12px] font-bold text-foreground/40 uppercase tracking-[0.3em]">No spectrum data matched</p>
+                    </td>
+                  </tr>
+                ) : (
+                  batches.map((b) => (
+                    <tr key={b.batchId} className="hover:bg-foreground/[0.01] transition-all group duration-500">
+                      <td className="px-4 py-4">
+                        <div className="font-bold text-foreground/60 text-[10px] uppercase tracking-widest tabular-nums">{b.batchCode}</div>
+                        <div className="font-semibold text-foreground text-[14px] leading-tight mb-1">{b.productName}</div>
+                        <div className="text-[10px] text-foreground/40 font-bold uppercase tracking-widest">Qty: {b.quantity}</div>
+                      </td>
+                      <td className="px-4 py-4">
+                        <span className="text-[11px] font-bold text-foreground/60 uppercase tracking-wider bg-foreground/5 px-2 py-1 rounded-md">
+                          {MFG_STAGE_LABEL[b.currentStage] || b.currentStage}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4 text-[13px] font-medium tabular-nums text-foreground/70">{formatInr(b.fabricCost)}</td>
+                      <td className="px-4 py-4 text-[13px] font-medium tabular-nums text-foreground/70">{formatInr(b.washCost)}</td>
+                      <td className="px-4 py-4 text-[13px] font-medium tabular-nums text-foreground/70">{formatInr(b.printingCost)}</td>
+                      <td className="px-4 py-4 text-[13px] font-medium tabular-nums text-foreground/70">{formatInr(b.embroideryCost)}</td>
+                      <td className="px-4 py-4 text-[13px] font-medium tabular-nums text-foreground/70">{formatInr(b.miscellaneous + b.travelLogistics)}</td>
+                      <td className="px-4 py-4 text-[14px] font-bold tabular-nums text-foreground">{formatInr(b.totalCost)}</td>
+                      <td className="px-4 py-4 tabular-nums">
+                        <span className={`text-[12px] font-bold tracking-widest px-2 py-1 rounded-md border ${
+                            b.costPerUnit > COST_PER_UNIT_WARN_THRESHOLD
+                              ? "bg-rose-500/10 text-rose-600 border-rose-500/20"
+                              : "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+                          }`}>
+                          {formatInr(b.costPerUnit)}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      )}
-    </div>
+      </motion.div>
+
+      {/* Misc Expense Modal */}
+      <AnimatePresence>
+        {miscOpen && (
+          <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 lg:p-6 bg-background/80 backdrop-blur-md">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="w-full max-w-md glass rounded-[2rem] border border-foreground/10 shadow-2xl p-6 lg:p-8 space-y-6 max-h-[92vh] overflow-y-auto"
+            >
+              <div>
+                <h2 className="text-xl lg:text-2xl font-bold tracking-tight text-foreground">Record Miscellaneous</h2>
+                <p className="text-[12px] text-foreground/60 mt-1 tracking-wide">Batch linkage is optional.</p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold uppercase tracking-widest text-foreground/60 ml-1">Batch Linkage</label>
+                  <select
+                    value={miscBatch}
+                    onChange={(e) => setMiscBatch(e.target.value)}
+                    className="w-full bg-background border border-foreground/10 rounded-xl px-4 py-3 text-[13px] font-medium text-foreground focus:outline-none focus:border-foreground/30 shadow-sm appearance-none"
+                  >
+                    <option value="">Unallocated</option>
+                    {batchOptions.map((b) => (
+                      <option key={b.id} value={b.id}>{b.batchCode}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold uppercase tracking-widest text-foreground/60 ml-1">Expense Type</label>
+                  <select
+                    value={miscExpenseType}
+                    onChange={(e) => setMiscExpenseType(e.target.value)}
+                    className="w-full bg-background border border-foreground/10 rounded-xl px-4 py-3 text-[13px] font-medium text-foreground focus:outline-none focus:border-foreground/30 shadow-sm appearance-none"
+                  >
+                    {MISC_EXPENSE_TYPES.map((t) => (
+                      <option key={t.value} value={t.value}>{t.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold uppercase tracking-widest text-foreground/60 ml-1">Amount (₹) *</label>
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    step="0.01"
+                    value={miscAmount}
+                    onChange={(e) => setMiscAmount(e.target.value)}
+                    className="w-full bg-background border border-foreground/10 rounded-xl px-4 py-3 text-[13px] font-medium text-foreground focus:outline-none focus:border-foreground/30 shadow-sm tabular-nums"
+                  />
+                  {miscErr.amount && <p className="text-rose-500 text-[10px] font-bold mt-1 uppercase tracking-widest ml-1">{miscErr.amount}</p>}
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold uppercase tracking-widest text-foreground/60 ml-1">Description *</label>
+                  <input
+                    value={miscDesc}
+                    onChange={(e) => setMiscDesc(e.target.value)}
+                    placeholder="e.g. Courier, Labour"
+                    className="w-full bg-background border border-foreground/10 rounded-xl px-4 py-3 text-[13px] font-medium text-foreground focus:outline-none focus:border-foreground/30 shadow-sm"
+                  />
+                  {miscErr.description && <p className="text-rose-500 text-[10px] font-bold mt-1 uppercase tracking-widest ml-1">{miscErr.description}</p>}
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold uppercase tracking-widest text-foreground/60 ml-1">Date</label>
+                  <input
+                    type="date"
+                    value={miscDate}
+                    onChange={(e) => setMiscDate(e.target.value)}
+                    className="w-full bg-background border border-foreground/10 rounded-xl px-4 py-3 text-[13px] font-medium text-foreground focus:outline-none focus:border-foreground/30 shadow-sm"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-6">
+                <button
+                  type="button"
+                  onClick={() => setMiscOpen(false)}
+                  className="flex-1 px-4 py-3 bg-background border border-foreground/10 rounded-xl text-[11px] font-bold text-foreground/70 hover:text-foreground hover:bg-foreground/5 transition-all shadow-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={saveMisc}
+                  className="flex-[2] flex items-center justify-center gap-2 px-4 py-3 bg-foreground text-background rounded-xl text-[11px] font-bold uppercase tracking-[0.1em] hover:opacity-90 transition-all shadow-lg shadow-foreground/10"
+                >
+                  Commit Expense
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }

@@ -241,8 +241,12 @@ export default function FabricMovementPage() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="pb-20 space-y-6 lg:space-y-8 relative z-10"
+      className="pb-20 space-y-10 relative z-10"
     >
+      {/* Vibrant Orb Backgrounds */}
+      <div className="absolute -right-24 -top-24 w-96 h-96 bg-foreground/5 blur-3xl rounded-full pointer-events-none" />
+      <div className="absolute -left-24 top-1/2 w-72 h-72 bg-foreground/5 blur-3xl rounded-full pointer-events-none" />
+
       <AnimatePresence>
         {toast && (
           <motion.div 
@@ -261,14 +265,24 @@ export default function FabricMovementPage() {
         )}
       </AnimatePresence>
 
-      {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-8 relative z-10">
-        <div className="space-y-1">
-          <h1 className="text-2xl lg:text-3xl font-bold text-foreground uppercase tracking-tighter leading-none">
-            Fabric Movement
-          </h1>
-          <p className="text-[11px] lg:text-[12px] text-foreground/70 tracking-wide max-w-xl">
-             Immutable ledger — corrections add new rows. Balances shown in IST. Alerts for low stock levels.
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-10 px-4 pt-4 mb-12 relative z-10">
+        <div className="space-y-4">
+          <div className="flex items-center gap-4 mb-2 lg:mb-6">
+            <div className="w-14 h-14 rounded-2xl bg-foreground/5 flex items-center justify-center text-foreground/50 dark:text-foreground/30 border border-foreground/5 shadow-2xl">
+              <CalendarDays className="w-7 h-7" />
+            </div>
+            <div>
+              <h1 className="text-4xl md:text-5xl font-bold text-foreground uppercase tracking-tighter leading-none">
+                Movement
+              </h1>
+              <p className="text-[11px] text-foreground/50 dark:text-foreground/30 font-bold uppercase tracking-[0.4em] mt-2">
+                Immutable Ledger
+              </p>
+            </div>
+          </div>
+          <p className="text-[11px] lg:text-[12px] text-foreground/70 tracking-wide max-w-xl font-medium leading-relaxed">
+             Real-time movement tracking. Immutable ledger recordings ensure data integrity across the manufacturing pipeline.
           </p>
         </div>
         
@@ -276,9 +290,9 @@ export default function FabricMovementPage() {
           <button
             onClick={loadMovements}
             disabled={loading}
-            className="flex items-center gap-2 px-4 py-2.5 bg-background border border-foreground/[0.05] text-foreground rounded-xl text-[10px] font-bold uppercase tracking-[0.15em] hover:bg-foreground/[0.02] disabled:opacity-50 transition-colors shadow-sm"
+            className="flex items-center gap-3 px-6 py-3 bg-background dark:bg-white/[0.03] border border-foreground/[0.08] text-foreground rounded-2xl text-[10px] font-bold uppercase tracking-[0.3em] hover:bg-foreground/[0.02] disabled:opacity-50 transition-all shadow-sm active:scale-95"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} strokeWidth={2.5} />
             Refresh
           </button>
 
@@ -297,9 +311,9 @@ export default function FabricMovementPage() {
               });
               setFormErr({});
             }}
-            className="flex items-center gap-2 px-5 py-2.5 bg-foreground text-background rounded-xl text-[10px] font-bold uppercase tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-foreground/10"
+            className="flex items-center gap-3 px-8 py-3 bg-foreground text-background rounded-2xl text-[10px] font-bold uppercase tracking-[0.3em] hover:opacity-90 transition-all active:scale-95 shadow-xl shadow-foreground/20"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="w-4 h-4" strokeWidth={2.5} />
             Add Movement
           </button>
         </div>
