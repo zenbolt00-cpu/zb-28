@@ -383,96 +383,49 @@ export default function ProductionTrackerPage() {
   };
 
   return (
-    <div className="w-full space-y-6 sm:space-y-8 pb-12 pt-4 lg:pt-10 max-w-[1500px] mx-auto overflow-x-hidden lg:overflow-visible">
-      <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-5">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-foreground uppercase tracking-tighter leading-none">
+    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-[1500px] mx-auto pb-12">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-2">
+        <div className="space-y-1">
+          <div className="px-2 py-0.5 bg-foreground/[0.03] rounded-md text-[7px] font-normal text-foreground/50 uppercase tracking-[0.3em] w-fit tracking-widest">manufacturing hub</div>
+          <h1 className="text-lg font-normal text-foreground uppercase tracking-[0.2em] mb-0.5 leading-none mt-1 font-inter">
             Production Tracker
           </h1>
-          <p className="text-sm text-foreground/55 mt-1 max-w-2xl">
-            Internal batches, fabric consumption, and stage costs — all persisted to the database.
-            Tap a pipeline stage to filter the board.
+          <p className="text-[9px] text-foreground/40 font-normal uppercase tracking-[0.2em] mt-1">
+            Real-time pipeline monitoring — {batches.length} active batches. Transitions are recorded in the immutable spectrum ledger.
           </p>
         </div>
-        <div className="flex flex-col sm:flex-row flex-wrap items-center gap-2 mt-4 lg:mt-0 w-full lg:w-auto">
-          <div className="flex w-full sm:w-auto rounded-2xl border border-foreground/10 p-1 bg-foreground/[0.03]">
-            <button
-              type="button"
-              onClick={() => setView("card")}
-              className={`flex-1 sm:flex-none justify-center px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 ${
-                view === "card" ? "bg-foreground text-background shadow-sm" : "text-foreground/60 hover:bg-foreground/[0.04]"
-              }`}
-            >
-              <LayoutGrid className="w-3.5 h-3.5" />
-              Cards
-            </button>
-            <button
-              type="button"
-              onClick={() => setView("table")}
-              className={`flex-1 sm:flex-none justify-center px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 ${
-                view === "table" ? "bg-foreground text-background shadow-sm" : "text-foreground/60 hover:bg-foreground/[0.04]"
-              }`}
-            >
-              <Table2 className="w-3.5 h-3.5" />
-              Table
-            </button>
-          </div>
+        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => loadBatches()}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl border border-foreground/10 text-xs font-semibold hover:bg-foreground/[0.04]"
+            className="flex items-center gap-2 px-5 py-2.5 bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-foreground/[0.05] rounded-md text-[8px] font-normal uppercase tracking-[0.2em] text-foreground/80 dark:text-foreground/60 transition-all active:scale-95"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-            Refresh
-          </button>
-          <button
-            type="button"
-            onClick={() => setNewOpen(true)}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl bg-foreground text-background text-xs font-bold shadow-lg"
-          >
-            <Plus className="w-4 h-4" />
-            New batch
+            <RefreshCw className={`w-3 h-3 ${loading ? "animate-spin" : ""}`} strokeWidth={1.5} />
+            REFRESH
           </button>
         </div>
-      </header>
+      </div>
 
-      {/* Pipeline filter */}
-      <section className="rounded-3xl border border-foreground/10 bg-foreground/[0.02] p-4 shadow-inner">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-foreground/40 mb-3">
-          Stage pipeline (click to filter)
-        </p>
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin px-1 -mx-1 w-full">
-          {MFG_STAGE_KEYS.map((key) => {
-            const active = filterStage === key;
-            return (
-              <button
-                key={key}
-                type="button"
-                onClick={() => pipelineClick(key)}
-                className={`flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-2xl border text-left transition-all ${
-                  active
-                    ? "border-foreground/25 bg-foreground/10 shadow-md"
-                    : "border-foreground/10 bg-background/40 hover:border-foreground/15"
-                }`}
-              >
-                <span className="text-lg">{MFG_STAGE_EMOJI[key]}</span>
-                <span className="text-[10px] font-semibold text-foreground/80 max-w-[120px] leading-tight">
-                  {MFG_STAGE_LABEL[key]}
-                </span>
-              </button>
-            );
-          })}
+      {/* Stage Pipeline */}
+      <div className="bg-white/50 dark:bg-white/[0.01] backdrop-blur-3xl rounded-[1rem] p-1 border border-foreground/[0.02] shadow-sm">
+        <div className="flex overflow-x-auto scrollbar-hide py-1 px-1 gap-1">
+          {MFG_STAGE_KEYS.map((key) => (
+            <button
+              key={key}
+              onClick={() => setFilterStage((s) => (s === key ? null : key))}
+              className={`px-4 py-2 rounded-md text-[7px] font-normal uppercase tracking-[0.3em] whitespace-nowrap transition-all duration-300 border ${
+                filterStage === key
+                  ? "bg-foreground text-background border-foreground shadow-lg shadow-foreground/5"
+                  : "text-foreground/40 border-transparent hover:bg-foreground/[0.03] hover:text-foreground/60"
+              }`}
+            >
+              <span className="mr-1.5">{MFG_STAGE_EMOJI[key]}</span>
+              {MFG_STAGE_LABEL[key]}
+            </button>
+          ))}
         </div>
-        {filterStage && (
-          <button
-            type="button"
-            onClick={() => setFilterStage(null)}
-            className="mt-3 text-[11px] font-semibold text-foreground/50 hover:text-foreground"
-          >
-            Clear stage filter
-          </button>
-        )}
-      </section>
+      </div>
 
       <input
         value={q}
@@ -550,97 +503,117 @@ export default function ProductionTrackerPage() {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
           {batches.map((b) => {
             const ex = expanded[b.id];
             const ed = expandData[b.id] as { breakdown?: Record<string, number> } | null;
             const pct = progressPct(b.currentStage);
             return (
-              <article
+              <div
                 key={b.id}
-                className="rounded-3xl border border-foreground/10 bg-gradient-to-b from-foreground/[0.04] to-transparent shadow-lg hover:shadow-xl hover:border-foreground/15 transition-all duration-300 overflow-hidden"
+                className="group bg-white/50 dark:bg-white/[0.01] backdrop-blur-3xl rounded-[1rem] border border-foreground/[0.05] shadow-sm hover:border-foreground/10 transition-all duration-500 overflow-hidden flex flex-col"
               >
                 <button
                   type="button"
                   onClick={() => openDrawer(b.id)}
-                  className="w-full text-left p-5 pb-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-foreground/20 rounded-t-3xl"
+                  className="w-full text-left p-5 pb-3 focus:outline-none"
                 >
-                  <div className="flex justify-between gap-3">
-                    <p className="font-mono text-[11px] text-foreground/45">{b.batchCode}</p>
+                  <div className="flex justify-between items-start gap-3">
+                    <div className="space-y-1">
+                      <div className="text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em]">Node ID</div>
+                      <div className="font-mono text-[10px] text-foreground/50">{b.batchCode}</div>
+                    </div>
                     <span
-                      className={`text-[10px] font-bold px-2.5 py-1 rounded-xl border ${
-                        MFG_STAGE_BADGE_CLASS[b.currentStage] || ""
+                      className={`px-2 py-0.5 rounded-md text-[7px] font-normal uppercase tracking-[0.2em] ${
+                        MFG_STAGE_BADGE_CLASS[b.currentStage] || "bg-foreground/5 text-foreground/40 border border-foreground/10"
                       }`}
                     >
                       {MFG_STAGE_EMOJI[b.currentStage]} {MFG_STAGE_LABEL[b.currentStage]}
                     </span>
                   </div>
-                  <h3 className="text-lg font-bold text-foreground mt-2">{b.productName}</h3>
-                  <div className="flex flex-wrap gap-2 mt-3 text-xs">
-                    <span className="px-2.5 py-1 rounded-lg bg-foreground/10 font-semibold tabular-nums">
-                      Qty {b.quantity}
-                    </span>
-                    <span className="px-2.5 py-1 rounded-lg bg-foreground/10 tabular-nums">
-                      Cost {formatInr(num(b.totalCostSoFar))}
-                    </span>
-                    <span className="px-2.5 py-1 rounded-lg bg-foreground/10 text-foreground/60">
-                      Wash run {formatInr(num(b.washCostTotal))}
-                    </span>
+                  <h3 className="text-[13px] font-normal text-foreground uppercase tracking-[0.05em] mt-4 leading-tight font-inter">
+                    {b.productName}
+                  </h3>
+                  
+                  <div className="grid grid-cols-3 gap-4 mt-4">
+                    <div className="space-y-1">
+                      <div className="text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em]">Units</div>
+                      <div className="text-[10px] font-normal text-foreground/70 tabular-nums">{b.quantity}</div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em]">Valuation</div>
+                      <div className="text-[10px] font-normal text-foreground/70 tabular-nums">{formatInr(num(b.totalCostSoFar))}</div>
+                    </div>
+                    <div className="space-y-1 text-right">
+                      <div className="text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em]">Wash Pool</div>
+                      <div className="text-[10px] font-normal text-foreground/70 tabular-nums">{formatInr(num(b.washCostTotal))}</div>
+                    </div>
                   </div>
+
                   {b.fabric && (
-                    <p className="text-[11px] text-foreground/50 mt-2">
-                      Fabric <span className="font-mono text-foreground/70">{b.fabric.sku}</span>{" "}
-                      {b.fabric.name}
-                    </p>
+                    <div className="mt-4 pt-3 border-t border-foreground/[0.03] space-y-1">
+                      <div className="text-[7px] font-normal text-foreground/20 uppercase tracking-[0.3em]">Primary Spectrum Node</div>
+                      <div className="text-[9px] text-foreground/40 font-mono tracking-wider">
+                        {b.fabric.sku} // {b.fabric.name}
+                      </div>
+                    </div>
                   )}
-                  <p className="text-[11px] text-foreground/40 mt-2">
-                    {formatDateTimeIST(b.updatedAt)} IST
-                  </p>
                 </button>
 
                 <div className="px-5 pb-2">
-                  <div className="h-2 rounded-full bg-foreground/10 overflow-hidden">
+                  <div className="h-[1.5px] rounded-full bg-foreground/[0.03] overflow-hidden">
                     <div
-                      className="h-full rounded-full bg-gradient-to-r from-emerald-500/70 to-amber-400/80 transition-all duration-500"
+                      className="h-full bg-foreground/40 transition-all duration-1000 ease-out"
                       style={{ width: `${pct}%` }}
                     />
                   </div>
-                  <p className="text-[10px] text-foreground/35 mt-1">Stage progress</p>
+                  <div className="flex justify-between items-center mt-1.5">
+                    <span className="text-[7px] font-normal text-foreground/20 uppercase tracking-[0.3em]">Pipeline Progress</span>
+                    <span className="text-[8px] font-normal text-foreground/40 tabular-nums tracking-widest">{pct}%</span>
+                  </div>
                 </div>
 
-                <div className="px-4 sm:px-5 pb-4 flex flex-wrap gap-2">
-                  {actionsForBatch(b).map(({ key, label }: { key: ActionKey; label: string }) => (
+                <div className="px-5 pb-5 flex flex-wrap gap-1.5 mt-2">
+                  {actionsForBatch(b).map(({ key, label }) => (
                     <button
                       key={key}
                       type="button"
-                      onClick={() => openAction(b, key)}
-                      className="flex-1 sm:flex-none justify-center px-3 py-2 rounded-xl border border-foreground/10 bg-background/50 text-[11px] font-bold hover:bg-foreground/[0.04]"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openAction(b, key);
+                      }}
+                      className="px-3 py-1.5 bg-foreground text-background border border-foreground rounded-md text-[7px] font-normal uppercase tracking-[0.2em] transition-all hover:bg-foreground/90 whitespace-nowrap"
                     >
                       {label}
                     </button>
                   ))}
                   <button
                     type="button"
-                    onClick={() => toggleExpand(b.id)}
-                    className="flex-1 sm:flex-none justify-center px-3 py-2 rounded-xl border border-foreground/10 text-[11px] font-semibold text-foreground/55 flex items-center gap-1.5 hover:bg-foreground/[0.02]"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleExpand(b.id);
+                    }}
+                    className="px-3 py-1.5 bg-foreground/[0.03] border border-foreground/[0.05] rounded-md text-[7px] font-normal uppercase tracking-[0.2em] text-foreground/40 hover:text-foreground/80 transition-all flex items-center gap-1 whitespace-nowrap"
                   >
-                    {ex ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-                    Cost breakdown
+                    {ex ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                    Breakdown
                   </button>
                 </div>
 
                 {ex && (
-                  <div className="border-t border-foreground/10 px-5 py-4 bg-foreground/[0.02] text-xs">
+                  <div className="border-t border-foreground/[0.05] px-5 py-4 bg-foreground/[0.01] animate-in fade-in slide-in-from-top-2">
                     {expandLoad[b.id] ? (
-                      <Loader2 className="w-5 h-5 animate-spin text-foreground/40" />
+                      <div className="py-2 flex justify-center">
+                        <Loader2 className="w-4 h-4 animate-spin text-foreground/10" strokeWidth={1} />
+                      </div>
                     ) : ed?.breakdown ? (
                       <BreakdownMini b={ed.breakdown as Record<string, number>} />
                     ) : (
-                      <p className="text-foreground/40">No breakdown loaded.</p>
+                      <p className="text-[9px] text-foreground/20 uppercase tracking-widest text-center">No metadata found.</p>
                     )}
                   </div>
                 )}
-              </article>
+              </div>
             );
           })}
         </div>
@@ -648,90 +621,93 @@ export default function ProductionTrackerPage() {
 
       {/* New batch modal */}
       {newOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-md">
-          <div className="w-full max-w-lg rounded-3xl border border-foreground/10 glass shadow-2xl p-6 space-y-4 max-h-[92vh] overflow-y-auto">
-            <h2 className="text-lg font-bold">New production batch</h2>
-            <p className="text-xs text-foreground/50">
-              Batch ID is auto-generated as <span className="font-mono">BCH-YYYYMMDD-XXXX</span> (IST
-              date). Optional fabric meters create an immediate fabric OUT movement linked to this batch.
-            </p>
-            <Field
-              label="Style / product description *"
-              value={nb.productName}
-              onChange={(v) => setNb((s) => ({ ...s, productName: v }))}
-              error={nbErr.productName}
-            />
-            <Field
-              label="Quantity (units) *"
-              type="number"
-              value={nb.quantity}
-              onChange={(v) => setNb((s) => ({ ...s, quantity: v }))}
-              error={nbErr.quantity}
-            />
-            <div>
-              <label className="text-[11px] font-semibold text-foreground/50">Fabric used (optional)</label>
-              <select
-                value={nb.fabricId}
-                onChange={(e) => setNb((s) => ({ ...s, fabricId: e.target.value }))}
-                className="mt-1 w-full rounded-xl border border-foreground/10 bg-foreground/[0.04] px-3 py-2.5 text-sm"
-              >
-                <option value="">None</option>
-                {fabrics.map((f) => (
-                  <option key={f.id} value={f.id}>
-                    {f.sku} — {f.name}
-                  </option>
-                ))}
-              </select>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-md animate-in fade-in">
+          <div className="w-full max-w-lg bg-white/90 dark:bg-black/80 backdrop-blur-2xl rounded-[1rem] border border-foreground/[0.05] shadow-2xl p-6 space-y-6 max-h-[92vh] overflow-y-auto font-inter">
+            <div className="space-y-1">
+              <h2 className="text-[11px] font-normal text-foreground uppercase tracking-[0.2em] leading-none">INITIATE NEW SPECTRUM BATCH</h2>
+              <p className="text-[9px] text-foreground/40 uppercase tracking-[0.2em]">Batch ID auto-generates linked to current date timeline.</p>
             </div>
-            {nb.fabricId ? (
+            
+            <div className="space-y-4">
               <Field
-                label="Fabric meters consumed (logs OUT) *"
-                type="number"
-                value={nb.fabricMeters}
-                onChange={(v) => setNb((s) => ({ ...s, fabricMeters: v }))}
-                error={nbErr.fabricMeters}
+                label="Style / product nomenclature *"
+                value={nb.productName}
+                onChange={(v) => setNb((s) => ({ ...s, productName: v }))}
+                error={nbErr.productName}
               />
-            ) : null}
-            <div>
-              <label className="text-[11px] font-semibold text-foreground/50">Starting stage</label>
-              <select
-                value={nb.currentStage}
-                onChange={(e) => setNb((s) => ({ ...s, currentStage: e.target.value }))}
-                className="mt-1 w-full rounded-xl border border-foreground/10 bg-foreground/[0.04] px-3 py-2.5 text-sm"
-              >
-                {MFG_STAGE_KEYS.map((k) => (
-                  <option key={k} value={k}>
-                    {MFG_STAGE_LABEL[k]}
-                  </option>
-                ))}
-              </select>
+              <Field
+                label="Unit Quantity (NODES) *"
+                type="number"
+                value={nb.quantity}
+                onChange={(v) => setNb((s) => ({ ...s, quantity: v }))}
+                error={nbErr.quantity}
+              />
+              <div className="space-y-1.5">
+                <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">Spectrum Node association</label>
+                <select
+                  value={nb.fabricId}
+                  onChange={(e) => setNb((s) => ({ ...s, fabricId: e.target.value }))}
+                  className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em] appearance-none"
+                >
+                  <option value="">NONE (NULL-ASSOCIATION)</option>
+                  {fabrics.map((f) => (
+                    <option key={f.id} value={f.id}>
+                      {f.sku} — {f.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {nb.fabricId ? (
+                <Field
+                  label="Fabric spectrum meters (logs OUT) *"
+                  type="number"
+                  value={nb.fabricMeters}
+                  onChange={(v) => setNb((s) => ({ ...s, fabricMeters: v }))}
+                  error={nbErr.fabricMeters}
+                />
+              ) : null}
+              <div className="space-y-1.5">
+                <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">Initial Entry Stage</label>
+                <select
+                  value={nb.currentStage}
+                  onChange={(e) => setNb((s) => ({ ...s, currentStage: e.target.value }))}
+                  className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em] appearance-none font-inter"
+                >
+                  {MFG_STAGE_KEYS.map((k) => (
+                    <option key={k} value={k}>
+                      {MFG_STAGE_LABEL[k]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <Field
+                label="Internal Audit Notes"
+                textarea
+                value={nb.notes}
+                onChange={(v) => setNb((s) => ({ ...s, notes: v }))}
+              />
+              <Field
+                label="Projected nodes cpu (₹, optional)"
+                type="number"
+                value={nb.estCpu}
+                onChange={(v) => setNb((s) => ({ ...s, estCpu: v }))}
+              />
             </div>
-            <Field
-              label="Notes"
-              textarea
-              value={nb.notes}
-              onChange={(v) => setNb((s) => ({ ...s, notes: v }))}
-            />
-            <Field
-              label="Estimated cost per unit (₹, optional)"
-              type="number"
-              value={nb.estCpu}
-              onChange={(v) => setNb((s) => ({ ...s, estCpu: v }))}
-            />
-            <div className="flex gap-2 justify-end pt-2">
+
+            <div className="flex gap-2 justify-end pt-6 border-t border-foreground/[0.05]">
               <button
                 type="button"
                 onClick={() => setNewOpen(false)}
-                className="px-4 py-2.5 rounded-xl border border-foreground/10 text-xs font-semibold"
+                className="px-5 py-2 rounded-md text-[8px] font-normal uppercase tracking-[0.2em] text-foreground/40 hover:text-foreground/60 transition-all"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={createBatch}
-                className="px-4 py-2.5 rounded-xl bg-foreground text-background text-xs font-bold"
+                className="px-8 py-2 bg-foreground text-background rounded-md text-[8px] font-normal uppercase tracking-[0.3em] shadow-lg shadow-foreground/5 hover:opacity-90 transition-all"
               >
-                Create batch
+                INITIATE BATCH
               </button>
             </div>
           </div>
@@ -740,35 +716,37 @@ export default function ProductionTrackerPage() {
 
       {/* Action modal */}
       {modal && (
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 bg-background/80 backdrop-blur-md">
-          <div className="w-full max-w-md rounded-3xl border border-foreground/10 glass p-6 space-y-3 max-h-[90vh] overflow-y-auto">
-            {modal && (
-              <>
-                <h2 className="text-lg font-bold">{modal.action.replace(/_/g, " ")}</h2>
-                <p className="text-[11px] font-mono text-foreground/45">{modal.batch.batchCode}</p>
-                <ActionFields 
-                  action={modal.action} 
-                  act={act} 
-                  setAct={setAct} 
-                  actErr={actErr} 
-                  vendors={vendors}
-                />
-              </>
-            )}
-            <div className="flex gap-2 justify-end pt-3 border-t border-foreground/10">
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 bg-background/80 backdrop-blur-md animate-in fade-in">
+          <div className="w-full max-w-md bg-white/90 dark:bg-black/80 backdrop-blur-2xl rounded-[1rem] border border-foreground/[0.05] shadow-2xl p-6 space-y-6 max-h-[90vh] overflow-y-auto font-inter">
+            <div className="space-y-1">
+              <h2 className="text-[11px] font-normal text-foreground uppercase tracking-[0.2em] leading-none">{modal.action.replace(/_/g, " ")}</h2>
+              <p className="text-[9px] text-foreground/40 uppercase tracking-[0.2em]">RECORDING TRANSITION FOR NODE: {modal.batch.batchCode}</p>
+            </div>
+            
+            <div className="space-y-4">
+              <ActionFields 
+                action={modal.action} 
+                act={act} 
+                setAct={setAct} 
+                actErr={actErr} 
+                vendors={vendors}
+              />
+            </div>
+
+            <div className="flex gap-2 justify-end pt-6 border-t border-foreground/[0.05]">
               <button
                 type="button"
                 onClick={() => setModal(null)}
-                className="px-4 py-2 rounded-xl border border-foreground/10 text-xs font-semibold"
+                className="px-5 py-2 rounded-md text-[8px] font-normal uppercase tracking-[0.2em] text-foreground/40 hover:text-foreground/60 transition-all"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={submitAction}
-                className="px-4 py-2 rounded-xl bg-foreground text-background text-xs font-bold"
+                className="px-8 py-2 bg-foreground text-background rounded-md text-[8px] font-normal uppercase tracking-[0.3em] shadow-lg shadow-foreground/5 hover:opacity-90 transition-all"
               >
-                Save
+                RECORD SYNC
               </button>
             </div>
           </div>
@@ -810,48 +788,50 @@ function Field(props: {
 }) {
   const { label, value, onChange, type = "text", textarea, error } = props;
   return (
-    <div>
-      <label className="text-[11px] font-semibold text-foreground/50">{label}</label>
+    <div className="space-y-1.5">
+      <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">{label}</label>
       {textarea ? (
         <textarea
           value={value}
           onChange={(e) => onChange(e.target.value)}
           rows={3}
-          className="mt-1 w-full rounded-xl border border-foreground/10 bg-foreground/[0.04] px-3 py-2 text-sm"
+          className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em]"
         />
       ) : (
         <input
           type={type}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="mt-1 w-full rounded-xl border border-foreground/10 bg-foreground/[0.04] px-3 py-2 text-sm"
+          className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all font-inter"
         />
       )}
-      {error && <p className="text-[11px] text-red-500 mt-1">{error}</p>}
+      {error && <p className="text-rose-500 text-[7px] mt-1 uppercase tracking-widest">{error}</p>}
     </div>
   );
 }
 
 function BreakdownMini({ b }: { b: Record<string, number> }) {
-  const rows: [string, keyof typeof b][] = [
-    ["Fabric", "fabricCost"],
-    ["Wash", "washCost"],
-    ["Wash / unit", "washCostPerUnit"],
-    ["Printing", "printingCost"],
-    ["Embroidery", "embroideryCost"],
-    ["Travel", "travelLogistics"],
-    ["Misc", "miscellaneous"],
-    ["Total", "totalCost"],
-    ["Per unit", "costPerUnit"],
+  const rows: [string, string][] = [
+    ["Fabric Node", "fabricCost"],
+    ["Wash Ref", "washCost"],
+    ["Wash / Unit", "washCostPerUnit"],
+    ["Print Nodes", "printingCost"],
+    ["Embroidery Nodes", "embroideryCost"],
+    ["Logistics Pool", "travelLogistics"],
+    ["Metadata Misc", "miscellaneous"],
+    ["Net Valuation", "totalCost"],
+    ["Nodes CPU", "costPerUnit"],
   ];
   return (
-    <div className="space-y-1.5">
-      {rows.map(([label, key]) => (
-        <div key={key} className="flex justify-between gap-4 text-[11px]">
-          <span className="text-foreground/45">{label}</span>
-          <span className="tabular-nums font-medium">{formatInr(Number(b[key] ?? 0))}</span>
-        </div>
-      ))}
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-x-8 gap-y-3">
+        {rows.map(([label, key]) => (
+          <div key={key} className="flex flex-col gap-1">
+            <span className="text-[7px] font-normal text-foreground/20 uppercase tracking-[0.3em] font-inter">{label}</span>
+            <span className="text-[10px] tabular-nums font-normal text-foreground/70">{formatInr(Number(b[key] ?? 0))}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -870,15 +850,15 @@ function ActionFields({
   vendors: { id: string; name: string; category: string }[];
 }) {
   const f = (k: keyof ActionFormState, label: string, type = "text", ta?: boolean) => (
-    <div key={String(k)}>
-      <label className="text-[11px] font-semibold text-foreground/50">{label}</label>
+    <div key={String(k)} className="space-y-1.5">
+      <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">{label}</label>
       {k === "vendor" ? (
         <select
           value={act[k]}
           onChange={(e) => setAct((s) => ({ ...s, [k]: e.target.value }))}
-          className="mt-1 w-full rounded-xl border border-foreground/10 bg-foreground/[0.04] px-3 py-2.5 text-sm appearance-none"
+          className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em] appearance-none"
         >
-          <option value="">Select Vendor</option>
+          <option value="">SELECT NODE…</option>
           {vendors.map((v) => (
             <option key={v.id} value={v.name}>
               {v.name} ({v.category})
@@ -890,99 +870,125 @@ function ActionFields({
           value={act[k]}
           onChange={(e) => setAct((s) => ({ ...s, [k]: e.target.value }))}
           rows={2}
-          className="mt-1 w-full rounded-xl border border-foreground/10 bg-foreground/[0.04] px-3 py-2 text-sm"
+          className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em]"
         />
       ) : (
         <input
           type={type}
           value={act[k]}
           onChange={(e) => setAct((s) => ({ ...s, [k]: e.target.value }))}
-          className="mt-1 w-full rounded-xl border border-foreground/10 bg-foreground/[0.04] px-3 py-2 text-sm"
+          className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all"
         />
       )}
       {actErr[k as string] && (
-        <p className="text-[11px] text-red-500 mt-1">{actErr[k as string]}</p>
+        <p className="text-rose-500 text-[7px] mt-1 uppercase tracking-widest">{actErr[k as string]}</p>
       )}
     </div>
   );
 
   if (action === "START_CUTTING") {
-    return <p className="text-sm text-foreground/55">Confirm move to cutting. Log entry is created.</p>;
+    return <p className="text-[9px] text-foreground/40 uppercase tracking-[0.2em] leading-relaxed">System acknowledgment: confirming move to cutting spectrum. Immutable log entry initialized.</p>;
   }
+
+  if (action === "SEND_STITCHING") {
+    return (
+      <>
+        {f("quantity", "Transition Node Qty *", "number")}
+        {f("pricePerUnit", "Unit Node CPU (₹) *", "number")}
+        {f("travel", "Transition Logistics (₹)", "number")}
+        {f("vendor", "Artisan / Node Provider")}
+        {f("dateDispatched", "Transition Date", "date")}
+        {f("notes", "Technical Metadata", "text", true)}
+      </>
+    );
+  }
+
+  if (action === "RETURN_STITCHING") {
+    return (
+      <>
+        {f("quantity", "Nodes Returned *", "number")}
+        {f("damageLoss", "Spectrum Loss count", "number")}
+        {f("dateReturned", "Return Date", "date")}
+        {f("notes", "Technical Metadata", "text", true)}
+      </>
+    );
+  }
+
   if (action === "SEND_WASH") {
     return (
       <>
-        {f("quantity", "Quantity *", "number")}
-        {f("pricePerUnit", "Washing price per unit (₹) *", "number")}
-        {f("travel", "Travel / logistics (₹)", "number")}
-        {f("vendor", "Vendor / laundry")}
-        {f("dateDispatched", "Dispatch date", "date")}
-        {f("notes", "Notes", "text", true)}
+        {f("quantity", "Transition Qty *", "number")}
+        {f("pricePerUnit", "Wash CPU per unit (₹) *", "number")}
+        {f("travel", "Transition Logistics (₹)", "number")}
+        {f("vendor", "Refinery / laundry node")}
+        {f("dateDispatched", "Departure Timeline", "date")}
+        {f("notes", "Technical Metadata", "text", true)}
       </>
     );
   }
   if (action === "RETURN_WASH") {
     return (
       <>
-        {f("quantity", "Quantity returned *", "number")}
-        {f("damageLoss", "Damage / loss count", "number")}
-        {f("dateReturned", "Date returned", "date")}
-        {f("washTotalCost", "Total wash charges (₹) *", "number")}
-        {f("notes", "Notes", "text", true)}
+        {f("quantity", "Refinery Nodes returned *", "number")}
+        {f("damageLoss", "Spectrum Loss count", "number")}
+        {f("dateReturned", "Arrival Timeline", "date")}
+        {f("washTotalCost", "Net Refinery Charges (₹) *", "number")}
+        {f("notes", "Technical Metadata", "text", true)}
       </>
     );
   }
   if (action === "SEND_PRINTING") {
     return (
       <>
-        {f("quantity", "Quantity *", "number")}
-        {f("pricePerUnit", "Printing cost per unit (₹) *", "number")}
-        {f("travel", "Travel expense (₹)", "number")}
-        {f("vendor", "Vendor name")}
-        {f("designRef", "Design reference")}
-        {f("dateDispatched", "Dispatch date", "date")}
-        {f("notes", "Notes", "text", true)}
+        {f("quantity", "Transition Qty *", "number")}
+        {f("pricePerUnit", "Printing CPU per node (₹) *", "number")}
+        {f("travel", "Transition Logistics (₹)", "number")}
+        {f("vendor", "Node Provider")}
+        {f("designRef", "Spectrum Design Ref")}
+        {f("dateDispatched", "Departure Timeline", "date")}
+        {f("notes", "Technical Metadata", "text", true)}
       </>
     );
   }
   if (action === "RETURN_PRINTING" || action === "RETURN_EMBROIDERY") {
     return (
       <>
-        {f("quantity", "Quantity returned *", "number")}
-        {f("damageLoss", "Damage / loss", "number")}
-        {f("dateReturned", "Date returned", "date")}
-        {f("totalCharges", "Total charges (₹)", "number")}
-        {f("notes", "Notes", "text", true)}
+        {f("quantity", "Nodes returned *", "number")}
+        {f("damageLoss", "Spectrum Loss Nodes", "number")}
+        {f("dateReturned", "Arrival Timeline", "date")}
+        {f("totalCharges", "Net Node Charges (₹)", "number")}
+        {f("notes", "Technical Metadata", "text", true)}
       </>
     );
   }
   if (action === "SEND_EMBROIDERY") {
     return (
       <>
-        {f("quantity", "Quantity *", "number")}
-        {f("pricePerUnit", "Embroidery cost per unit (₹) *", "number")}
-        {f("travel", "Travel expense (₹)", "number")}
-        {f("vendor", "Artisan / vendor")}
-        {f("dateDispatched", "Dispatch date", "date")}
-        {f("notes", "Notes", "text", true)}
+        {f("quantity", "Transition Qty *", "number")}
+        {f("pricePerUnit", "Embroidery CPU (₹) *", "number")}
+        {f("travel", "Transition Logistics (₹)", "number")}
+        {f("vendor", "Artisan Node")}
+        {f("dateDispatched", "Departure Timeline", "date")}
+        {f("notes", "Technical Metadata", "text", true)}
       </>
     );
   }
   if (action === "MARK_SAMPLE") {
     return (
       <>
-        {f("quantity", "Quantity *", "number")}
-        {f("notes", "Notes", "text", true)}
+        {f("quantity", "Transition Node Qty *", "number")}
+        {f("notes", "Technical Metadata", "text", true)}
       </>
     );
   }
   if (action === "QC_PASS" || action === "QC_REJECT") {
     return (
       <>
-        {f("quantity", "Quantity (optional)", "number")}
-        {f("remarks", "Remarks / reason", "text", true)}
+        {f("quantity", "Audit Node Qty (optional)", "number")}
+        {f("remarks", "Audit Rationale", "text", true)}
       </>
     );
   }
   return null;
 }
+

@@ -236,82 +236,75 @@ export default function FabricMovementPage() {
   };
 
   return (
-    <div className="space-y-6 pb-12 max-w-[1500px] mx-auto">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground font-inter">Fabric Movement</h1>
-        <p className="text-sm text-foreground/55 mt-1 max-w-2xl">
-          Immutable ledger — corrections add new rows. Balances shown in IST. Low stock highlights when
-          meters fall below each fabric&apos;s threshold (default 10 m).
-        </p>
+    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-[1500px] mx-auto pb-12">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-2">
+        <div className="space-y-1">
+          <div className="px-2 py-0.5 bg-foreground/[0.03] rounded-md text-[7px] font-normal text-foreground/50 uppercase tracking-[0.3em] w-fit tracking-widest">manufacturing hub</div>
+          <h1 className="text-lg font-normal text-foreground uppercase tracking-[0.2em] mb-0.5 leading-none mt-1 font-inter">
+            Fabric Movement
+          </h1>
+          <p className="text-[9px] text-foreground/40 font-normal uppercase tracking-[0.2em] mt-1">
+            Immutable ledger — corrections add new rows. Balances shown in IST. Low stock highlights when nodes fall below thresholds.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setModal("add");
+              setForm({
+                fabricId: "",
+                type: "IN",
+                quantity: "",
+                quantityUnit: "m",
+                rateAtMovement: "",
+                occurredAt: "",
+                remarks: "",
+                productionBatchId: "",
+              });
+              setFormErr({});
+            }}
+            className="flex items-center gap-2 px-5 py-2.5 bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-foreground/[0.05] rounded-md text-[8px] font-normal uppercase tracking-[0.2em] text-foreground/80 transition-all active:scale-95"
+          >
+            <Plus className="w-3.5 h-3.5" strokeWidth={1.5} />
+            ADD MOVEMENT
+          </button>
+          <button
+            type="button"
+            onClick={() => loadMovements()}
+            disabled={loading}
+            className="flex items-center gap-2 px-5 py-2.5 bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-foreground/[0.05] rounded-md text-[8px] font-normal uppercase tracking-[0.2em] text-foreground/80 dark:text-foreground/60 transition-all active:scale-95"
+          >
+            <RefreshCw className={`w-3 h-3 ${loading ? "animate-spin" : ""}`} strokeWidth={1.5} />
+            REFRESH
+          </button>
+        </div>
       </div>
 
-      <div className="flex flex-wrap gap-2 items-center">
-        <button
-          type="button"
-          onClick={() => {
-            setModal("add");
-            setForm({
-              fabricId: "",
-              type: "IN",
-              quantity: "",
-              quantityUnit: "m",
-              rateAtMovement: "",
-              occurredAt: "",
-              remarks: "",
-              productionBatchId: "",
-            });
-            setFormErr({});
-          }}
-          className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-foreground text-background text-sm font-bold"
-        >
-          <Plus className="w-4 h-4" />
-          Add movement
-        </button>
-        <button
-          type="button"
-          onClick={() => loadMovements()}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-foreground/10 text-xs font-semibold"
-        >
-          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-          Refresh
-        </button>
-        {activeFilters.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
-            {activeFilters.map((p) => (
-              <span
-                key={p}
-                className="px-2.5 py-1 rounded-full bg-foreground/10 border border-foreground/10 text-[10px] font-bold text-foreground/60"
-              >
-                {p}
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className="rounded-3xl border border-foreground/10 bg-foreground/[0.02] p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+      <div className="bg-white/50 dark:bg-white/[0.01] backdrop-blur-3xl rounded-[1rem] p-3 border border-foreground/[0.02] shadow-sm grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-2">
         <input
-          placeholder="Search fabric / SKU…"
+          placeholder="SEARCH SPECTRUM…"
           value={filters.q}
           onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))}
-          className="rounded-xl border border-foreground/10 bg-background/50 px-3 py-2.5 text-sm"
+          className="bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground placeholder:text-foreground/20 focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em]"
         />
         <select
           value={filters.type}
           onChange={(e) => setFilters((f) => ({ ...f, type: e.target.value }))}
-          className="rounded-xl border border-foreground/10 bg-background/50 px-3 py-2.5 text-sm"
+          className="bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em]"
         >
-          <option value="">All types</option>
+          <option value="">ALL TYPES</option>
           <option value="IN">IN</option>
           <option value="OUT">OUT</option>
-          <option value="ADJUSTMENT">Correction</option>
+          <option value="ADJUSTMENT">CORRECTION</option>
         </select>
         <select
           value={filters.fabricId}
           onChange={(e) => setFilters((f) => ({ ...f, fabricId: e.target.value }))}
-          className="rounded-xl border border-foreground/10 bg-background/50 px-3 py-2.5 text-sm"
+          className="bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em]"
         >
-          <option value="">All fabrics</option>
+          <option value="">ALL FABRICS</option>
           {fabrics.map((f) => (
             <option key={f.id} value={f.id}>
               {f.sku}
@@ -322,38 +315,38 @@ export default function FabricMovementPage() {
           type="datetime-local"
           value={filters.from}
           onChange={(e) => setFilters((f) => ({ ...f, from: e.target.value }))}
-          className="rounded-xl border border-foreground/10 bg-background/50 px-3 py-2.5 text-sm"
+          className="bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all"
         />
         <input
           type="datetime-local"
           value={filters.to}
           onChange={(e) => setFilters((f) => ({ ...f, to: e.target.value }))}
-          className="rounded-xl border border-foreground/10 bg-background/50 px-3 py-2.5 text-sm"
+          className="bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all"
         />
         <button
           type="button"
           onClick={() => loadMovements()}
-          className="rounded-xl border border-foreground/10 px-3 py-2.5 text-sm font-semibold hover:bg-foreground/5"
+          className="bg-foreground text-background rounded-md px-3 py-2 text-[8px] font-normal uppercase tracking-[0.3em] hover:opacity-90 transition-all"
         >
-          Apply
+          APPLY FILTERS
         </button>
       </div>
 
-      <div className="rounded-3xl border border-foreground/10 overflow-hidden shadow-lg bg-foreground/[0.02]">
+      <div className="bg-white/50 dark:bg-white/[0.01] backdrop-blur-3xl rounded-[1rem] border border-foreground/[0.02] overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-[11px] min-w-[1040px]">
-            <thead className="bg-foreground/[0.06] text-foreground/45 uppercase text-[10px] font-bold border-b border-foreground/10">
+            <thead className="bg-foreground/[0.02] text-foreground/30 uppercase tracking-[0.2em] text-[8px] font-normal border-b border-foreground/[0.03]">
               <tr>
-                <th className="px-3 py-3">When (IST)</th>
-                <th className="px-3 py-3">Fabric</th>
-                <th className="px-3 py-3">Type</th>
-                <th className="px-3 py-3">Qty</th>
-                <th className="px-3 py-3">Rate</th>
-                <th className="px-3 py-3">Value</th>
-                <th className="px-3 py-3">Notes</th>
-                <th className="px-3 py-3">By</th>
-                <th className="px-3 py-3">Balance</th>
-                <th className="px-3 py-3 text-right">Fix</th>
+                <th className="px-3 py-4">When (IST)</th>
+                <th className="px-3 py-4">Fabric</th>
+                <th className="px-3 py-4">Type</th>
+                <th className="px-3 py-4">Qty</th>
+                <th className="px-3 py-4">Rate</th>
+                <th className="px-3 py-4">Value</th>
+                <th className="px-3 py-4">Notes</th>
+                <th className="px-3 py-4">By</th>
+                <th className="px-3 py-4">Balance</th>
+                <th className="px-3 py-4 text-right">Fix</th>
               </tr>
             </thead>
             <tbody>
@@ -395,12 +388,12 @@ export default function FabricMovementPage() {
                       </td>
                       <td className="px-3 py-2.5">
                         <span
-                          className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          className={`inline-flex px-2 py-0.5 rounded-md text-[7px] font-normal uppercase tracking-[0.2em] ${
                             m.type === "IN"
-                              ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+                              ? "bg-emerald-500/[0.08] text-emerald-500/60 border border-emerald-500/[0.08]"
                               : m.type === "OUT"
-                                ? "bg-red-500/15 text-red-700 dark:text-red-300"
-                                : "bg-amber-500/15 text-amber-800 dark:text-amber-200"
+                                ? "bg-rose-500/[0.08] text-rose-500/60 border border-rose-500/[0.08]"
+                                : "bg-amber-500/[0.08] text-amber-500/60 border border-amber-500/[0.08]"
                           }`}
                         >
                           {typeLabel(m.type)}
@@ -429,9 +422,8 @@ export default function FabricMovementPage() {
                           <button
                             type="button"
                             onClick={() => openCorrect(m)}
-                            className="text-[10px] font-bold text-foreground/45 hover:text-foreground inline-flex items-center gap-1"
+                            className="p-1 px-2.5 bg-foreground/[0.02] border border-foreground/[0.05] rounded-md text-[7px] font-normal uppercase tracking-[0.2em] text-foreground/40 hover:text-foreground/80 transition-all"
                           >
-                            <AlertTriangle className="w-3 h-3" />
                             Correct
                           </button>
                         ) : (
@@ -458,134 +450,152 @@ export default function FabricMovementPage() {
       )}
 
       {(modal === "add" || modal === "correct") && (
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 bg-background/80 backdrop-blur-md">
-          <div className="w-full max-w-md rounded-3xl border border-foreground/10 glass p-6 space-y-3 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-lg font-bold">{modal === "correct" ? "Correction entry" : "Add movement"}</h2>
-            <div>
-              <label className="text-[11px] font-bold text-foreground/45">Fabric *</label>
-              <select
-                value={form.fabricId}
-                onChange={(e) => onFabricPick(e.target.value)}
-                disabled={modal === "correct"}
-                className="mt-1 w-full rounded-xl border border-foreground/10 bg-foreground/[0.04] px-3 py-2.5 text-sm disabled:opacity-60"
-              >
-                <option value="">Select…</option>
-                {fabrics.map((f) => (
-                  <option key={f.id} value={f.id}>
-                    {f.sku} — {f.name}
-                  </option>
-                ))}
-              </select>
-              {formErr.fabricId && <p className="text-red-500 text-[11px] mt-1">{formErr.fabricId}</p>}
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 bg-background/80 backdrop-blur-md animate-in fade-in">
+          <div className="w-full max-w-md bg-white/90 dark:bg-black/80 backdrop-blur-2xl rounded-[1rem] border border-foreground/[0.05] shadow-2xl p-6 space-y-6 max-h-[90vh] overflow-y-auto">
+            <div className="space-y-1">
+              <h2 className="text-[11px] font-normal text-foreground uppercase tracking-[0.2em] leading-none">
+                {modal === "correct" ? "NODE CORRECTION ENTRY" : "NEW MOVEMENT REGISTRATION"}
+              </h2>
+              <p className="text-[9px] text-foreground/40 uppercase tracking-[0.2em]">
+                {modal === "correct" ? `CORRECTING SPECTRUM NODE: ${correctTarget?.fabric.sku}` : "RECORDING FABRIC TRANSITION IN SPECTRUM."}
+              </p>
             </div>
-            {modal === "add" && (
-              <div>
-                <label className="text-[11px] font-bold text-foreground/45">Type</label>
+
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">Fabric node *</label>
                 <select
-                  value={form.type}
-                  onChange={(e) => setForm((s) => ({ ...s, type: e.target.value as "IN" | "OUT" }))}
-                  className="mt-1 w-full rounded-xl border border-foreground/10 bg-foreground/[0.04] px-3 py-2.5 text-sm"
+                  value={form.fabricId}
+                  onChange={(e) => onFabricPick(e.target.value)}
+                  disabled={modal === "correct"}
+                  className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em] appearance-none disabled:opacity-60"
                 >
-                  <option value="IN">IN</option>
-                  <option value="OUT">OUT</option>
+                  <option value="">SELECT NODE…</option>
+                  {fabrics.map((f) => (
+                    <option key={f.id} value={f.id}>
+                      {f.sku} — {f.name}
+                    </option>
+                  ))}
                 </select>
+                {formErr.fabricId && <p className="text-rose-500 text-[7px] mt-1 uppercase tracking-widest">{formErr.fabricId}</p>}
               </div>
-            )}
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-[11px] font-bold text-foreground/45">Quantity *</label>
+
+              {modal === "add" && (
+                <div className="space-y-1.5">
+                  <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">Transition Type</label>
+                  <select
+                    value={form.type}
+                    onChange={(e) => setForm((s) => ({ ...s, type: e.target.value as "IN" | "OUT" }))}
+                    className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em] appearance-none"
+                  >
+                    <option value="IN">IN (INBOUND)</option>
+                    <option value="OUT">OUT (OUTBOUND)</option>
+                  </select>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">Quantity *</label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={form.quantity}
+                    onChange={(e) => setForm((s) => ({ ...s, quantity: e.target.value }))}
+                    className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all"
+                  />
+                  {formErr.quantity && (
+                    <p className="text-rose-500 text-[7px] mt-1 uppercase tracking-widest">{formErr.quantity}</p>
+                  )}
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">Unit</label>
+                  <select
+                    value={form.quantityUnit}
+                    onChange={(e) => setForm((s) => ({ ...s, quantityUnit: e.target.value }))}
+                    className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em] appearance-none"
+                  >
+                    <option value="m">m</option>
+                    <option value="kg">kg</option>
+                    <option value="g">g</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">Rate (₹) *</label>
                 <input
                   type="number"
-                  step="any"
-                  value={form.quantity}
-                  onChange={(e) => setForm((s) => ({ ...s, quantity: e.target.value }))}
-                  className="mt-1 w-full rounded-xl border border-foreground/10 bg-foreground/[0.04] px-3 py-2.5 text-sm"
+                  value={form.rateAtMovement}
+                  onChange={(e) => setForm((s) => ({ ...s, rateAtMovement: e.target.value }))}
+                  className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all"
                 />
-                {formErr.quantity && (
-                  <p className="text-red-500 text-[11px] mt-1">{formErr.quantity}</p>
+                {formErr.rateAtMovement && (
+                  <p className="text-rose-500 text-[7px] mt-1 uppercase tracking-widest">{formErr.rateAtMovement}</p>
                 )}
               </div>
-              <div>
-                <label className="text-[11px] font-bold text-foreground/45">Unit</label>
+
+              <div className="rounded-md border border-foreground/[0.05] bg-foreground/[0.02] px-3 py-2 flex justify-between items-center group">
+                <span className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em]">valuation preview</span>
+                <span className="text-[11px] font-normal tabular-nums text-foreground">
+                  {formatInr(modal === "correct" ? Math.abs(num(form.quantity)) * num(form.rateAtMovement) : previewTotal)}
+                </span>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">Date/time override</label>
+                <input
+                  type="datetime-local"
+                  value={form.occurredAt}
+                  onChange={(e) => setForm((s) => ({ ...s, occurredAt: e.target.value }))}
+                  className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">Production Batch Link</label>
                 <select
-                  value={form.quantityUnit}
-                  onChange={(e) => setForm((s) => ({ ...s, quantityUnit: e.target.value }))}
-                  className="mt-1 w-full rounded-xl border border-foreground/10 bg-foreground/[0.04] px-3 py-2.5 text-sm"
+                  value={form.productionBatchId}
+                  onChange={(e) => setForm((s) => ({ ...s, productionBatchId: e.target.value }))}
+                  className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em] appearance-none"
                 >
-                  <option value="m">m</option>
-                  <option value="kg">kg</option>
-                  <option value="g">g</option>
+                  <option value="">NONE (STRAY MOVEMENT)</option>
+                  {batches.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.batchCode}
+                    </option>
+                  ))}
                 </select>
               </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">Remarks / Metadata</label>
+                <textarea
+                  value={form.remarks}
+                  onChange={(e) => setForm((s) => ({ ...s, remarks: e.target.value }))}
+                  rows={2}
+                  className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em]"
+                />
+              </div>
             </div>
-            <div>
-              <label className="text-[11px] font-bold text-foreground/45">Rate (₹) *</label>
-              <input
-                type="number"
-                value={form.rateAtMovement}
-                onChange={(e) => setForm((s) => ({ ...s, rateAtMovement: e.target.value }))}
-                className="mt-1 w-full rounded-xl border border-foreground/10 bg-foreground/[0.04] px-3 py-2.5 text-sm"
-              />
-              {formErr.rateAtMovement && (
-                <p className="text-red-500 text-[11px] mt-1">{formErr.rateAtMovement}</p>
-              )}
-            </div>
-            <div className="rounded-xl border border-foreground/10 bg-foreground/[0.04] px-3 py-2 flex justify-between text-sm">
-              <span className="text-foreground/45">Total value</span>
-              <span className="font-bold tabular-nums">
-                {formatInr(modal === "correct" ? Math.abs(num(form.quantity)) * num(form.rateAtMovement) : previewTotal)}
-              </span>
-            </div>
-            <div>
-              <label className="text-[11px] font-bold text-foreground/45">Date/time</label>
-              <input
-                type="datetime-local"
-                value={form.occurredAt}
-                onChange={(e) => setForm((s) => ({ ...s, occurredAt: e.target.value }))}
-                className="mt-1 w-full rounded-xl border border-foreground/10 bg-foreground/[0.04] px-3 py-2.5 text-sm"
-              />
-            </div>
-            <div>
-              <label className="text-[11px] font-bold text-foreground/45">Batch link (optional)</label>
-              <select
-                value={form.productionBatchId}
-                onChange={(e) => setForm((s) => ({ ...s, productionBatchId: e.target.value }))}
-                className="mt-1 w-full rounded-xl border border-foreground/10 bg-foreground/[0.04] px-3 py-2.5 text-sm"
-              >
-                <option value="">None</option>
-                {batches.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.batchCode}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="text-[11px] font-bold text-foreground/45">Remarks</label>
-              <textarea
-                value={form.remarks}
-                onChange={(e) => setForm((s) => ({ ...s, remarks: e.target.value }))}
-                rows={2}
-                className="mt-1 w-full rounded-xl border border-foreground/10 bg-foreground/[0.04] px-3 py-2.5 text-sm"
-              />
-            </div>
-            <div className="flex gap-2 justify-end pt-2">
+
+            <div className="flex gap-2 justify-end pt-6 border-t border-foreground/[0.05]">
               <button
                 type="button"
                 onClick={() => {
                   setModal(null);
                   setCorrectTarget(null);
                 }}
-                className="px-4 py-2 rounded-xl border border-foreground/10 text-xs font-semibold"
+                className="px-5 py-2 rounded-md text-[8px] font-normal uppercase tracking-[0.2em] text-foreground/40 hover:text-foreground/60 transition-all"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={submitMovement}
-                className="px-4 py-2 rounded-xl bg-foreground text-background text-xs font-bold"
+                className="px-8 py-2 bg-foreground text-background rounded-md text-[8px] font-normal uppercase tracking-[0.3em] shadow-lg shadow-foreground/5 hover:opacity-90 transition-all"
               >
-                Save
+                RECORD TRANSITION
               </button>
             </div>
           </div>

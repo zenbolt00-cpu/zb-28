@@ -289,40 +289,44 @@ export default function CostLedgerPage() {
     : [];
 
   return (
-    <div className="w-full space-y-6 sm:space-y-8 pb-12 pt-4 lg:pt-10 max-w-[1500px] mx-auto overflow-x-hidden lg:overflow-visible">
-      <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-5">
+    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-[1500px] mx-auto pb-12 pt-4">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-2">
         <div className="space-y-1">
-          <h1 className="text-2xl lg:text-3xl font-bold text-foreground uppercase tracking-tighter leading-none">Cost Ledger</h1>
-          <p className="text-sm text-foreground/55 max-w-3xl leading-relaxed">
-            Live roll-up of fabric OUT linked to batches, stage transition costs, travel lines from logs,
-            and miscellaneous charges. Filters re-query the API; export reflects the current table.
+          <div className="px-2 py-0.5 bg-foreground/[0.03] rounded-md text-[7px] font-normal text-foreground/50 uppercase tracking-[0.3em] w-fit tracking-widest font-inter">manufacturing hub</div>
+          <h1 className="text-lg font-normal text-foreground uppercase tracking-[0.2em] mb-0.5 leading-none mt-1 font-inter">
+            Cost & Valuation Ledger
+          </h1>
+          <p className="text-[9px] text-foreground/40 font-normal uppercase tracking-[0.2em] mt-1">
+            Spectrum Financial Audit — Real-time cost attribution across all node stages.
           </p>
           {range && (
-            <p className="text-[11px] text-foreground/50 mt-2">
-              <span className="font-semibold text-foreground/60">Range (IST):</span>{" "}
-              <span className="font-mono">{formatDateTimeIST(range.from)}</span>
-              <span className="mx-1.5 text-foreground/30">→</span>
-              <span className="font-mono">{formatDateTimeIST(range.to)}</span>
-            </p>
+            <div className="flex items-center gap-2 mt-2">
+              <span className="text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em]">Audit Window</span>
+              <span className="text-[8px] font-normal text-foreground/60 tabular-nums uppercase tracking-tighter">
+                {formatDateTimeIST(range.from).split(',')[0]} → {formatDateTimeIST(range.to).split(',')[0]}
+              </span>
+            </div>
           )}
         </div>
-        <div className="flex flex-col sm:flex-row flex-wrap items-center gap-2 mt-4 lg:mt-0 w-full lg:w-auto">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={() => loadLedger()}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl border border-foreground/10 text-[12px] font-semibold hover:bg-foreground/[0.04]"
+            disabled={loading}
+            className="flex items-center gap-2 px-5 py-2.5 bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-foreground/[0.05] rounded-md text-[8px] font-normal uppercase tracking-[0.2em] text-foreground/80 dark:text-foreground/60 transition-all active:scale-95"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-            Refresh
+            <RefreshCw className={`w-3 h-3 ${loading ? "animate-spin" : ""}`} strokeWidth={1.5} />
+            REFRESH
           </button>
           <button
             type="button"
             onClick={exportCsv}
             disabled={batches.length === 0}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl border border-foreground/10 text-[12px] font-semibold hover:bg-foreground/[0.04] disabled:opacity-40"
+            className="flex items-center gap-2 px-5 py-2.5 bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-foreground/[0.05] rounded-md text-[8px] font-normal uppercase tracking-[0.2em] text-foreground/80 dark:text-foreground/60 transition-all active:scale-95 disabled:opacity-40"
           >
-            <Download className="w-4 h-4" />
-            Export CSV
+            <Download className="w-3.5 h-3.5" strokeWidth={1.5} />
+            EXPORT SPECTRUM
           </button>
           <button
             type="button"
@@ -330,73 +334,77 @@ export default function CostLedgerPage() {
               setMiscOpen(true);
               setMiscErr({});
             }}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl bg-foreground text-background text-[12px] font-bold shadow-lg"
+            className="flex items-center gap-2 px-5 py-2.5 bg-foreground text-background border border-foreground rounded-md text-[8px] font-normal uppercase tracking-[0.2em] transition-all active:scale-95 shadow-lg shadow-foreground/5"
           >
-            <Plus className="w-4 h-4" />
-            Add misc expense
+            <Plus className="w-3.5 h-3.5" strokeWidth={1.5} />
+            RECORD MISC
           </button>
         </div>
-      </header>
+      </div>
 
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-3">
         {loading && !summary ? (
-          <div className="col-span-full flex justify-center py-16 text-foreground/45">
-            <Loader2 className="w-7 h-7 animate-spin" />
+          <div className="col-span-full flex flex-col items-center justify-center py-16 gap-3">
+             <Loader2 className="w-8 h-8 animate-spin text-foreground/20" strokeWidth={1} />
+             <p className="text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em]">Synching Ledger nodes…</p>
           </div>
         ) : (
           cards.map((c) => (
             <div
               key={c.key}
-              className={`rounded-2xl border p-4 sm:p-5 bg-foreground/[0.02] ${
+              className={`bg-white/50 dark:bg-white/[0.01] backdrop-blur-3xl rounded-[1rem] p-4 border transition-all duration-500 shadow-sm flex flex-col justify-between group ${
                 c.highlight
-                  ? "border-foreground/20 ring-1 ring-foreground/10 shadow-lg"
-                  : "border-foreground/10"
+                  ? "border-foreground/20 ring-1 ring-foreground/5 bg-foreground/[0.01]"
+                  : "border-foreground/[0.05] hover:border-foreground/10"
               }`}
             >
-              <p className="text-[10px] font-bold uppercase tracking-wider text-foreground/40 leading-snug">
-                {c.label}
-              </p>
-              <div className="flex items-end justify-between gap-2 mt-3">
-                <p
-                  className={`text-2xl sm:text-3xl font-bold tabular-nums font-inter leading-none ${
-                    c.highlight ? "text-foreground" : "text-foreground/90"
-                  }`}
-                >
-                  {summary ? formatInr(summary[c.key]) : "—"}
-                </p>
-                <div className="pb-1 sm:pb-0.5">
-                  <DeltaBadge delta={trendDeltas?.[c.key]} />
+              <div className="space-y-1">
+                <div className="text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em] leading-none group-hover:text-foreground/50 transition-colors">
+                  {c.label}
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="text-[15px] font-normal text-foreground tabular-nums tracking-tight font-inter">
+                    {summary ? formatInr(summary[c.key]) : "₹ 0.00"}
+                  </div>
                 </div>
               </div>
-              <p className="text-[9px] text-foreground/35 mt-2 font-medium">
-                vs previous refresh
-              </p>
+              <div className="mt-4 flex items-center justify-between">
+                <DeltaBadge delta={trendDeltas?.[c.key]} />
+                <span className="text-[6px] font-normal text-foreground/10 uppercase tracking-[0.2em]">Delta-Ref</span>
+              </div>
             </div>
           ))
         )}
-      </section>
+      </div>
 
-      <section className="rounded-3xl border border-foreground/10 bg-foreground/[0.02] p-4 sm:p-5 space-y-4 shadow-sm">
-        <h2 className="text-[11px] font-bold uppercase tracking-wider text-foreground/40">Filters</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
+      {/* Filters */}
+      <div className="bg-white/50 dark:bg-white/[0.01] backdrop-blur-3xl rounded-[1rem] p-4 border border-foreground/[0.05] shadow-sm space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em]">Query Filters</div>
+          <p className="text-[8px] text-foreground/20 uppercase tracking-[0.1em]">
+            Default: Current calendar node (IST window)
+          </p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-2">
           <input
             type="datetime-local"
             value={from}
             onChange={(e) => setFrom(e.target.value)}
-            className="rounded-xl border border-foreground/10 bg-background/50 px-3 py-2.5 text-sm"
+            className="bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all font-inter"
           />
           <input
             type="datetime-local"
             value={to}
             onChange={(e) => setTo(e.target.value)}
-            className="rounded-xl border border-foreground/10 bg-background/50 px-3 py-2.5 text-sm"
+            className="bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all font-inter"
           />
           <select
             value={batchId}
             onChange={(e) => setBatchId(e.target.value)}
-            className="rounded-xl border border-foreground/10 bg-background/50 px-3 py-2.5 text-sm"
+            className="bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em] appearance-none"
           >
-            <option value="">All batch IDs</option>
+            <option value="">ALL SPECTRUM BATCHES</option>
             {batchOptions.map((b) => (
               <option key={b.id} value={b.id}>
                 {b.batchCode}
@@ -406,94 +414,86 @@ export default function CostLedgerPage() {
           <select
             value={stage}
             onChange={(e) => setStage(e.target.value)}
-            className="rounded-xl border border-foreground/10 bg-background/50 px-3 py-2.5 text-sm"
+            className="bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em] appearance-none"
           >
-            <option value="">All stages</option>
+            <option value="">ALL NODE STAGES</option>
             {Object.entries(MFG_STAGE_LABEL).map(([k, v]) => (
               <option key={k} value={k}>
-                {v}
+                {v.toUpperCase()}
               </option>
             ))}
           </select>
           <button
             type="button"
             onClick={() => loadLedger()}
-            className="rounded-xl border border-foreground/10 px-3 py-2.5 text-sm font-semibold hover:bg-foreground/5"
+            className="bg-foreground text-background rounded-md px-3 py-2 text-[8px] font-normal uppercase tracking-[0.2em] shadow-lg shadow-foreground/5 hover:opacity-90 transition-all"
           >
-            Apply filters
+            APPLY SPECTRUM FILTER
           </button>
         </div>
-        <p className="text-[11px] text-foreground/45">
-          Empty dates default to the current calendar month (UTC window from the server).
-        </p>
-      </section>
+      </div>
 
-      <section className="rounded-3xl border border-foreground/10 overflow-hidden shadow-lg bg-foreground/[0.02] w-full">
-        <div className="overflow-x-auto max-h-[min(70vh,720px)] overflow-y-auto w-full">
-          <table className="w-full text-left text-[11px] font-inter min-w-[1180px] border-collapse">
-            <thead className="sticky top-0 z-10 bg-foreground/[0.08] backdrop-blur-md border-b border-foreground/10 text-foreground/50 uppercase tracking-wider text-[10px] font-bold">
+      {/* Ledger Table */}
+      <div className="bg-white/50 dark:bg-white/[0.01] backdrop-blur-3xl rounded-[1rem] border border-foreground/[0.05] shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-[11px] font-inter min-w-[1100px]">
+            <thead className="bg-foreground/[0.02] border-b border-foreground/[0.05]">
               <tr>
-                <th className="px-3 py-3.5">Batch / style</th>
-                <th className="px-3 py-3.5">Stage</th>
-                <th className="px-3 py-3.5">Fabric</th>
-                <th className="px-3 py-3.5">Wash</th>
-                <th className="px-3 py-3.5">Wash/u</th>
-                <th className="px-3 py-3.5">Print</th>
-                <th className="px-3 py-3.5">Emb.</th>
-                <th className="px-3 py-3.5">Travel</th>
-                <th className="px-3 py-3.5">Misc</th>
-                <th className="px-3 py-3.5">Total</th>
-                <th className="px-3 py-3.5">₹ / unit</th>
+                <th className="px-4 py-4 text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em]">Batch / Style</th>
+                <th className="px-4 py-4 text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em]">Stage</th>
+                <th className="px-4 py-4 text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em]">Fabric</th>
+                <th className="px-4 py-4 text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em]">Wash</th>
+                <th className="px-4 py-4 text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em]">Wash/U</th>
+                <th className="px-4 py-4 text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em]">Print</th>
+                <th className="px-4 py-4 text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em]">Emb.</th>
+                <th className="px-4 py-4 text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em]">Travel</th>
+                <th className="px-4 py-4 text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em]">Misc</th>
+                <th className="px-4 py-4 text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em]">Total</th>
+                <th className="px-4 py-4 text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em]">₹ / Unit</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-foreground/[0.02]">
               {loading && batches.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="px-4 py-14 text-center text-foreground/45">
-                    <Loader2 className="w-6 h-6 animate-spin inline" />
+                  <td colSpan={11} className="px-4 py-16 text-center">
+                    <Loader2 className="w-6 h-6 animate-spin inline text-foreground/10" strokeWidth={1} />
                   </td>
                 </tr>
               ) : batches.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="px-4 py-14 text-center text-foreground/45">
-                    No batch rows for this filter. Log fabric OUT against batches, stage costs, or misc
-                    expenses in range.
+                  <td colSpan={11} className="px-4 py-16 text-center text-foreground/30 text-[9px] uppercase tracking-[0.2em]">
+                    No spectrum data matched the current query.
                   </td>
                 </tr>
               ) : (
-                batches.map((b, i) => (
-                  <tr
-                    key={b.batchId}
-                    className={`border-b border-foreground/[0.06] hover:bg-foreground/[0.04] transition-colors align-top ${
-                      i % 2 === 1 ? "bg-foreground/[0.02]" : ""
-                    }`}
-                  >
-                    <td className="px-3 py-3">
-                      <div className="font-mono text-[10px] text-foreground/45">{b.batchCode}</div>
-                      <div className="font-semibold text-foreground mt-0.5">{b.productName}</div>
-                      <div className="text-[10px] text-foreground/40 mt-1">Qty {b.quantity}</div>
+                batches.map((b) => (
+                  <tr key={b.batchId} className="hover:bg-foreground/[0.01] transition-colors">
+                    <td className="px-4 py-4">
+                      <div className="font-normal text-foreground/40 text-[8px] uppercase tracking-wider tabular-nums">{b.batchCode}</div>
+                      <div className="font-normal text-foreground uppercase tracking-tight text-[11px] mt-1">{b.productName}</div>
+                      <div className="text-[7px] text-foreground/30 uppercase tracking-[0.2em] mt-1">Nodes: {b.quantity}</div>
                     </td>
-                    <td className="px-3 py-3 text-foreground/70 max-w-[150px] leading-snug">
-                      {MFG_STAGE_LABEL[b.currentStage] || b.currentStage}
+                    <td className="px-4 py-4">
+                      <span className="text-[9px] font-normal text-foreground/60 uppercase tracking-[0.1em]">
+                        {MFG_STAGE_LABEL[b.currentStage] || b.currentStage}
+                      </span>
                     </td>
-                    <td className="px-3 py-3 tabular-nums">{formatInr(b.fabricCost)}</td>
-                    <td className="px-3 py-3 tabular-nums">{formatInr(b.washCost)}</td>
-                    <td className="px-3 py-3 tabular-nums text-foreground/80">
-                      {formatInr(num(b.washCostPerUnit))}
-                    </td>
-                    <td className="px-3 py-3 tabular-nums">{formatInr(b.printingCost)}</td>
-                    <td className="px-3 py-3 tabular-nums">{formatInr(b.embroideryCost)}</td>
-                    <td className="px-3 py-3 tabular-nums">{formatInr(b.travelLogistics)}</td>
-                    <td className="px-3 py-3 tabular-nums">{formatInr(b.miscellaneous)}</td>
-                    <td className="px-3 py-3 tabular-nums font-bold">{formatInr(b.totalCost)}</td>
-                    <td
-                      className={`px-3 py-3 tabular-nums font-semibold ${
-                        b.costPerUnit > COST_PER_UNIT_WARN_THRESHOLD
-                          ? "text-amber-600 dark:text-amber-300"
-                          : ""
-                      }`}
-                    >
-                      {formatInr(b.costPerUnit)}
+                    <td className="px-4 py-4 tabular-nums text-foreground/70">{formatInr(b.fabricCost)}</td>
+                    <td className="px-4 py-4 tabular-nums text-foreground/70">{formatInr(b.washCost)}</td>
+                    <td className="px-4 py-4 tabular-nums text-foreground/40">{formatInr(num(b.washCostPerUnit))}</td>
+                    <td className="px-4 py-4 tabular-nums text-foreground/70">{formatInr(b.printingCost)}</td>
+                    <td className="px-4 py-4 tabular-nums text-foreground/70">{formatInr(b.embroideryCost)}</td>
+                    <td className="px-4 py-4 tabular-nums text-foreground/70">{formatInr(b.travelLogistics)}</td>
+                    <td className="px-4 py-4 tabular-nums text-foreground/70">{formatInr(b.miscellaneous)}</td>
+                    <td className="px-4 py-4 tabular-nums font-normal text-foreground underline decoration-foreground/5 decoration-dotted underline-offset-4">{formatInr(b.totalCost)}</td>
+                    <td className="px-4 py-4 tabular-nums">
+                      <span className={`px-2 py-1 rounded-md text-[10px] font-normal ${
+                          b.costPerUnit > COST_PER_UNIT_WARN_THRESHOLD
+                            ? "bg-rose-500/5 text-rose-500"
+                            : "text-foreground/80"
+                        }`}>
+                        {formatInr(b.costPerUnit)}
+                      </span>
                     </td>
                   </tr>
                 ))
@@ -501,92 +501,100 @@ export default function CostLedgerPage() {
             </tbody>
           </table>
         </div>
-      </section>
+      </div>
 
+      {/* Misc Expense Modal */}
       {miscOpen && (
-        <div className="fixed inset-0 z-[90] flex items-center justify-center p-4 bg-background/70 backdrop-blur-md">
-          <div className="w-full max-w-md rounded-3xl border border-foreground/10 bg-foreground/[0.03] p-6 space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl">
-            <h2 className="text-lg font-bold">Add miscellaneous expense</h2>
-            <p className="text-[12px] text-foreground/50">
-              Batch is optional — unallocated misc still rolls into period totals. Description and amount
-              are required.
-            </p>
-            <div>
-              <label className="text-[11px] font-bold text-foreground/50">Batch (optional)</label>
-              <select
-                value={miscBatch}
-                onChange={(e) => setMiscBatch(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-foreground/10 bg-background/50 px-3 py-2.5 text-sm"
-              >
-                <option value="">Unallocated</option>
-                {batchOptions.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.batchCode}
-                  </option>
-                ))}
-              </select>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-md animate-in fade-in">
+          <div className="w-full max-w-md bg-white/90 dark:bg-black/80 backdrop-blur-2xl rounded-[1rem] border border-foreground/[0.05] shadow-2xl p-6 space-y-6 max-h-[90vh] overflow-y-auto font-inter">
+            <div className="space-y-1">
+              <h2 className="text-[11px] font-normal text-foreground uppercase tracking-[0.2em] leading-none">RECORD MISCELLANEOUS EXPENSE</h2>
+              <p className="text-[9px] text-foreground/40 uppercase tracking-[0.2em]">Batch linkage is optional; unallocated units roll into period net valuation.</p>
             </div>
-            <div>
-              <label className="text-[11px] font-bold text-foreground/50">Expense type</label>
-              <select
-                value={miscExpenseType}
-                onChange={(e) => setMiscExpenseType(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-foreground/10 bg-background/50 px-3 py-2.5 text-sm"
-              >
-                {MISC_EXPENSE_TYPES.map((t) => (
-                  <option key={t.value} value={t.value}>
-                    {t.label}
-                  </option>
-                ))}
-              </select>
+
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">Spectrum Batch Linkage</label>
+                <select
+                  value={miscBatch}
+                  onChange={(e) => setMiscBatch(e.target.value)}
+                  className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em] appearance-none"
+                >
+                  <option value="">UNALLOCATED (NULL-LINK)</option>
+                  {batchOptions.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.batchCode}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">Expense Protocol</label>
+                <select
+                  value={miscExpenseType}
+                  onChange={(e) => setMiscExpenseType(e.target.value)}
+                  className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em] appearance-none"
+                >
+                  {MISC_EXPENSE_TYPES.map((t) => (
+                    <option key={t.value} value={t.value}>
+                      {t.label.toUpperCase()}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">Valuation Amount (₹) *</label>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  step="0.01"
+                  value={miscAmount}
+                  onChange={(e) => setMiscAmount(e.target.value)}
+                  className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all tabular-nums font-inter"
+                />
+                {miscErr.amount && <p className="text-rose-500 text-[7px] mt-1 uppercase tracking-widest">{miscErr.amount}</p>}
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">Technical Description *</label>
+                <input
+                  value={miscDesc}
+                  onChange={(e) => setMiscDesc(e.target.value)}
+                  placeholder="E.G. PACKAGING, COURIER, LABOUR"
+                  className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em]"
+                />
+                {miscErr.description && (
+                  <p className="text-rose-500 text-[7px] mt-1 uppercase tracking-widest">{miscErr.description}</p>
+                )}
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">Log Date</label>
+                <input
+                  type="date"
+                  value={miscDate}
+                  onChange={(e) => setMiscDate(e.target.value)}
+                  className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all font-inter"
+                />
+              </div>
             </div>
-            <div>
-              <label className="text-[11px] font-bold text-foreground/50">Amount (₹) *</label>
-              <input
-                type="number"
-                inputMode="decimal"
-                step="0.01"
-                value={miscAmount}
-                onChange={(e) => setMiscAmount(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-foreground/10 bg-background/50 px-3 py-2.5 text-sm tabular-nums"
-              />
-              {miscErr.amount && <p className="text-red-500 text-[11px] mt-1">{miscErr.amount}</p>}
-            </div>
-            <div>
-              <label className="text-[11px] font-bold text-foreground/50">Description *</label>
-              <input
-                value={miscDesc}
-                onChange={(e) => setMiscDesc(e.target.value)}
-                placeholder="e.g. packaging, courier, labour"
-                className="mt-1 w-full rounded-xl border border-foreground/10 bg-background/50 px-3 py-2.5 text-sm"
-              />
-              {miscErr.description && (
-                <p className="text-red-500 text-[11px] mt-1">{miscErr.description}</p>
-              )}
-            </div>
-            <div>
-              <label className="text-[11px] font-bold text-foreground/50">Date</label>
-              <input
-                type="date"
-                value={miscDate}
-                onChange={(e) => setMiscDate(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-foreground/10 bg-background/50 px-3 py-2.5 text-sm"
-              />
-            </div>
-            <div className="flex flex-col-reverse sm:flex-row gap-2 justify-end pt-2 border-t border-foreground/10">
+
+            <div className="flex gap-2 justify-end pt-6 border-t border-foreground/[0.05]">
               <button
                 type="button"
                 onClick={() => setMiscOpen(false)}
-                className="px-4 py-2.5 rounded-xl border border-foreground/10 text-[12px] font-semibold"
+                className="px-5 py-2 rounded-md text-[8px] font-normal uppercase tracking-[0.2em] text-foreground/40 hover:text-foreground/60 transition-all"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={saveMisc}
-                className="px-4 py-2.5 rounded-xl bg-foreground text-background text-[12px] font-bold"
+                className="px-8 py-2 bg-foreground text-background rounded-md text-[8px] font-normal uppercase tracking-[0.3em] shadow-lg shadow-foreground/5 hover:opacity-90 transition-all"
               >
-                Save expense
+                COMMIT EXPENSE
               </button>
             </div>
           </div>
@@ -595,8 +603,10 @@ export default function CostLedgerPage() {
 
       {toast && (
         <div
-          className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] max-w-[min(92vw,400px)] px-5 py-3 rounded-2xl text-sm font-semibold shadow-2xl text-center ${
-            toast?.t === "ok" ? "bg-foreground text-background" : "bg-red-600 text-white"
+          className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-[200] px-6 py-4 rounded-[2rem] text-[10px] font-normal uppercase tracking-[0.2em] shadow-2xl animate-in fade-in slide-in-from-bottom-4 border border-foreground/[0.05] backdrop-blur-xl ${
+            toast?.t === "ok"
+              ? "bg-foreground text-background"
+              : "bg-rose-500 text-white"
           }`}
         >
           {toast?.m}

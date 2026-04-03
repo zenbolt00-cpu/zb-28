@@ -10,6 +10,7 @@ import {
   RefreshCw,
   Sparkles,
   Palette,
+  Search,
 } from "lucide-react";
 import { suggestFabricSku } from "@/lib/manufacturing/sku";
 import { mfgFetch } from "@/lib/manufacturing/mfg-fetch";
@@ -289,56 +290,63 @@ export default function FabricInventoryPage() {
   };
 
   return (
-    <div className="space-y-6 pb-12 max-w-[1500px] mx-auto">
-      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground font-inter">Fabric Inventory</h1>
-          <p className="text-sm text-foreground/55 mt-1 max-w-xl">
-            Master fabric list — all changes persist to the database. Filter updates instantly on this
-            page.
+    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-[1500px] mx-auto pb-12">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-2">
+        <div className="space-y-1">
+          <div className="px-2 py-0.5 bg-foreground/[0.03] rounded-md text-[7px] font-normal text-foreground/50 uppercase tracking-[0.3em] w-fit tracking-widest">manufacturing hub</div>
+          <h1 className="text-lg font-normal text-foreground uppercase tracking-[0.2em] mb-0.5 leading-none mt-1 font-inter">
+            Fabric Inventory
+          </h1>
+          <p className="text-[9px] text-foreground/40 font-normal uppercase tracking-[0.2em] mt-1">
+            Manage your fabric spectrum — {allFabrics.length} nodes. All changes persist to the database.
           </p>
         </div>
         <button
           type="button"
           onClick={openAdd}
-          className="inline-flex items-center gap-2 self-start px-5 py-3 rounded-2xl bg-foreground text-background text-sm font-bold shadow-lg hover:opacity-95 transition-opacity"
+          className="flex items-center gap-2 px-5 py-2.5 bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-foreground/[0.05] rounded-md text-[8px] font-normal uppercase tracking-[0.2em] text-foreground/80 transition-all active:scale-95"
         >
-          <Plus className="w-5 h-5" />
-          Add New Fabric
+          <Plus className="w-3.5 h-3.5" strokeWidth={1.5} />
+          ADD NEW FABRIC
         </button>
       </div>
 
-      <div className="rounded-3xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 via-transparent to-transparent p-5 shadow-[0_0_40px_-12px_rgba(16,185,129,0.35)]">
-        <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-          <ScanLine className="w-5 h-5 text-emerald-500" />
+      <div className="bg-white/50 dark:bg-white/[0.01] backdrop-blur-3xl rounded-[1rem] p-4 border border-foreground/[0.02] shadow-sm">
+        <div className="flex items-center gap-2 text-[8px] font-normal uppercase tracking-[0.3em] text-foreground/60">
+          <ScanLine className="w-3.5 h-3.5 text-emerald-500/60" strokeWidth={1.5} />
           Scan / quick update
         </div>
-        <p className="text-xs text-foreground/50 mt-2 mb-3">
-          Type or scan SKU, press Enter — adjust weight, meters, and price, then save.
+        <p className="text-[8px] text-foreground/30 mt-1.5 mb-3 uppercase tracking-[0.2em]">
+          Refinery input: Type or scan SKU, press Enter — adjust weight, meters, and price.
         </p>
         <input
           value={scanInput}
           onChange={(e) => setScanInput(e.target.value)}
           onKeyDown={handleScanKey}
-          placeholder="Scan or type SKU…"
-          className="w-full rounded-2xl border border-foreground/10 bg-background/80 px-4 py-3.5 text-sm outline-none focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20 transition-shadow"
+          placeholder="SCAN SPECTRUM SKU…"
+          className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-4 py-2 text-[10px] font-normal text-foreground placeholder:text-foreground/20 focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em]"
         />
       </div>
 
-      <div className="flex flex-wrap gap-2 items-center">
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Search name or SKU (live filter)…"
-          className="flex-1 min-w-[200px] max-w-md rounded-2xl border border-foreground/10 bg-foreground/[0.04] px-4 py-2.5 text-sm"
-        />
+      <div className="flex flex-col md:flex-row gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-foreground/20" strokeWidth={1.5} />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="SEARCH SPECTRUM NODES…"
+            className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md pl-9 pr-4 py-2 text-[10px] font-normal text-foreground placeholder:text-foreground/20 focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em]"
+          />
+        </div>
         <button
           type="button"
           onClick={() => load()}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-foreground/10 text-xs font-semibold"
+          disabled={loading}
+          className="flex items-center gap-2 px-5 py-2 bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-foreground/[0.05] rounded-md text-[8px] font-normal uppercase tracking-[0.2em] text-foreground/80 dark:text-foreground/60 transition-all active:scale-95"
         >
-          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-          Refresh
+          <RefreshCw className={`w-3 h-3 ${loading ? "animate-spin" : ""}`} strokeWidth={1.5} />
+          REFRESH
         </button>
       </div>
 
@@ -419,30 +427,32 @@ export default function FabricInventoryPage() {
                     </td>
                     <td className="px-4 py-3">
                       <span
-                        className={`inline-flex px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                        className={`inline-flex px-2 py-0.5 rounded-md text-[7px] font-normal uppercase tracking-[0.2em] ${
                           f.status === "ACTIVE"
-                            ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/25"
-                            : "bg-foreground/10 text-foreground/45 border border-foreground/10"
+                            ? "bg-emerald-500/[0.08] text-emerald-500/60 border border-emerald-500/[0.08]"
+                            : "bg-foreground/[0.04] text-foreground/30 border border-foreground/[0.05]"
                         }`}
                       >
-                        {f.status === "ACTIVE" ? "Active" : "Inactive"}
+                        {f.status}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <button
-                        type="button"
-                        onClick={() => openEdit(f)}
-                        className="p-2 rounded-xl hover:bg-foreground/10 text-foreground/60"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => remove(f)}
-                        className="p-2 rounded-xl hover:bg-red-500/10 text-red-500"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          type="button"
+                          onClick={() => openEdit(f)}
+                          className="p-1.5 bg-foreground/[0.01] border border-foreground/[0.02] rounded-md transition-all text-foreground/20 hover:text-foreground/60"
+                        >
+                          <Pencil className="w-3 h-3" strokeWidth={1.5} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => remove(f)}
+                          className="p-1.5 bg-red-500/[0.01] border border-red-500/[0.05] rounded-md transition-all text-red-500/30 hover:text-red-500/60"
+                        >
+                          <Trash2 className="w-3 h-3" strokeWidth={1.5} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -463,129 +473,140 @@ export default function FabricInventoryPage() {
       )}
 
       {(modal === "add" || modal === "edit" || modal === "scan") && (
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 bg-background/80 backdrop-blur-md">
-          <div className="w-full max-w-lg rounded-3xl border border-foreground/10 glass shadow-2xl p-6 space-y-3 max-h-[92vh] overflow-y-auto">
-            <h2 className="text-lg font-bold">
-              {modal === "add" ? "Add fabric" : modal === "scan" ? "Quick update" : "Edit fabric"}
-            </h2>
-            {modal === "scan" && (
-              <p className="text-sm text-foreground/55">
-                {scanFabric?.name}{" "}
-                <span className="font-mono text-xs">({scanFabric?.sku})</span>
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 bg-background/80 backdrop-blur-md animate-in fade-in">
+          <div className="w-full max-w-lg bg-white/90 dark:bg-black/80 backdrop-blur-2xl rounded-[1rem] border border-foreground/[0.05] shadow-2xl p-6 space-y-6 max-h-[92vh] overflow-y-auto">
+            <div className="space-y-1">
+              <h2 className="text-[11px] font-normal text-foreground uppercase tracking-[0.2em] leading-none">
+                {modal === "add" ? "NEW NODE ENTRY" : modal === "scan" ? "QUICK REFINERY UPDATE" : "NODE MODIFICATION"}
+              </h2>
+              <p className="text-[9px] text-foreground/40 uppercase tracking-[0.2em]">
+                {modal === "add" ? "Registering a new fabric spectrum node." : modal === "scan" ? `UPDATING SPECTRUM: ${scanFabric?.sku}` : `MODIFYING NODE: ${editing?.sku}`}
               </p>
-            )}
-            {modal !== "scan" && (
-              <>
-                <div>
-                  <label className="text-[11px] font-bold text-foreground/45">Fabric name *</label>
-                  <input
-                    value={form.name}
-                    onChange={(e) => setForm((s) => ({ ...s, name: e.target.value }))}
-                    className="mt-1 w-full rounded-xl border border-foreground/10 bg-foreground/[0.04] px-3 py-2.5 text-sm"
-                  />
-                  {formErr.name && <p className="text-red-500 text-[11px] mt-1">{formErr.name}</p>}
-                </div>
-                <div>
-                  <div className="flex justify-between items-center">
-                    <label className="text-[11px] font-bold text-foreground/45">
-                      {modal === "add" ? "SKU (optional — auto if empty)" : "SKU *"}
-                    </label>
-                    <button
-                      type="button"
-                      onClick={genSku}
-                      className="text-[11px] font-semibold text-foreground/50 flex items-center gap-1"
-                    >
-                      <Sparkles className="w-3 h-3" /> Generate
-                    </button>
-                  </div>
-                  <input
-                    value={form.sku}
-                    onChange={(e) => setForm((s) => ({ ...s, sku: e.target.value }))}
-                    className="mt-1 w-full rounded-xl border border-foreground/10 bg-foreground/[0.04] px-3 py-2.5 text-sm font-mono"
-                  />
-                  {formErr.sku && <p className="text-red-500 text-[11px] mt-1">{formErr.sku}</p>}
-                </div>
-              </>
-            )}
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-[11px] font-bold text-foreground/45">Cost / meter (₹) *</label>
-                <input
-                  type="number"
-                  value={form.costPerMeter}
-                  onChange={(e) => setForm((s) => ({ ...s, costPerMeter: e.target.value }))}
-                  className="mt-1 w-full rounded-xl border border-foreground/10 bg-foreground/[0.04] px-3 py-2.5 text-sm"
-                />
-                {formErr.costPerMeter && (
-                  <p className="text-red-500 text-[11px] mt-1">{formErr.costPerMeter}</p>
-                )}
-              </div>
-              <div>
-                <label className="text-[11px] font-bold text-foreground/45">Total meters *</label>
-                <input
-                  type="number"
-                  value={form.totalMeters}
-                  onChange={(e) => setForm((s) => ({ ...s, totalMeters: e.target.value }))}
-                  className="mt-1 w-full rounded-xl border border-foreground/10 bg-foreground/[0.04] px-3 py-2.5 text-sm"
-                />
-                {formErr.totalMeters && (
-                  <p className="text-red-500 text-[11px] mt-1">{formErr.totalMeters}</p>
-                )}
-              </div>
-              <div>
-                <label className="text-[11px] font-bold text-foreground/45">Total weight *</label>
-                <input
-                  type="number"
-                  value={form.weightValue}
-                  onChange={(e) => setForm((s) => ({ ...s, weightValue: e.target.value }))}
-                  className="mt-1 w-full rounded-xl border border-foreground/10 bg-foreground/[0.04] px-3 py-2.5 text-sm"
-                />
-                {formErr.weightValue && (
-                  <p className="text-red-500 text-[11px] mt-1">{formErr.weightValue}</p>
-                )}
-              </div>
-              <div>
-                <label className="text-[11px] font-bold text-foreground/45">Unit</label>
-                <select
-                  value={form.weightUnit}
-                  onChange={(e) => setForm((s) => ({ ...s, weightUnit: e.target.value }))}
-                  className="mt-1 w-full rounded-xl border border-foreground/10 bg-foreground/[0.04] px-3 py-2.5 text-sm"
-                >
-                  <option value="kg">kg</option>
-                  <option value="g">g</option>
-                </select>
-              </div>
             </div>
-            {modal !== "scan" && (
-              <>
-                <div>
-                  <label className="text-[11px] font-bold text-foreground/45">
-                    Low stock alert (meters, optional)
-                  </label>
+
+            {modal === "scan" && (
+              <div className="px-3 py-2 bg-foreground/[0.02] border border-foreground/[0.03] rounded-md">
+                <p className="text-[10px] font-normal text-foreground uppercase tracking-[0.1em]">
+                  {scanFabric?.name}
+                </p>
+              </div>
+            )}
+
+            <div className="space-y-4">
+              {modal !== "scan" && (
+                <>
+                  <div className="space-y-1.5">
+                    <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">Fabric name *</label>
+                    <input
+                      value={form.name}
+                      onChange={(e) => setForm((s) => ({ ...s, name: e.target.value }))}
+                      className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em]"
+                    />
+                    {formErr.name && <p className="text-rose-500 text-[7px] mt-1 uppercase tracking-widest">{formErr.name}</p>}
+                  </div>
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between items-center px-1">
+                      <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em]">
+                        {modal === "add" ? "SKU (AUTO-GENERATE IF EMPTY)" : "SKU *"}
+                      </label>
+                      <button
+                        type="button"
+                        onClick={genSku}
+                        className="text-[7px] font-normal text-foreground/40 hover:text-foreground/80 uppercase tracking-widest flex items-center gap-1 transition-colors"
+                      >
+                        <Sparkles className="w-2.5 h-2.5" /> RE-GENERATE
+                      </button>
+                    </div>
+                    <input
+                      value={form.sku}
+                      onChange={(e) => setForm((s) => ({ ...s, sku: e.target.value }))}
+                      className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all font-mono uppercase tracking-[0.1em]"
+                    />
+                    {formErr.sku && <p className="text-rose-500 text-[7px] mt-1 uppercase tracking-widest">{formErr.sku}</p>}
+                  </div>
+                </>
+              )}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">Cost / meter (₹) *</label>
                   <input
                     type="number"
-                    value={form.lowStockMetersThreshold}
-                    onChange={(e) =>
-                      setForm((s) => ({ ...s, lowStockMetersThreshold: e.target.value }))
-                    }
-                    placeholder="e.g. 10"
-                    className="mt-1 w-full rounded-xl border border-foreground/10 bg-foreground/[0.04] px-3 py-2.5 text-sm"
+                    value={form.costPerMeter}
+                    onChange={(e) => setForm((s) => ({ ...s, costPerMeter: e.target.value }))}
+                    className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all"
                   />
+                  {formErr.costPerMeter && (
+                    <p className="text-rose-500 text-[7px] mt-1 uppercase tracking-widest">{formErr.costPerMeter}</p>
+                  )}
                 </div>
-                <div>
-                  <label className="text-[11px] font-bold text-foreground/45">Status</label>
+                <div className="space-y-1.5">
+                  <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">Total meters *</label>
+                  <input
+                    type="number"
+                    value={form.totalMeters}
+                    onChange={(e) => setForm((s) => ({ ...s, totalMeters: e.target.value }))}
+                    className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all"
+                  />
+                  {formErr.totalMeters && (
+                    <p className="text-rose-500 text-[7px] mt-1 uppercase tracking-widest">{formErr.totalMeters}</p>
+                  )}
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">Total weight *</label>
+                  <input
+                    type="number"
+                    value={form.weightValue}
+                    onChange={(e) => setForm((s) => ({ ...s, weightValue: e.target.value }))}
+                    className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all"
+                  />
+                  {formErr.weightValue && (
+                    <p className="text-rose-500 text-[7px] mt-1 uppercase tracking-widest">{formErr.weightValue}</p>
+                  )}
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">Unit</label>
                   <select
-                    value={form.status}
-                    onChange={(e) => setForm((s) => ({ ...s, status: e.target.value }))}
-                    className="mt-1 w-full rounded-xl border border-foreground/10 bg-foreground/[0.04] px-3 py-2.5 text-sm"
+                    value={form.weightUnit}
+                    onChange={(e) => setForm((s) => ({ ...s, weightUnit: e.target.value }))}
+                    className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em] appearance-none"
                   >
-                    <option value="ACTIVE">Active</option>
-                    <option value="INACTIVE">Inactive</option>
+                    <option value="kg">kg</option>
+                    <option value="g">g</option>
                   </select>
                 </div>
-              </>
-            )}
-            <div className="flex gap-2 justify-end pt-3 border-t border-foreground/10">
+              </div>
+              {modal !== "scan" && (
+                <>
+                  <div className="space-y-1.5">
+                    <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">
+                      Low stock alert (meters, optional)
+                    </label>
+                    <input
+                      type="number"
+                      value={form.lowStockMetersThreshold}
+                      onChange={(e) =>
+                        setForm((s) => ({ ...s, lowStockMetersThreshold: e.target.value }))
+                      }
+                      placeholder="THRESHOLD"
+                      className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em]"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">Status</label>
+                    <select
+                      value={form.status}
+                      onChange={(e) => setForm((s) => ({ ...s, status: e.target.value }))}
+                      className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em] appearance-none"
+                    >
+                      <option value="ACTIVE">Active</option>
+                      <option value="INACTIVE">Inactive</option>
+                    </select>
+                  </div>
+                </>
+              )}
+            </div>
+
+            <div className="flex gap-2 justify-end pt-6 border-t border-foreground/[0.05]">
               <button
                 type="button"
                 onClick={() => {
@@ -593,16 +614,16 @@ export default function FabricInventoryPage() {
                   setScanFabric(null);
                   setEditing(null);
                 }}
-                className="px-4 py-2.5 rounded-xl border border-foreground/10 text-xs font-semibold"
+                className="px-5 py-2 rounded-md text-[8px] font-normal uppercase tracking-[0.2em] text-foreground/40 hover:text-foreground/60 transition-all"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={() => saveFabric(modal === "scan")}
-                className="px-4 py-2.5 rounded-xl bg-foreground text-background text-xs font-bold"
+                className="px-8 py-2 bg-foreground text-background rounded-md text-[8px] font-normal uppercase tracking-[0.3em] shadow-lg shadow-foreground/5 hover:opacity-90 transition-all"
               >
-                Save
+                SAVE NODE
               </button>
             </div>
           </div>

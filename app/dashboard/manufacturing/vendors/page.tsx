@@ -145,24 +145,27 @@ export default function VendorsPage() {
   });
 
   return (
-    <div className="w-full space-y-6 sm:space-y-8 pb-12 pt-4 lg:pt-10 max-w-[1500px] mx-auto overflow-x-hidden lg:overflow-visible">
-      <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-5">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-foreground uppercase tracking-tighter leading-none">
-            Manufacturing Vendors
+    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-[1500px] mx-auto pb-12 pt-4">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-2">
+        <div className="space-y-1">
+          <div className="px-2 py-0.5 bg-foreground/[0.03] rounded-md text-[7px] font-normal text-foreground/50 uppercase tracking-[0.3em] w-fit tracking-widest font-inter">manufacturing hub</div>
+          <h1 className="text-lg font-normal text-foreground uppercase tracking-[0.2em] mb-0.5 leading-none mt-1 font-inter">
+            Vendors & Partners
           </h1>
-          <p className="text-sm text-foreground/55 mt-1 max-w-2xl">
-            Manage your fabric suppliers, printers, dyers, and other manufacturing partners.
+          <p className="text-[9px] text-foreground/40 font-normal uppercase tracking-[0.2em] mt-1">
+            Spectrum Node Directory — {vendors.length} registered manufacturing terminals. Immutable partner ledger.
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={loadVendors}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl border border-foreground/10 text-xs font-semibold hover:bg-foreground/5"
+            disabled={loading}
+            className="flex items-center gap-2 px-5 py-2.5 bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-foreground/[0.05] rounded-md text-[8px] font-normal uppercase tracking-[0.2em] text-foreground/80 dark:text-foreground/60 transition-all active:scale-95"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-            Refresh
+            <RefreshCw className={`w-3 h-3 ${loading ? "animate-spin" : ""}`} strokeWidth={1.5} />
+            REFRESH
           </button>
           <button
             type="button"
@@ -171,155 +174,157 @@ export default function VendorsPage() {
               setForm({ name: "", address: "", mobile: "", category: "Fabric", customCategory: "" });
               setModalOpen(true);
             }}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl bg-foreground text-background text-xs font-bold shadow-lg"
+            className="flex items-center gap-2 px-5 py-2.5 bg-foreground text-background border border-foreground rounded-md text-[8px] font-normal uppercase tracking-[0.2em] transition-all active:scale-95 shadow-lg shadow-foreground/5"
           >
-            <Plus className="w-4 h-4" />
-            Add vendor
+            <Plus className="w-3.5 h-3.5" strokeWidth={1.5} />
+            ADD VENDOR
           </button>
         </div>
-      </header>
+      </div>
 
-      {/* Filters */}
-      <section className="flex flex-col gap-4 lg:flex-row lg:items-center">
-        <div className="relative w-full lg:max-w-md">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/30" />
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Search vendors..."
-            className="w-full rounded-2xl border border-foreground/10 bg-foreground/[0.04] pl-11 pr-4 py-3 text-sm focus:ring-2 focus:ring-foreground/15 outline-none transition-shadow"
-          />
-        </div>
-        <div className="flex gap-2 overflow-x-auto pb-2 w-full lg:w-auto scrollbar-thin px-1 -mx-1">
-          <button
-            onClick={() => setFilterCategory(null)}
-            className={`px-4 py-2 rounded-xl text-[11px] font-bold whitespace-nowrap transition-all border ${
-              !filterCategory 
-                ? "bg-foreground text-background border-foreground shadow-md" 
-                : "bg-foreground/5 text-foreground/60 border-transparent hover:border-foreground/20"
-            }`}
-          >
-            All Categories
-          </button>
-          {CATEGORIES.map((cat) => (
+      {/* Filters & Search */}
+      <div className="flex flex-col gap-4">
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="SEARCH SPECTRUM PARTNERS…"
+          className="w-full max-w-md bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-4 py-2 text-[10px] font-normal text-foreground placeholder:text-foreground/20 focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em]"
+        />
+
+        <div className="bg-white/50 dark:bg-white/[0.01] backdrop-blur-3xl rounded-[1rem] p-1 border border-foreground/[0.02] shadow-sm">
+          <div className="flex overflow-x-auto scrollbar-hide py-1 px-1 gap-1">
             <button
-              key={cat}
-              onClick={() => setFilterCategory(cat)}
-              className={`px-4 py-2 rounded-xl text-[11px] font-bold whitespace-nowrap transition-all border ${
-                filterCategory === cat 
-                  ? "bg-foreground text-background border-foreground shadow-md" 
-                  : "bg-foreground/5 text-foreground/60 border-transparent hover:border-foreground/20"
+              onClick={() => setFilterCategory(null)}
+              className={`px-4 py-2 rounded-md text-[7px] font-normal uppercase tracking-[0.3em] whitespace-nowrap transition-all duration-300 border ${
+                !filterCategory
+                  ? "bg-foreground text-background border-foreground shadow-lg shadow-foreground/5"
+                  : "text-foreground/40 border-transparent hover:bg-foreground/[0.03] hover:text-foreground/60"
               }`}
             >
-              {cat}
+              ALL NODES
             </button>
-          ))}
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setFilterCategory(cat)}
+                className={`px-4 py-2 rounded-md text-[7px] font-normal uppercase tracking-[0.3em] whitespace-nowrap transition-all duration-300 border ${
+                  filterCategory === cat
+                    ? "bg-foreground text-background border-foreground shadow-lg shadow-foreground/5"
+                    : "text-foreground/40 border-transparent hover:bg-foreground/[0.03] hover:text-foreground/60"
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
         </div>
-      </section>
+      </div>
 
       {loading && vendors.length === 0 ? (
-        <div className="py-24 flex justify-center text-foreground/40">
-          <Loader2 className="w-10 h-10 animate-spin" />
+        <div className="py-24 flex flex-col items-center justify-center gap-3">
+          <Loader2 className="w-8 h-8 animate-spin text-foreground/20" strokeWidth={1} />
+          <p className="text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em]">Synching with directory…</p>
         </div>
       ) : filteredVendors.length === 0 ? (
-        <div className="rounded-3xl border border-dashed border-foreground/15 bg-foreground/[0.02] py-20 px-6 text-center">
-          <p className="text-foreground/50 text-sm max-w-md mx-auto">
-            No vendors found. Add your first manufacturing vendor to get started.
+        <div className="bg-white/50 dark:bg-white/[0.01] backdrop-blur-3xl rounded-[1rem] border border-dashed border-foreground/[0.05] py-20 px-6 text-center">
+          <p className="text-foreground/40 text-[9px] uppercase tracking-[0.2em] max-w-md mx-auto">
+            No partner nodes match the current spectrum filter.
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filteredVendors.map((v) => (
-            <article
+            <div
               key={v.id}
-              className="group rounded-3xl border border-foreground/10 bg-gradient-to-b from-foreground/[0.04] to-transparent shadow-lg hover:shadow-xl hover:border-foreground/20 transition-all duration-300 overflow-hidden relative"
+              className="group bg-white/50 dark:bg-white/[0.01] backdrop-blur-3xl rounded-[1rem] border border-foreground/[0.05] shadow-sm hover:border-foreground/10 transition-all duration-500 overflow-hidden flex flex-col"
             >
-              <div className="p-6 space-y-4">
-                <div className="flex justify-between items-start gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-foreground/5 flex items-center justify-center text-foreground/40 group-hover:text-foreground/70 transition-colors">
-                    <Building2 className="w-6 h-6" />
+              <div className="p-5 flex flex-col flex-1">
+                <div className="flex justify-between items-start gap-3">
+                  <div className="space-y-1">
+                    <div className="text-[7px] font-normal text-foreground/30 uppercase tracking-[0.3em]">Node Type</div>
+                    <span className="px-2 py-0.5 rounded-md bg-foreground/[0.03] border border-foreground/[0.05] text-[7px] font-normal text-foreground/60 uppercase tracking-[0.2em]">
+                      {v.category}
+                    </span>
                   </div>
-                  <div className="px-3 py-1 rounded-full bg-foreground/5 border border-foreground/10 text-[10px] font-bold text-foreground/60">
-                    {v.category}
-                  </div>
+                  <Building2 className="w-4 h-4 text-foreground/10 group-hover:text-foreground/20 transition-colors" strokeWidth={1} />
                 </div>
                 
-                <div>
-                  <h3 className="font-bold text-lg leading-tight truncate">{v.name}</h3>
-                  <p className="text-[10px] text-foreground/30 mt-1 uppercase tracking-wider font-semibold">
-                    Added {formatDateTimeIST(v.createdAt)}
-                  </p>
+                <h3 className="text-[13px] font-normal text-foreground uppercase tracking-[0.05em] mt-5 leading-tight font-inter truncate">
+                  {v.name}
+                </h3>
+                
+                <p className="text-[8px] text-foreground/20 uppercase tracking-widest mt-1.5">
+                  ID: {v.id.slice(-8).toUpperCase()} // EST. {new Date(v.createdAt).getFullYear()}
+                </p>
+
+                <div className="mt-6 space-y-3 flex-1">
+                  <div className="space-y-1">
+                    <div className="text-[7px] font-normal text-foreground/20 uppercase tracking-[0.3em]">Telecom Node</div>
+                    <div className="flex items-center gap-2 text-[10px] text-foreground/60 tabular-nums">
+                      <Phone className="w-2.5 h-2.5 opacity-30" strokeWidth={1.5} />
+                      {v.mobile || "NULL_TERMINAL"}
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-[7px] font-normal text-foreground/20 uppercase tracking-[0.3em]">Geospatial Link</div>
+                    <div className="flex items-start gap-2 text-[10px] text-foreground/60 leading-relaxed uppercase tracking-tight line-clamp-2">
+                      <MapPin className="w-2.5 h-2.5 opacity-30 mt-0.5" strokeWidth={1.5} />
+                      {v.address || "NULL_COORDINATES"}
+                    </div>
+                  </div>
                 </div>
 
-                <div className="space-y-2.5">
-                  <div className="flex items-center gap-3 text-xs text-foreground/60">
-                    <Phone className="w-3.5 h-3.5 shrink-0 opacity-40" />
-                    <span className="truncate">{v.mobile || "No mobile number"}</span>
-                  </div>
-                  <div className="flex items-start gap-3 text-xs text-foreground/60">
-                    <MapPin className="w-3.5 h-3.5 shrink-0 mt-0.5 opacity-40" />
-                    <span className="line-clamp-2 leading-relaxed">{v.address || "No address provided"}</span>
-                  </div>
-                </div>
-
-                <div className="pt-2 flex gap-2">
+                <div className="pt-6 flex gap-1.5">
                   <button
                     onClick={() => openEdit(v)}
-                    className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-foreground/5 text-foreground/60 hover:bg-foreground/10 hover:text-foreground text-[11px] font-bold transition-all"
+                    className="flex-1 px-3 py-2 bg-foreground/[0.03] border border-foreground/[0.05] rounded-md text-[7px] font-normal uppercase tracking-[0.2em] text-foreground/40 hover:text-foreground/80 transition-all hover:bg-foreground/[0.05] flex items-center justify-center gap-1.5"
                   >
-                    <Edit2 className="w-3 h-3" />
-                    Edit
+                    <Edit2 className="w-2.5 h-2.5" />
+                    Modify
                   </button>
                   <button
                     onClick={() => handleDelete(v.id)}
-                    className="inline-flex items-center justify-center p-2 rounded-xl bg-red-500/5 text-red-500/60 hover:bg-red-500/10 hover:text-red-500 transition-all"
+                    className="px-3 py-2 bg-rose-500/[0.03] border border-rose-500/[0.05] rounded-md text-[7px] font-normal uppercase tracking-[0.2em] text-rose-500/40 hover:text-rose-500/80 transition-all hover:bg-rose-500/[0.05]"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <Trash2 className="w-2.5 h-2.5" />
                   </button>
                 </div>
               </div>
-            </article>
+            </div>
           ))}
         </div>
       )}
-
-      {/* Add/Edit Modal */}
+          {/* Add/Edit Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-background/80 backdrop-blur-md">
-          <div className="w-full max-w-lg rounded-3xl sm:rounded-[2.5rem] border border-foreground/10 glass shadow-2xl p-6 sm:p-8 space-y-6 max-h-[92vh] overflow-y-auto">
-            <div>
-              <h2 className="text-xl font-bold">{editingId ? "Edit vendor" : "Add new vendor"}</h2>
-              <p className="text-xs text-foreground/45 mt-1">
-                Enter vendor details carefully. These will be used in the manufacturing flows.
-              </p>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-md animate-in fade-in">
+          <div className="w-full max-w-lg bg-white/90 dark:bg-black/80 backdrop-blur-2xl rounded-[1rem] border border-foreground/[0.05] shadow-2xl p-6 space-y-6 max-h-[92vh] overflow-y-auto font-inter">
+            <div className="space-y-1">
+              <h2 className="text-[11px] font-normal text-foreground uppercase tracking-[0.2em] leading-none">{editingId ? "MODIFY SPECTRUM PARTNER" : "INITIATE PARTNER NODE"}</h2>
+              <p className="text-[9px] text-foreground/40 uppercase tracking-[0.2em]">Partner metrics will be synchronized across the spectrum ledger.</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-[11px] font-bold uppercase tracking-wider text-foreground/40 ml-1">
-                  Vendor Name *
-                </label>
+                <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">Partner Nomenclature *</label>
                 <input
                   required
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  placeholder="e.g. Apex Textiles"
-                  className="w-full rounded-2xl border border-foreground/10 bg-foreground/[0.04] px-4 py-3 text-sm focus:ring-2 focus:ring-foreground/15 outline-none transition-shadow"
+                  placeholder="E.G. APEX TEXTILES"
+                  className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em]"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[11px] font-bold uppercase tracking-wider text-foreground/40 ml-1">
-                  Category
-                </label>
+                <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">Functional Category</label>
                 <select
                   value={form.category}
                   onChange={(e) => setForm({ ...form, category: e.target.value })}
-                  className="w-full rounded-2xl border border-foreground/10 bg-foreground/[0.04] px-4 py-3 text-sm focus:ring-2 focus:ring-foreground/15 outline-none transition-shadow appearance-none"
+                  className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em] appearance-none"
                 >
                   {CATEGORIES.map((cat) => (
                     <option key={cat} value={cat}>
-                      {cat}
+                      {cat.toUpperCase()}
                     </option>
                   ))}
                 </select>
@@ -327,63 +332,57 @@ export default function VendorsPage() {
 
               {form.category === "Other" && (
                 <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2">
-                  <label className="text-[11px] font-bold uppercase tracking-wider text-foreground/40 ml-1">
-                    Please Specify *
-                  </label>
+                  <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">Custom Protocol *</label>
                   <input
                     required
                     value={form.customCategory}
                     onChange={(e) => setForm({ ...form, customCategory: e.target.value })}
-                    placeholder="e.g. Specialized Dyeing"
-                    className="w-full rounded-2xl border border-foreground/10 bg-foreground/[0.04] px-4 py-3 text-sm focus:ring-2 focus:ring-foreground/15 outline-none transition-shadow"
+                    placeholder="E.G. SPECIALIZED DYEING"
+                    className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em]"
                   />
                 </div>
               )}
 
               <div className="space-y-1.5">
-                <label className="text-[11px] font-bold uppercase tracking-wider text-foreground/40 ml-1">
-                  Mobile Number
-                </label>
+                <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">Telecom Link</label>
                 <input
                   value={form.mobile}
                   onChange={(e) => setForm({ ...form, mobile: e.target.value })}
-                  placeholder="+91 98765 43210"
-                  className="w-full rounded-2xl border border-foreground/10 bg-foreground/[0.04] px-4 py-3 text-sm focus:ring-2 focus:ring-foreground/15 outline-none transition-shadow"
+                  placeholder="+91 00000 00000"
+                  className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all font-inter"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[11px] font-bold uppercase tracking-wider text-foreground/40 ml-1">
-                  Address
-                </label>
+                <label className="text-[7px] font-normal text-foreground/40 uppercase tracking-[0.3em] ml-1">Geospatial Coordinates</label>
                 <textarea
                   value={form.address}
                   onChange={(e) => setForm({ ...form, address: e.target.value })}
                   rows={3}
-                  placeholder="Street address, City, Pincode"
-                  className="w-full rounded-2xl border border-foreground/10 bg-foreground/[0.04] px-4 py-3 text-sm focus:ring-2 focus:ring-foreground/15 outline-none transition-shadow"
+                  placeholder="STREET, CITY, PINCODE"
+                  className="w-full bg-foreground/[0.02] border border-foreground/[0.05] rounded-md px-3 py-2 text-[10px] font-normal text-foreground focus:outline-none focus:border-foreground/10 transition-all uppercase tracking-[0.1em]"
                 />
               </div>
 
-              <div className="flex gap-3 pt-4">
+              <div className="flex gap-2 justify-end pt-6 border-t border-foreground/[0.05]">
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}
-                  className="flex-1 px-4 py-3 rounded-2xl border border-foreground/10 text-xs font-bold hover:bg-foreground/5 transition-colors"
+                  className="px-5 py-2 rounded-md text-[8px] font-normal uppercase tracking-[0.2em] text-foreground/40 hover:text-foreground/60 transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   disabled={submitting}
                   type="submit"
-                  className="flex-[2] inline-flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-foreground text-background text-xs font-bold shadow-lg hover:opacity-90 disabled:opacity-50 transition-all font-inter"
+                  className="px-8 py-2 bg-foreground text-background rounded-md text-[8px] font-normal uppercase tracking-[0.3em] shadow-lg shadow-foreground/5 hover:opacity-90 disabled:opacity-50 transition-all font-inter"
                 >
                   {submitting ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
                   ) : editingId ? (
-                    "Save changes"
+                    "COMMIT CHANGES"
                   ) : (
-                    "Add vendor"
+                    "INITIATE PARTNER"
                   )}
                 </button>
               </div>
@@ -394,10 +393,10 @@ export default function VendorsPage() {
 
       {toast && (
         <div
-          className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-[200] px-6 py-4 rounded-[2rem] text-sm font-bold shadow-2xl backdrop-blur-xl border border-white/10 flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4 ${
+          className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-[200] px-6 py-4 rounded-[2rem] text-[10px] font-normal uppercase tracking-[0.2em] shadow-2xl animate-in fade-in slide-in-from-bottom-4 border border-foreground/[0.05] backdrop-blur-xl ${
             toast?.type === "ok"
-              ? "bg-emerald-500/90 text-white"
-              : "bg-red-500/90 text-white"
+              ? "bg-foreground text-background"
+              : "bg-rose-500 text-white"
           }`}
         >
           {toast?.msg}
