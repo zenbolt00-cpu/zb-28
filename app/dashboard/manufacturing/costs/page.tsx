@@ -289,7 +289,7 @@ export default function CostLedgerPage() {
     : [];
 
   return (
-    <div className="w-full space-y-6 sm:space-y-8 pb-12 pt-4 lg:pt-10 max-w-[1500px] mx-auto">
+    <div className="w-full space-y-6 sm:space-y-8 pb-12 pt-4 lg:pt-10 max-w-[1500px] mx-auto overflow-x-hidden lg:overflow-visible">
       <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-5">
         <div className="space-y-1">
           <h1 className="text-2xl lg:text-3xl font-bold text-foreground uppercase tracking-tighter leading-none">Cost Ledger</h1>
@@ -428,8 +428,8 @@ export default function CostLedgerPage() {
         </p>
       </section>
 
-      <section className="rounded-3xl border border-foreground/10 overflow-hidden shadow-lg bg-foreground/[0.02]">
-        <div className="overflow-x-auto max-h-[min(70vh,720px)] overflow-y-auto">
+      <section className="rounded-3xl border border-foreground/10 overflow-hidden shadow-lg bg-foreground/[0.02] w-full">
+        <div className="overflow-x-auto max-h-[min(70vh,720px)] overflow-y-auto w-full">
           <table className="w-full text-left text-[11px] font-inter min-w-[1180px] border-collapse">
             <thead className="sticky top-0 z-10 bg-foreground/[0.08] backdrop-blur-md border-b border-foreground/10 text-foreground/50 uppercase tracking-wider text-[10px] font-bold">
               <tr>

@@ -145,7 +145,7 @@ export default function VendorsPage() {
   });
 
   return (
-    <div className="w-full space-y-6 sm:space-y-8 pb-12 pt-4 lg:pt-10 max-w-[1500px] mx-auto">
+    <div className="w-full space-y-6 sm:space-y-8 pb-12 pt-4 lg:pt-10 max-w-[1500px] mx-auto overflow-x-hidden lg:overflow-visible">
       <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-5">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-foreground uppercase tracking-tighter leading-none">

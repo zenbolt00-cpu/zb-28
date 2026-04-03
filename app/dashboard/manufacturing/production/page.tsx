@@ -383,7 +383,7 @@ export default function ProductionTrackerPage() {
   };
 
   return (
-    <div className="w-full space-y-6 sm:space-y-8 pb-12 pt-4 lg:pt-10 max-w-[1500px] mx-auto">
+    <div className="w-full space-y-6 sm:space-y-8 pb-12 pt-4 lg:pt-10 max-w-[1500px] mx-auto overflow-x-hidden lg:overflow-visible">
       <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-5">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-foreground uppercase tracking-tighter leading-none">
@@ -394,13 +394,13 @@ export default function ProductionTrackerPage() {
             Tap a pipeline stage to filter the board.
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex rounded-2xl border border-foreground/10 p-1 bg-foreground/[0.03]">
+        <div className="flex flex-col sm:flex-row flex-wrap items-center gap-2 mt-4 lg:mt-0 w-full lg:w-auto">
+          <div className="flex w-full sm:w-auto rounded-2xl border border-foreground/10 p-1 bg-foreground/[0.03]">
             <button
               type="button"
               onClick={() => setView("card")}
-              className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 ${
-                view === "card" ? "bg-foreground text-background" : "text-foreground/60"
+              className={`flex-1 sm:flex-none justify-center px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 ${
+                view === "card" ? "bg-foreground text-background shadow-sm" : "text-foreground/60 hover:bg-foreground/[0.04]"
               }`}
             >
               <LayoutGrid className="w-3.5 h-3.5" />
@@ -409,8 +409,8 @@ export default function ProductionTrackerPage() {
             <button
               type="button"
               onClick={() => setView("table")}
-              className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 ${
-                view === "table" ? "bg-foreground text-background" : "text-foreground/60"
+              className={`flex-1 sm:flex-none justify-center px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 ${
+                view === "table" ? "bg-foreground text-background shadow-sm" : "text-foreground/60 hover:bg-foreground/[0.04]"
               }`}
             >
               <Table2 className="w-3.5 h-3.5" />
@@ -420,7 +420,7 @@ export default function ProductionTrackerPage() {
           <button
             type="button"
             onClick={() => loadBatches()}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-foreground/10 text-xs font-semibold hover:bg-foreground/5"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl border border-foreground/10 text-xs font-semibold hover:bg-foreground/[0.04]"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
             Refresh
@@ -428,7 +428,7 @@ export default function ProductionTrackerPage() {
           <button
             type="button"
             onClick={() => setNewOpen(true)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-foreground text-background text-xs font-bold shadow-lg"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl bg-foreground text-background text-xs font-bold shadow-lg"
           >
             <Plus className="w-4 h-4" />
             New batch
@@ -441,7 +441,7 @@ export default function ProductionTrackerPage() {
         <p className="text-[10px] font-bold uppercase tracking-wider text-foreground/40 mb-3">
           Stage pipeline (click to filter)
         </p>
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin">
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin px-1 -mx-1 w-full">
           {MFG_STAGE_KEYS.map((key) => {
             const active = filterStage === key;
             return (
@@ -493,9 +493,10 @@ export default function ProductionTrackerPage() {
           </p>
         </div>
       ) : view === "table" ? (
-        <div className="rounded-3xl border border-foreground/10 overflow-hidden overflow-x-auto">
-          <table className="w-full text-left text-xs min-w-[800px]">
-            <thead className="bg-foreground/[0.05] text-foreground/45 uppercase text-[10px] font-bold">
+        <div className="w-full rounded-3xl border border-foreground/10 overflow-hidden bg-foreground/[0.02]">
+          <div className="overflow-x-auto w-full custom-scrollbar">
+            <table className="w-full text-left text-xs min-w-[800px]">
+              <thead className="bg-foreground/[0.05] text-foreground/45 uppercase text-[10px] font-bold">
               <tr>
                 <th className="px-4 py-3">Batch</th>
                 <th className="px-4 py-3">Style</th>
@@ -546,6 +547,7 @@ export default function ProductionTrackerPage() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
@@ -606,13 +608,13 @@ export default function ProductionTrackerPage() {
                   <p className="text-[10px] text-foreground/35 mt-1">Stage progress</p>
                 </div>
 
-                <div className="px-5 pb-4 flex flex-wrap gap-2">
+                <div className="px-4 sm:px-5 pb-4 flex flex-wrap gap-2">
                   {actionsForBatch(b).map(({ key, label }: { key: ActionKey; label: string }) => (
                     <button
                       key={key}
                       type="button"
                       onClick={() => openAction(b, key)}
-                      className="px-3 py-2 rounded-xl border border-foreground/10 bg-background/50 text-[11px] font-bold hover:bg-foreground/8"
+                      className="flex-1 sm:flex-none justify-center px-3 py-2 rounded-xl border border-foreground/10 bg-background/50 text-[11px] font-bold hover:bg-foreground/[0.04]"
                     >
                       {label}
                     </button>
@@ -620,7 +622,7 @@ export default function ProductionTrackerPage() {
                   <button
                     type="button"
                     onClick={() => toggleExpand(b.id)}
-                    className="px-3 py-2 rounded-xl border border-foreground/10 text-[11px] font-semibold text-foreground/55 flex items-center gap-1"
+                    className="flex-1 sm:flex-none justify-center px-3 py-2 rounded-xl border border-foreground/10 text-[11px] font-semibold text-foreground/55 flex items-center gap-1.5 hover:bg-foreground/[0.02]"
                   >
                     {ex ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                     Cost breakdown
