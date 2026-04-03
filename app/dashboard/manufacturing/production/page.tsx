@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState, type Dispatch, type SetStateAction } from "react";
-import { Loader2, Plus, RefreshCw, LayoutGrid, Table2, ChevronDown, ChevronUp, Check, Search, Activity } from "lucide-react";
+import { Loader2, Plus, RefreshCw, LayoutGrid, Table2, ChevronDown, ChevronUp, Check, Search, Activity, ClipboardList } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { mfgFetch } from "@/lib/manufacturing/mfg-fetch";
 import { formatDateTimeIST } from "@/lib/manufacturing/ist";
@@ -438,35 +438,33 @@ export default function ProductionTrackerPage() {
       </AnimatePresence>
 
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-10 px-4 pt-4 mb-12 relative z-10">
-        <div className="space-y-4">
-          <div className="flex items-center gap-4 mb-2 lg:mb-6">
-            <div className="w-14 h-14 rounded-2xl bg-foreground/5 flex items-center justify-center text-foreground/50 dark:text-foreground/30 border border-foreground/5 shadow-2xl">
-              <Activity className="w-7 h-7" />
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8 lg:mb-12 px-4">
+          <div className="flex items-center gap-4 lg:gap-6">
+            <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-2xl lg:rounded-[2rem] bg-foreground/5 flex items-center justify-center border border-foreground/10 shadow-inner shrink-0">
+               <ClipboardList className="w-6 h-6 lg:w-8 lg:h-8 text-foreground/40" />
             </div>
-            <div>
-              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground uppercase tracking-tighter leading-none">
-                Production
+            <div className="min-w-0">
+              <h1 className="text-2xl lg:text-4xl font-bold text-foreground tracking-tighter leading-none truncate">
+                Production Tracker
               </h1>
-              <p className="text-[10px] text-foreground/50 font-bold uppercase tracking-[0.4em] mt-1 lg:mt-2">
+              <p className="text-[10px] lg:text-[11px] text-foreground/50 dark:text-foreground/30 font-bold uppercase tracking-[0.2em] lg:tracking-[0.4em] mt-1.5 lg:mt-2">
                 Tracker & Lifecycle
               </p>
             </div>
           </div>
-          <p className="text-[11px] lg:text-[12px] text-foreground/70 tracking-wide max-w-lg font-medium leading-relaxed">
-             Real-time pipeline monitoring — {batches.length} active batches. Transitions are recorded in the spectrum ledger.
+          <p className="text-[11px] lg:text-[12px] text-foreground/70 tracking-wide max-w-xl font-medium leading-relaxed hidden sm:block">
+             Real-time pipeline monitoring — {batches.length} active batches. Transitions are recorded in the immutable spectrum ledger.
           </p>
-        </div>
         
         <div className="flex flex-wrap items-center gap-2 lg:gap-3">
-          <div className="bg-foreground/[0.03] p-1 rounded-lg flex border border-foreground/5 backdrop-blur-sm shadow-inner">
+          <div className="bg-foreground/[0.03] p-1 rounded-xl flex border border-foreground/5 backdrop-blur-sm">
             <button
               onClick={() => setView("card")}
               className={`p-2 rounded-lg transition-all ${
                 view === "card" ? "bg-background shadow-md text-foreground" : "text-foreground/40 hover:text-foreground"
               }`}
             >
-              <LayoutGrid className="w-4 h-4" />
+              <LayoutGrid className="w-3.5 h-3.5 lg:w-4 h-4" />
             </button>
              <button
               onClick={() => setView("table")}
@@ -474,16 +472,16 @@ export default function ProductionTrackerPage() {
                 view === "table" ? "bg-background shadow-md text-foreground" : "text-foreground/40 hover:text-foreground"
               }`}
             >
-              <Table2 className="w-4 h-4" />
+              <Table2 className="w-3.5 h-3.5 lg:w-4 h-4" />
             </button>
           </div>
 
           <button
             onClick={loadBatches}
             disabled={loading}
-            className="flex items-center gap-3 px-6 py-3 bg-background dark:bg-white/[0.03] border border-foreground/[0.08] text-foreground rounded-2xl text-[10px] font-bold uppercase tracking-[0.3em] hover:bg-foreground/[0.02] disabled:opacity-50 transition-all shadow-sm active:scale-95"
+            className="flex flex-1 sm:flex-none items-center justify-center gap-2 lg:gap-3 px-4 lg:px-6 py-2.5 lg:py-3 bg-background dark:bg-white/[0.03] border border-foreground/[0.08] text-foreground rounded-xl lg:rounded-2xl text-[9px] lg:text-[10px] font-bold uppercase tracking-[0.1em] lg:tracking-[0.3em] hover:bg-foreground/[0.02] disabled:opacity-50 transition-all shadow-sm active:scale-95"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} strokeWidth={2.5} />
+            <RefreshCw className={`w-3 h-3 lg:w-3.5 lg:h-3.5 ${loading ? "animate-spin" : ""}`} strokeWidth={2.5} />
             Refresh
           </button>
 
@@ -492,9 +490,9 @@ export default function ProductionTrackerPage() {
               setNewOpen(true);
               setNbErr({});
             }}
-            className="flex items-center gap-2 lg:gap-3 px-6 lg:px-8 py-2.5 lg:py-3 bg-foreground text-background rounded-xl lg:rounded-2xl text-[9px] lg:text-[10px] font-bold uppercase tracking-[0.2em] lg:tracking-[0.3em] hover:opacity-90 transition-all active:scale-95 shadow-xl shadow-foreground/10"
+            className="flex flex-1 sm:flex-none items-center justify-center gap-2 lg:gap-3 px-6 lg:px-8 py-2.5 lg:py-3 bg-foreground text-background rounded-xl lg:rounded-2xl text-[9px] lg:text-[10px] font-bold uppercase tracking-[0.1em] lg:tracking-[0.3em] hover:opacity-90 transition-all active:scale-95 shadow-xl shadow-foreground/20"
           >
-            <Plus className="w-3.5 h-3.5 lg:w-4 lg:h-4" strokeWidth={2.5} />
+            <Plus className="w-3.5 h-3.5 lg:w-4 h-4" strokeWidth={2.5} />
             Initiate Batch
           </button>
         </div>
@@ -504,24 +502,24 @@ export default function ProductionTrackerPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1, duration: 0.8 }}
-        className="glass-card rounded-[2rem] lg:rounded-[3rem] p-6 lg:p-8 flex flex-col gap-6"
+        className="glass-card rounded-[1.5rem] lg:rounded-[3rem] p-4 lg:p-8 flex flex-col gap-5 lg:gap-6"
       >
         {/* Stage Pipeline */}
-        <div className="bg-foreground/[0.02] backdrop-blur-xl rounded-xl lg:rounded-2xl p-1 border border-foreground/5 overflow-hidden shadow-inner w-full max-w-full">
-          <div className="flex overflow-x-auto custom-scrollbar gap-1.5 py-1 px-1 hide-scroll">
+        <div className="bg-foreground/[0.03] backdrop-blur-xl rounded-2xl p-1.5 border border-foreground/5 overflow-hidden shadow-inner">
+          <div className="flex overflow-x-auto custom-scrollbar gap-2 py-1 px-1 hide-scroll">
             {MFG_STAGE_KEYS.map((key) => {
               const Icon = STAGE_ICONS[key] || Activity;
               return (
                 <button
                   key={key}
                   onClick={() => setFilterStage((s) => (s === key ? null : key))}
-                  className={`px-4 py-2.5 rounded-lg lg:rounded-xl text-[9px] font-bold uppercase tracking-[0.1em] whitespace-nowrap transition-all flex items-center gap-2 group ${
+                  className={`px-5 py-3 rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] whitespace-nowrap transition-all flex items-center gap-2.5 group ${
                     filterStage === key
-                      ? "bg-foreground text-background shadow-xl scale-[1.01]"
+                      ? "bg-foreground text-background shadow-2xl scale-[1.02]"
                       : "text-foreground/40 hover:bg-foreground/[0.05] hover:text-foreground"
                   }`}
                 >
-                  <Icon className={`w-3 h-3 ${filterStage === key ? "text-background" : "text-foreground/40 group-hover:text-foreground"}`} strokeWidth={2.5} />
+                  <Icon className={`w-3.5 h-3.5 ${filterStage === key ? "text-background" : "text-foreground/40 group-hover:text-foreground"}`} strokeWidth={2.5} />
                   {MFG_STAGE_LABEL[key]}
                 </button>
               );
@@ -529,13 +527,13 @@ export default function ProductionTrackerPage() {
           </div>
         </div>
 
-        <div className="relative w-full max-w-sm">
-           <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-foreground/40" />
+        <div className="relative w-full sm:max-w-md">
+           <Search className="w-3.5 h-3.5 absolute left-4 top-1/2 -translate-y-1/2 text-foreground/40" />
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search batch ID or style…"
-            className="w-full bg-background border border-foreground/10 rounded-xl pl-10 pr-4 py-3 text-[12px] font-medium text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-foreground/30 transition-all shadow-sm"
+            className="w-full bg-background/50 border border-foreground/10 rounded-xl lg:rounded-2xl pl-10 pr-4 py-2.5 lg:py-3 text-[12px] font-medium text-foreground placeholder:text-foreground/30 focus:outline-none focus:border-foreground/30 transition-all shadow-sm"
           />
         </div>
 
@@ -604,7 +602,7 @@ export default function ProductionTrackerPage() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 lg:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             {batches.map((b) => {
               const ex = expanded[b.id];
               const ed = expandData[b.id] as { breakdown?: Record<string, number> } | null;
@@ -631,7 +629,7 @@ export default function ProductionTrackerPage() {
                   <button
                     type="button"
                     onClick={() => openDrawer(b.id)}
-                    className="w-full text-left p-5 lg:p-6 pt-7 pb-3 focus:outline-none flex flex-col h-full group"
+                    className="w-full text-left p-6 lg:p-8 pt-8 pb-4 focus:outline-none flex flex-col h-full group"
                   >
                     <div className="flex justify-between items-start gap-4 mb-6">
                       <div className="font-mono text-[10px] font-bold text-foreground/40 backdrop-blur-md bg-foreground/[0.03] px-3 py-1.5 rounded-full border border-foreground/5">{b.batchCode}</div>
@@ -640,12 +638,12 @@ export default function ProductionTrackerPage() {
                           MFG_STAGE_BADGE_CLASS[b.currentStage] || "bg-foreground/5 text-foreground/60 border border-foreground/10"
                         }`}
                       >
-                        <StageIcon className="w-2.5 h-2.5" strokeWidth={2.5} />
+                        <StageIcon className="w-3 h-3" strokeWidth={2.5} />
                         {MFG_STAGE_LABEL[b.currentStage]}
                       </span>
                     </div>
                     
-                    <h3 className="text-lg lg:text-xl font-bold text-foreground leading-tight tracking-tight mb-5 group-hover:text-foreground/80 transition-colors">
+                    <h3 className="text-xl lg:text-2xl font-bold text-foreground leading-tight tracking-tighter mb-6 group-hover:text-foreground/80 transition-colors">
                       {b.productName}
                     </h3>
                     

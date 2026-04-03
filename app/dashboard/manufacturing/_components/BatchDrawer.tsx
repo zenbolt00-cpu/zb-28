@@ -166,11 +166,11 @@ export function BatchDrawer({
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="fixed right-0 top-0 z-[130] h-full w-full max-w-lg border-l border-foreground/10 bg-background/80 backdrop-blur-2xl shadow-2xl flex flex-col"
+              className="fixed right-0 top-0 z-[130] h-full w-full sm:max-w-lg border-l border-foreground/10 bg-background/80 backdrop-blur-2xl shadow-2xl flex flex-col"
               role="dialog"
               aria-modal
             >
-              <div className="flex items-center justify-between px-8 py-6 border-b border-foreground/5">
+              <div className="flex items-center justify-between px-4 lg:px-8 py-6 border-b border-foreground/5">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-foreground/5 flex items-center justify-center border border-foreground/5">
                     <Info className="w-4 h-4 text-foreground/40" />
@@ -186,7 +186,7 @@ export function BatchDrawer({
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto px-8 py-8 space-y-10 custom-scrollbar relative">
+              <div className="flex-1 overflow-y-auto px-4 lg:px-8 py-8 space-y-10 custom-scrollbar relative">
                 {loading && !data ? (
                   <div className="flex flex-col items-center justify-center py-24 gap-4">
                     <Loader2 className="w-8 h-8 animate-spin text-foreground/20" />
@@ -238,7 +238,7 @@ export function BatchDrawer({
                           <ListTree className="w-3.5 h-3.5 text-foreground/30" />
                           <h3 className="text-[10px] font-bold uppercase tracking-[0.3em] text-foreground/30">Refinery Breakdown</h3>
                         </div>
-                        <div className="rounded-[2rem] border border-foreground/5 bg-foreground/[0.02] p-8 space-y-4">
+                        <div className="rounded-2xl lg:rounded-[2rem] border border-foreground/5 bg-foreground/[0.02] p-4 lg:p-8 space-y-4">
                           <div className="grid grid-cols-2 gap-y-4 text-[13px]">
                             <span className="text-foreground/40 font-medium tracking-tight">Fabric Capital</span>
                             <span className="text-right font-bold tabular-nums text-foreground/80">{formatInr(data.breakdown.fabricCost)}</span>

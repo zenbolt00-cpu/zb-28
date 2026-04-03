@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { 
   Loader2, Plus, RefreshCw, Trash2, Edit2, Phone, MapPin, Building2, Search, Check, 
   Briefcase, Globe, User, ShieldCheck, Heart, Zap, 
-  Scissors, Palette as PaletteIcon, Sparkles, Waves, Package 
+  Scissors, Palette as PaletteIcon, Sparkles, Waves, Package, ClipboardList 
 } from "lucide-react";
 
 import { motion, AnimatePresence } from "framer-motion";
@@ -194,31 +194,26 @@ export default function VendorsPage() {
       </AnimatePresence>
 
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-10 px-4 pt-4 mb-12 relative z-10">
-        <div className="space-y-4">
-          <div className="flex items-center gap-4 mb-2 lg:mb-6">
-            <div className="w-14 h-14 rounded-2xl bg-foreground/5 flex items-center justify-center text-foreground/50 dark:text-foreground/30 border border-foreground/5 shadow-2xl">
-              <Building2 className="w-7 h-7" />
-            </div>
-            <div>
-              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground uppercase tracking-tighter leading-none">
-                Vendors
-              </h1>
-              <p className="text-[10px] text-foreground/50 font-bold uppercase tracking-[0.4em] mt-1 lg:mt-2">
-                Manufacturing Partners
-              </p>
-            </div>
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8 lg:mb-12 px-4 relative z-10">
+        <div className="flex items-center gap-4 lg:gap-6">
+          <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-2xl lg:rounded-[2rem] bg-foreground/5 flex items-center justify-center border border-foreground/10 shadow-inner shrink-0">
+             <Building2 className="w-6 h-6 lg:w-8 lg:h-8 text-foreground/40" />
           </div>
-          <p className="text-[11px] lg:text-[12px] text-foreground/70 tracking-wide max-w-xl font-medium leading-relaxed">
-             Manage manufacturing partners, assign categories, and maintain contact info. Centralized directory for all production nodes.
-          </p>
+          <div className="min-w-0">
+            <h1 className="text-2xl lg:text-4xl font-bold text-foreground tracking-tighter leading-none truncate">
+              Manufacturing Nodes
+            </h1>
+            <p className="text-[10px] lg:text-[11px] text-foreground/50 dark:text-foreground/30 font-bold uppercase tracking-[0.2em] lg:tracking-[0.4em] mt-1.5 lg:mt-2">
+              Vendors & Supply Chain
+            </p>
+          </div>
         </div>
-        
-        <div className="flex items-center gap-3">
+
+        <div className="flex items-center gap-3 w-full lg:w-auto">
            <button
             onClick={loadVendors}
             disabled={loading}
-            className="flex items-center gap-3 px-6 py-3 bg-background dark:bg-white/[0.03] border border-foreground/[0.08] text-foreground rounded-2xl text-[10px] font-bold uppercase tracking-[0.3em] hover:bg-foreground/[0.02] disabled:opacity-50 transition-all shadow-sm active:scale-95"
+            className="flex-1 lg:flex-none flex items-center justify-center gap-3 px-6 py-3 bg-background dark:bg-white/[0.03] border border-foreground/[0.08] text-foreground rounded-xl lg:rounded-2xl text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-foreground/[0.02] disabled:opacity-50 transition-all shadow-sm active:scale-95"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} strokeWidth={2.5} />
             Refresh
@@ -229,9 +224,9 @@ export default function VendorsPage() {
               setForm({ name: "", address: "", mobile: "", category: "Fabric", customCategory: "" });
               setModalOpen(true);
             }}
-            className="flex items-center gap-2 lg:gap-3 px-6 lg:px-8 py-2.5 lg:py-3 bg-foreground text-background rounded-xl lg:rounded-2xl text-[9px] lg:text-[10px] font-bold uppercase tracking-[0.2em] lg:tracking-[0.3em] hover:opacity-90 disabled:opacity-50 transition-all active:scale-95 shadow-xl shadow-foreground/10"
+            className="flex-1 lg:flex-none flex items-center justify-center gap-3 px-8 py-3 bg-foreground text-background rounded-xl lg:rounded-2xl text-[10px] font-bold uppercase tracking-[0.2em] hover:opacity-90 disabled:opacity-50 transition-all active:scale-95 shadow-xl shadow-foreground/20"
           >
-            <Plus className="w-3.5 h-3.5 lg:w-4 lg:h-4" strokeWidth={2.5} />
+            <Plus className="w-4 h-4" strokeWidth={2.5} />
             Add Vendor
           </button>
         </div>
@@ -246,18 +241,18 @@ export default function VendorsPage() {
       >
         {/* Filters & Search */}
         <div className="flex flex-col xl:flex-row gap-6 items-start xl:items-center justify-between">
-          <div className="relative w-full max-w-lg group">
-             <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-foreground/30 group-focus-within:text-foreground transition-colors" />
+          <div className="relative w-full sm:max-w-lg group">
+             <Search className="w-3.5 h-3.5 absolute left-4 top-1/2 -translate-y-1/2 text-foreground/30 group-focus-within:text-foreground transition-colors" />
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Search manufacturing nodes..."
-              className="w-full bg-background/50 border border-foreground/10 rounded-2xl pl-12 pr-4 py-4 text-[13px] font-medium text-foreground placeholder:text-foreground/30 focus:outline-none focus:border-foreground/30 transition-all shadow-sm focus:shadow-xl focus:bg-background"
+              className="w-full bg-background/50 border border-foreground/10 rounded-xl lg:rounded-2xl pl-10 pr-4 py-2.5 lg:py-4 text-[13px] font-medium text-foreground placeholder:text-foreground/30 focus:outline-none focus:border-foreground/30 transition-all shadow-sm focus:shadow-xl focus:bg-background"
             />
           </div>
 
-          <div className="bg-foreground/[0.02] backdrop-blur-xl rounded-xl lg:rounded-2xl p-1 border border-foreground/5 w-full xl:w-auto overflow-hidden shadow-inner">
-            <div className="flex overflow-x-auto custom-scrollbar gap-1.5 py-1 px-1 hide-scroll">
+          <div className="bg-foreground/[0.03] backdrop-blur-xl rounded-2xl p-1.5 border border-foreground/5 w-full xl:w-auto overflow-hidden shadow-inner">
+            <div className="flex overflow-x-auto custom-scrollbar gap-2 py-1 px-1 hide-scroll">
               <button
                 onClick={() => setFilterCategory(null)}
                 className={`px-5 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] whitespace-nowrap transition-all flex items-center gap-2 ${
@@ -274,9 +269,9 @@ export default function VendorsPage() {
                   <button
                     key={cat}
                     onClick={() => setFilterCategory(cat)}
-                    className={`px-4 py-2.5 rounded-lg lg:rounded-xl text-[9px] font-bold uppercase tracking-[0.1em] whitespace-nowrap transition-all flex items-center gap-2 group ${
+                    className={`px-5 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] whitespace-nowrap transition-all flex items-center gap-2 group ${
                       filterCategory === cat
-                        ? "bg-foreground text-background shadow-xl scale-[1.01]"
+                        ? "bg-foreground text-background shadow-2xl scale-[1.02]"
                         : "text-foreground/40 hover:bg-foreground/[0.05] hover:text-foreground"
                     }`}
                   >
@@ -303,7 +298,7 @@ export default function VendorsPage() {
             <p className="text-[11px] text-foreground/40 mt-1">Adjust search or filters</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 lg:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8">
             {filteredVendors.map((v, i) => {
               const Icon = CAT_ICONS[v.category] || Building2;
               return (
@@ -313,24 +308,24 @@ export default function VendorsPage() {
                   transition={{ delay: i * 0.05 }}
                   whileHover={{ y: -5, scale: 1.01 }}
                   key={v.id}
-                  className="bg-background/40 backdrop-blur-3xl border border-foreground/[0.06] hover:border-foreground/15 rounded-[2rem] p-5 lg:p-6 shadow-sm hover:shadow-2xl transition-all duration-500 group flex flex-col relative overflow-hidden"
+                  className="bg-background/40 backdrop-blur-3xl border border-foreground/[0.06] hover:border-foreground/15 rounded-[2rem] p-4 lg:p-8 shadow-sm hover:shadow-2xl transition-all duration-500 group flex flex-col relative overflow-hidden"
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-foreground/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                   
-                  <div className="flex justify-between items-start gap-4 mb-8 relative z-10">
-                    <div className="w-12 h-12 rounded-2xl bg-foreground/5 flex items-center justify-center shrink-0 border border-foreground/5 group-hover:bg-foreground group-hover:text-background transition-all duration-500 shadow-inner">
-                       <Icon className="w-5 h-5 text-foreground/40 group-hover:text-background" strokeWidth={2.5} />
+                  <div className="flex justify-between items-start gap-4 mb-6 lg:mb-8 relative z-10">
+                    <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl lg:rounded-2xl bg-foreground/5 flex items-center justify-center shrink-0 border border-foreground/5 group-hover:bg-foreground group-hover:text-background transition-all duration-500 shadow-inner">
+                       <Icon className="w-4 h-4 lg:w-5 lg:h-5 text-foreground/40 group-hover:text-background" strokeWidth={2.5} />
                     </div>
                     <span className="px-4 py-1.5 rounded-full bg-foreground/[0.04] border border-foreground/5 text-[9px] font-bold text-foreground/40 uppercase tracking-[0.2em] leading-none">
                       {v.category}
                     </span>
                   </div>
                   
-                  <h3 className="text-lg lg:text-xl font-bold text-foreground leading-tight tracking-tight mb-6 group-hover:text-foreground/80 transition-colors relative z-10">
+                  <h3 className="text-lg lg:text-2xl font-bold text-foreground leading-tight tracking-tighter mb-6 lg:mb-8 group-hover:text-foreground/80 transition-colors relative z-10">
                     {v.name}
                   </h3>
                   
-                  <div className="space-y-3.5 flex-1 mb-6 relative z-10 border-t border-foreground/5 pt-5">
+                  <div className="space-y-4 flex-1 mb-8 relative z-10 border-t border-foreground/5 pt-6">
                     <div className="flex items-center gap-4 text-[12px] font-bold text-foreground/50 tracking-tight">
                       <div className="w-8 h-8 rounded-xl bg-foreground/[0.03] flex items-center justify-center shrink-0 border border-foreground/5"><Phone className="w-3.5 h-3.5 opacity-40 group-hover:opacity-100 transition-opacity" strokeWidth={2.5} /></div>
                       <span className="truncate font-mono">{v.mobile || "N/A"}</span>

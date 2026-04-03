@@ -324,7 +324,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </header>
 
         {/* Content area — scrollable */}
-        <div className="flex-1 px-4 lg:px-12 py-4 lg:py-10 overflow-y-auto overflow-x-hidden custom-scrollbar relative w-full">
+        <div className="flex-1 px-4 lg:px-12 py-4 lg:py-10 overflow-y-auto custom-scrollbar relative w-full">
           <div className="max-w-[1500px] w-full mx-auto relative">{children}</div>
         </div>
       </main>
