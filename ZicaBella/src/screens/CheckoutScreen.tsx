@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 
 import { useColors } from '../constants/colors';
@@ -18,10 +19,16 @@ import { config } from '../constants/config';
 import { formatPrice } from '../utils/formatPrice';
 import { useCartStore } from '../store/cartStore';
 import { useAuth } from '../hooks/useAuth';
+import { useThemeStore } from '../store/themeStore';
+import { useUIStore } from '../store/uiStore';
+import { BlurView } from 'expo-blur';
+import { Typography } from '../components/Typography';
+import { haptics } from '../utils/haptics';
 
 type Address = {
   name: string;
   phone: string;
+  email: string;
   address1: string;
   address2?: string;
   city: string;
@@ -44,6 +51,8 @@ export default function CheckoutScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const colors = useColors();
+  const theme = useThemeStore((s) => s.theme);
+  const isDark = theme === 'dark';
 
   const cartItems = useCartStore((s) => s.items);
   const cartTotal = useCartStore((s) => s.total());
@@ -67,10 +76,64 @@ export default function CheckoutScreen() {
     state: '',
     zip: '',
     country: 'India',
-  } as any);
+  });
+  const [savedAddresses, setSavedAddresses] = useState<Address[]>([]);
+  const [fetchingSaved, setFetchingSaved] = useState(false);
+
+  // ─── Fetch Saved Addresses ────────────────────────────────────────
+
+  const fetchSavedAddresses = useCallback(async () => {
+    if (!user?.phone && !user?.email) return;
+    setFetchingSaved(true);
+    try {
+      const params = new URLSearchParams();
+      if (user?.phone) params.set('phone', user.phone);
+      if (user?.email) params.set('email', user.email);
+      
+      const res = await fetch(`${config.appUrl}/api/app/customers/addresses?${params.toString()}`);
+      const json = await res.json();
+      
+      if (res.ok && json.addresses && json.addresses.length > 0) {
+        setSavedAddresses(json.addresses);
+        // Auto-fill with the first/primary address if current form is empty
+        if (!address.address1) {
+          const primary = json.addresses[0];
+          setAddress({
+            name: primary.name || user?.name || '',
+            phone: primary.phone || user?.phone || '',
+            email: primary.email || user?.email || '',
+            address1: primary.address1 || '',
+            address2: primary.address2 || '',
+            city: primary.city || '',
+            state: primary.state || '',
+            zip: primary.zip || '',
+            country: primary.country || 'India',
+          });
+        }
+      }
+    } catch (e) {
+      console.error("Fetch saved addresses error:", e);
+    } finally {
+      setFetchingSaved(false);
+    }
+  }, [user, address.address1]);
+
+  React.useEffect(() => {
+    fetchSavedAddresses();
+  }, [user?.phone, user?.email]);
+
+  const handleSelectAddress = (addr: Address) => {
+    haptics.buttonTap();
+    setAddress({
+      ...addr,
+      name: addr.name || user?.name || '',
+      phone: addr.phone || user?.phone || '',
+      email: addr.email || user?.email || '',
+    });
+  };
 
   const shippingOk = useMemo(() => {
-    const required: (keyof Address)[] = ['name', 'phone', 'address1', 'city', 'state', 'zip'];
+    const required: (keyof Address)[] = ['name', 'phone', 'email', 'address1', 'city', 'state', 'zip'];
     return required.every((k) => String(address[k] ?? '').trim().length > 0);
   }, [address]);
 
@@ -91,7 +154,7 @@ export default function CheckoutScreen() {
         address: {
           name: address.name,
           phone: address.phone,
-          email: (address as any).email,
+          email: address.email,
           street: address.address1,
           city: address.city,
           state: address.state,
@@ -99,7 +162,7 @@ export default function CheckoutScreen() {
           country: address.country,
         },
         paymentMethod: paymentMethod === 'COD' ? 'COD' : 'UPI',
-        items: cartItems.map((i) => ({
+        items: cartItems.map((i: any) => ({
           id: i.id,
           productId: i.productId,
           title: i.title,
@@ -136,7 +199,7 @@ export default function CheckoutScreen() {
         updateUser({
           name: address.name,
           phone: address.phone,
-          email: (address as any).email,
+          email: address.email,
         });
 
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -145,7 +208,15 @@ export default function CheckoutScreen() {
         return;
       }
 
-      const amountPaise = Math.round(cartTotal * 100);
+      const razorpayOrderRes = await fetch(`${config.appUrl}/api/checkout/razorpay`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: subtotal }),
+      });
+      const razorpayOrder = await razorpayOrderRes.json();
+      if (!razorpayOrderRes.ok) {
+        throw new Error(razorpayOrder?.error || 'Unable to initiate payment');
+      }
 
       let RazorpayCheckout: any;
       try {
@@ -159,10 +230,11 @@ export default function CheckoutScreen() {
       const paymentData = await RazorpayCheckout.open({
         description: 'Zica Bella Order',
         currency: 'INR',
-        key: process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID || '',
-        amount: amountPaise,
+        key: razorpayOrder.keyId || process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID || '',
+        order_id: razorpayOrder.id,
+        amount: razorpayOrder.amount,
         name: 'ZICA BELLA',
-        prefill: { contact: address.phone, name: address.name, email: (address as any).email },
+        prefill: { contact: address.phone, name: address.name, email: address.email },
         theme: { color: '#000000' },
       });
 
@@ -174,7 +246,7 @@ export default function CheckoutScreen() {
       updateUser({
         name: address.name,
         phone: address.phone,
-        email: (address as any).email,
+        email: address.email,
       });
 
       clearCart();
@@ -199,37 +271,40 @@ export default function CheckoutScreen() {
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
     >
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+        <BlurView intensity={80} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
         <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.back, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.backText, { color: colors.text }]}>Back</Text>
+          <Ionicons name="chevron-back" size={20} color={colors.text} />
         </TouchableOpacity>
-        <View>
-          <Text style={[styles.titleTag, { color: colors.textLight }]}>Checkout</Text>
-          <Text style={[styles.title, { color: colors.text }]}>
-            Step {step}/3
-          </Text>
+        <View style={styles.headerTitleContainer}>
+          <Typography size={7} color={colors.textExtraLight} weight="300" style={styles.titleTag}>CHECKOUT</Typography>
+          <Typography size={14} color={colors.text} weight="700" style={styles.title}>
+            STEP {step} OF 3
+          </Typography>
         </View>
-        <View style={{ width: 60 }} />
+        <View style={{ width: 44 }} />
       </View>
 
-      <View style={styles.progress}>
-        {[1, 2, 3].map((s) => (
-          <View
-            key={s}
-            style={[
-              styles.progressDot,
-              s <= step
-                ? [styles.progressActive, { backgroundColor: colors.foreground }]
-                : [styles.progressInactive, { backgroundColor: colors.borderLight }],
-            ]}
-          />
-        ))}
+      <View style={styles.progressContainer}>
+        <View style={styles.progress}>
+          {[1, 2, 3].map((s) => (
+            <View
+              key={s}
+              style={[
+                styles.progressDot,
+                s <= step
+                  ? [styles.progressActive, { backgroundColor: colors.foreground }]
+                  : [styles.progressInactive, { backgroundColor: colors.borderLight }],
+              ]}
+            />
+          ))}
+        </View>
       </View>
 
       {step === 1 && (
         <View style={styles.form}>
-          <Text style={[styles.formTitle, { color: colors.text }]}>Delivery</Text>
-          <Text style={[styles.formSub, { color: colors.textMuted }]}>Where should we send your pieces?</Text>
+          <Typography size={22} weight="700" color={colors.text} style={styles.formTitle}>Delivery</Typography>
+          <Typography size={12} color={colors.textMuted} style={styles.formSub}>Where should we send your pieces?</Typography>
 
           <TextInput
             value={address.name}
@@ -275,8 +350,8 @@ export default function CheckoutScreen() {
             style={[styles.input, { backgroundColor: inputBg, color: colors.text }]}
           />
           <TextInput
-            value={(address as any).email}
-            onChangeText={(v) => setAddress((a) => ({ ...a, email: v } as any))}
+            value={address.email}
+            onChangeText={(v) => setAddress((a) => ({ ...a, email: v }))}
             placeholder="Email address"
             placeholderTextColor={colors.textExtraLight}
             style={[styles.input, { backgroundColor: inputBg, color: colors.text }]}
@@ -292,15 +367,44 @@ export default function CheckoutScreen() {
             keyboardType="number-pad"
           />
 
+          {/* Saved Addresses Selector */}
+          {savedAddresses.length > 0 && (
+            <View style={styles.savedSection}>
+              <Typography size={7} color={colors.textExtraLight} weight="600" style={styles.savedTitle}>SAVED ADDRESSES</Typography>
+              <ScrollView 
+                horizontal 
+                showsHorizontalScrollIndicator={false} 
+                contentContainerStyle={styles.savedScroll}
+              >
+                {savedAddresses.map((item, idx) => (
+                  <TouchableOpacity 
+                    key={idx}
+                    style={[
+                      styles.savedCard, 
+                      { backgroundColor: colors.surface, borderColor: address.address1 === item.address1 ? colors.primary : colors.borderLight }
+                    ]}
+                    onPress={() => handleSelectAddress(item)}
+                    activeOpacity={0.7}
+                  >
+                    <Typography size={10} color={colors.text} weight="600" numberOfLines={1}>{item.name}</Typography>
+                    <Typography size={8} color={colors.textSecondary} numberOfLines={2} style={{ marginTop: 4 }}>
+                      {item.address1}, {item.city}
+                    </Typography>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          )}
+
           <TouchableOpacity
             style={[styles.ctaButton, { backgroundColor: colors.foreground }]}
             onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              haptics.buttonTap();
               if (handleValidateShipping()) setStep(2);
             }}
             activeOpacity={0.85}
           >
-            <Text style={[styles.ctaText, { color: colors.background }]}>Review Order</Text>
+            <Typography size={10} weight="700" color={colors.background} style={styles.ctaText}>Review Order</Typography>
           </TouchableOpacity>
 
           <View style={styles.noteRow}>
@@ -313,63 +417,65 @@ export default function CheckoutScreen() {
 
       {step === 2 && (
         <View style={styles.form}>
-          <Text style={[styles.formTitle, { color: colors.text }]}>Review</Text>
-          <Text style={[styles.formSub, { color: colors.textMuted }]}>Confirm your delivery details.</Text>
+          <Typography size={22} weight="700" color={colors.text} style={styles.formTitle}>Review</Typography>
+          <Typography size={12} color={colors.textMuted} style={styles.formSub}>Confirm your delivery details.</Typography>
 
-          <View style={[styles.summaryCard, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}>
-            <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>DELIVERY</Text>
-            <Text style={[styles.summaryLine, { color: colors.text }]}>{address.name}</Text>
-            <Text style={[styles.summaryLine, { color: colors.text }]}>{address.phone}</Text>
-            <Text style={[styles.summaryLine, { color: colors.text }]}>
+          <View style={[styles.summaryCard, { backgroundColor: 'transparent', borderColor: colors.borderLight }]}>
+            <BlurView intensity={20} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+            <Typography size={8} weight="700" color={colors.textExtraLight} style={styles.sectionLabel}>DELIVERY</Typography>
+            <Typography size={14} color={colors.text} weight="500" style={styles.summaryLine}>{address.name}</Typography>
+            <Typography size={14} color={colors.text} weight="500" style={styles.summaryLine}>{address.phone}</Typography>
+            <Typography size={14} color={colors.text} weight="500" style={styles.summaryLine}>
               {address.address1}
               {address.address2 ? `, ${address.address2}` : ''}
-            </Text>
-            <Text style={[styles.summaryLine, { color: colors.text }]}>
+            </Typography>
+            <Typography size={14} color={colors.text} weight="500" style={styles.summaryLine}>
               {address.city}, {address.state} {address.zip}
-            </Text>
+            </Typography>
           </View>
 
-          <View style={[styles.summaryCard, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}>
+          <View style={[styles.summaryCard, { backgroundColor: 'transparent', borderColor: colors.borderLight }]}>
+            <BlurView intensity={20} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
             <View style={styles.summaryRow}>
-              <Text style={[styles.summaryLabel, { color: colors.textMuted }]}>Subtotal</Text>
-              <Text style={[styles.summaryValue, { color: colors.text }]}>{formatPrice(subtotal)}</Text>
+              <Typography size={13} weight="500" color={colors.textMuted}>Subtotal</Typography>
+              <Typography size={13} weight="600" color={colors.text}>{formatPrice(subtotal)}</Typography>
             </View>
             <View style={styles.summaryRow}>
-              <Text style={[styles.summaryLabel, { color: colors.textMuted }]}>Shipping</Text>
-              <Text style={[styles.summaryValue, { color: colors.success }]}>Free</Text>
+              <Typography size={13} weight="500" color={colors.textMuted}>Shipping</Typography>
+              <Typography size={13} weight="600" color={colors.success}>Free</Typography>
             </View>
             {paymentMethod === 'COD' && (
               <View style={styles.summaryRow}>
-                <Text style={[styles.summaryLabel, { color: colors.textMuted }]}>COD Fee</Text>
-                <Text style={[styles.summaryValue, { color: colors.text }]}>{formatPrice(codFee)}</Text>
+                <Typography size={13} weight="500" color={colors.textMuted}>COD Fee</Typography>
+                <Typography size={13} weight="600" color={colors.text}>{formatPrice(codFee)}</Typography>
               </View>
             )}
             <View style={[styles.divider, { backgroundColor: colors.borderExtraLight }]} />
             <View style={styles.summaryRow}>
-              <Text style={[styles.totalLabel, { color: colors.text }]}>Total</Text>
-              <Text style={[styles.totalValue, { color: colors.text }]}>
+              <Typography size={14} weight="700" color={colors.text}>Total</Typography>
+              <Typography size={18} weight="800" color={colors.text} style={{ letterSpacing: -0.5 }}>
                 {formatPrice(paymentMethod === 'COD' ? subtotal + codFee : subtotal)}
-              </Text>
+              </Typography>
             </View>
           </View>
 
           <TouchableOpacity
             style={[styles.ctaButton, { backgroundColor: colors.foreground }]}
             onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              haptics.buttonTap();
               setStep(3);
             }}
             activeOpacity={0.85}
           >
-            <Text style={[styles.ctaText, { color: colors.background }]}>Pay with Razorpay</Text>
+            <Typography size={10} weight="700" color={colors.background} style={styles.ctaText}>Continue to Payment</Typography>
           </TouchableOpacity>
         </View>
       )}
 
       {step === 3 && (
         <View style={styles.form}>
-          <Text style={[styles.formTitle, { color: colors.text }]}>Payment</Text>
-          <Text style={[styles.formSub, { color: colors.textMuted }]}>Select how you'd like to pay.</Text>
+          <Typography size={22} weight="700" color={colors.text} style={styles.formTitle}>Payment</Typography>
+          <Typography size={12} color={colors.textMuted} style={styles.formSub}>Select how you'd like to pay.</Typography>
 
           <View style={styles.paymentOptions}>
             <TouchableOpacity
@@ -377,14 +483,17 @@ export default function CheckoutScreen() {
                 styles.paymentOption,
                 { backgroundColor: colors.surface, borderColor: paymentMethod === 'ONLINE' ? colors.foreground : colors.borderLight }
               ]}
-              onPress={() => setPaymentMethod('ONLINE')}
+              onPress={() => {
+                haptics.buttonTap();
+                setPaymentMethod('ONLINE');
+              }}
             >
               <View style={[styles.radio, { borderColor: colors.borderLight }]}>
                 {paymentMethod === 'ONLINE' && <View style={[styles.radioDot, { backgroundColor: colors.foreground }]} />}
               </View>
               <View>
-                <Text style={[styles.paymentLabel, { color: colors.text }]}>Online Payment</Text>
-                <Text style={[styles.paymentSub, { color: colors.textMuted }]}>Razorpay • UPI, Card, Netbanking</Text>
+                <Typography size={14} weight="700" color={colors.text}>Online Payment</Typography>
+                <Typography size={10} color={colors.textMuted} style={{ marginTop: 2 }}>Razorpay • UPI, Card, Netbanking</Typography>
               </View>
             </TouchableOpacity>
 
@@ -393,14 +502,17 @@ export default function CheckoutScreen() {
                 styles.paymentOption,
                 { backgroundColor: colors.surface, borderColor: paymentMethod === 'COD' ? colors.foreground : colors.borderLight }
               ]}
-              onPress={() => setPaymentMethod('COD')}
+              onPress={() => {
+                haptics.buttonTap();
+                setPaymentMethod('COD');
+              }}
             >
               <View style={[styles.radio, { borderColor: colors.borderLight }]}>
                 {paymentMethod === 'COD' && <View style={[styles.radioDot, { backgroundColor: colors.foreground }]} />}
               </View>
               <View>
-                <Text style={[styles.paymentLabel, { color: colors.text }]}>Cash on Delivery</Text>
-                <Text style={[styles.paymentSub, { color: colors.textMuted }]}>Pay ₹99 extra for COD delivery</Text>
+                <Typography size={14} weight="700" color={colors.text}>Cash on Delivery</Typography>
+                <Typography size={10} color={colors.textMuted} style={{ marginTop: 2 }}>Pay ₹99 extra for COD delivery</Typography>
               </View>
             </TouchableOpacity>
           </View>
@@ -414,13 +526,21 @@ export default function CheckoutScreen() {
             {loading ? (
               <ActivityIndicator color={colors.background} />
             ) : (
-              <Text style={[styles.ctaText, { color: colors.background }]}>
+              <Typography size={10} weight="700" color={colors.background} style={styles.ctaText}>
                 {paymentMethod === 'COD' ? 'Place Order' : `Pay ${formatPrice(subtotal)}`}
-              </Text>
+              </Typography>
             )}
           </TouchableOpacity>
 
-          <Text style={[styles.secureText, { color: colors.textExtraLight }]}>Secure Checkout</Text>
+          <Typography size={8} weight="700" color={colors.textExtraLight} style={styles.secureText}>SECURE CHECKOUT</Typography>
+        </View>
+      )}
+
+      {step === 1 && (
+        <View style={styles.noteRow}>
+          <Typography size={10} color={colors.textMuted} style={styles.noteText}>
+            {fields[0]} • {fields[1]} • {fields[4]} • {fields[5]} • {fields[6]}
+          </Typography>
         </View>
       )}
 
@@ -430,19 +550,40 @@ export default function CheckoutScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, paddingHorizontal: 16 },
-  header: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12 },
-  back: { width: 56, height: 36, borderRadius: 18, justifyContent: 'center', alignItems: 'center' },
-  backText: { fontSize: 12, fontWeight: '600' },
-  titleTag: { fontSize: 7, fontWeight: '200', textTransform: 'uppercase', letterSpacing: 4.4 },
-  title: { fontSize: 16, fontWeight: '700', letterSpacing: -0.3, marginTop: 2 },
-  progress: { flexDirection: 'row', justifyContent: 'center', gap: 8, marginBottom: 28 },
+  root: { flex: 1 },
+  header: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(255,255,255,0.05)',
+  },
+  headerTitleContainer: {
+    alignItems: 'center',
+  },
+  back: { 
+    width: 44, 
+    height: 44, 
+    borderRadius: 22, 
+    justifyContent: 'center', 
+    alignItems: 'center' 
+  },
+  titleTag: { letterSpacing: 3, marginBottom: 2 },
+  title: { letterSpacing: -0.3 },
+  progressContainer: {
+    alignItems: 'center',
+    marginTop: 24,
+    marginBottom: 32,
+  },
+  progress: { flexDirection: 'row', gap: 6 },
   progressDot: { height: 4, borderRadius: 2 },
-  progressActive: { width: 26 },
-  progressInactive: { width: 10 },
-  form: { gap: 12 },
-  formTitle: { fontSize: 18, fontWeight: '700', letterSpacing: -0.3 },
-  formSub: { fontSize: 11, fontWeight: '500', marginBottom: 4 },
+  progressActive: { width: 32 },
+  progressInactive: { width: 8 },
+  form: { paddingHorizontal: 20, gap: 12 },
+  formTitle: { letterSpacing: -0.5, marginBottom: 4 },
+  formSub: { marginBottom: 12 },
   input: { paddingHorizontal: 16, paddingVertical: 14, borderRadius: 12, fontSize: 13, marginTop: 4 },
   ctaButton: { paddingVertical: 16, borderRadius: 16, alignItems: 'center', marginTop: 12 },
   ctaText: { fontSize: 10, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 2 },
@@ -478,4 +619,13 @@ const styles = StyleSheet.create({
     alignItems: 'center' 
   },
   radioDot: { width: 10, height: 10, borderRadius: 5 },
+  savedSection: { marginTop: 20 },
+  savedTitle: { letterSpacing: 2, marginBottom: 12, marginLeft: 4 },
+  savedScroll: { gap: 12, paddingRight: 20 },
+  savedCard: {
+    width: 160,
+    padding: 12,
+    borderRadius: 14,
+    borderWidth: 1.5,
+  },
 });

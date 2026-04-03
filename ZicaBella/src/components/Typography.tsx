@@ -1,5 +1,6 @@
 import React from 'react';
 import { Text, TextProps, TextStyle } from 'react-native';
+import { useColors } from '../constants/colors';
 
 interface TypographyProps extends TextProps {
   heading?: boolean;
@@ -22,9 +23,12 @@ export const Typography: React.FC<TypographyProps> = ({
   letterSpacing,
   ...props 
 }) => {
+  const themeColors = useColors();
+  const finalColor = color || themeColors.text;
+
   const baseStyle: TextStyle = { 
     fontSize: size, 
-    color, 
+    color: finalColor, 
     letterSpacing 
   };
 

@@ -48,6 +48,15 @@ export async function POST(
         if (batch.isCuttingDone) return NextResponse.json({ error: "Cutting already completed" }, { status: 400 });
         toStage = "IN_PRODUCTION_CUTTING";
         break;
+      case "SEND_STITCHING":
+        if (batch.isStitchingDone) return NextResponse.json({ error: "Stitching already completed" }, { status: 400 });
+        toStage = "IN_PRODUCTION_STITCHING";
+        costAmount = computeCost(body);
+        break;
+      case "RETURN_STITCHING":
+        toStage = "IN_PRODUCTION_STITCHING"; // Or just keep it there
+        costAmount = computeCost(body);
+        break;
       case "SEND_WASH":
         if (batch.isWashingDone) return NextResponse.json({ error: "Washing already completed" }, { status: 400 });
         toStage = "SENT_WASH";
@@ -117,6 +126,7 @@ export async function POST(
 
       if (action === "QC_PASS" && fromStage === "SENT_SAMPLE") updateData.isSampleDone = true;
       if (action === "START_CUTTING") updateData.isCuttingDone = true;
+      if (action === "RETURN_STITCHING" || action === "SEND_STITCHING") updateData.isStitchingDone = true;
       if (action === "RETURN_PRINTING") updateData.isPrintingDone = true;
       if (action === "RETURN_EMBROIDERY") updateData.isEmbroideryDone = true;
       if (action === "RETURN_WASH") updateData.isWashingDone = true;

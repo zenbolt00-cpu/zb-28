@@ -10,7 +10,9 @@ import { RootStackParamList } from '../navigation/RootNavigator';
 import ProductCard from '../components/ProductCard';
 import GlassHeader from '../components/GlassHeader';
 import CollectionFilters from '../components/CollectionFilters';
+import QuickAddModal from '../components/QuickAddModal';
 import { useUIStore } from '../store/uiStore';
+import { FlatProduct } from '../api/types';
 
 
 export default function CollectionScreen() {
@@ -29,6 +31,14 @@ export default function CollectionScreen() {
   const [sortBy, setSortBy] = useState('featured');
   const [viewMode, setViewMode] = useState<'grid' | 'large' | 'list'>('grid');
 
+  const [selectedProduct, setSelectedProduct] = useState<FlatProduct | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const handleQuickAdd = useCallback((product: FlatProduct) => {
+    setSelectedProduct(product);
+    setModalVisible(true);
+  }, []);
+
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await refetch();
@@ -36,6 +46,7 @@ export default function CollectionScreen() {
   }, [refetch]);
 
   const setTabBarVisible = useUIStore(s => s.setTabBarVisible);
+  const isTabBarVisible = useUIStore(s => s.isTabBarVisible);
   const lastScrollY = useRef(0);
 
   const onScroll = (event: any) => {
@@ -91,7 +102,7 @@ export default function CollectionScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <GlassHeader title={collection?.title || 'Collection'} showBack={true} />
+      <GlassHeader title={collection?.title || 'Collection'} showBack={true} hideRightIsland={!isTabBarVisible} />
       
       <ScrollView
         stickyHeaderIndices={[1]}
@@ -119,6 +130,7 @@ export default function CollectionScreen() {
             onSelectSort={setSortBy}
             viewMode={viewMode}
             onToggleView={toggleView}
+            isTabBarVisible={isTabBarVisible}
           />
         </View>
 
@@ -140,6 +152,7 @@ export default function CollectionScreen() {
               >
                 <ProductCard 
                   product={p} 
+                  onQuickAdd={handleQuickAdd}
                   style={(viewMode === 'large' || viewMode === 'list') ? { width: '100%' } : undefined}
                 />
               </View>
@@ -148,6 +161,12 @@ export default function CollectionScreen() {
           <View style={{ height: 160 + insets.bottom }} />
         </View>
       </ScrollView>
+
+      <QuickAddModal 
+        visible={modalVisible}
+        product={selectedProduct}
+        onClose={() => setModalVisible(false)}
+      />
     </View>
   );
 }

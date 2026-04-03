@@ -8,13 +8,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import Animated, {
-  useSharedValue, useAnimatedStyle, withSpring, withTiming, Easing,
+  useSharedValue, useAnimatedStyle, withSpring, withTiming, Easing, withRepeat,
 } from 'react-native-reanimated';
 import { useColors } from '../constants/colors';
 import { useThemeStore } from '../store/themeStore';
 import { useCartStore } from '../store/cartStore';
 import { config } from '../constants/config';
 import { useUIStore } from '../store/uiStore';
+import GlassHeader from '../components/GlassHeader';
 
 const { width, height } = Dimensions.get('window');
 
@@ -137,8 +138,7 @@ const typingStyles = StyleSheet.create({
 export default function ChatScreen() {
   const insets = useSafeAreaInsets();
   const colors = useColors();
-  const { theme } = useThemeStore();
-  const isDark = theme === 'dark';
+  const isDark = true; // Forced premium Dark Theme for Zica AI
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '0',
@@ -155,15 +155,45 @@ export default function ChatScreen() {
   const isTabBarVisible = useUIStore(s => s.isTabBarVisible);
   const lastScrollY = useRef(0);
 
-  // Animated Orbs for AI background effect
-  const orbProgress = useSharedValue(0);
-  
   // Animate input bar to slide down and fill the gap when the tab bar hides
   const inputTranslateY = useSharedValue(0);
 
+  // Animated Orbs for AI background effect
+  const orb1TranslateX = useSharedValue(0);
+  const orb1TranslateY = useSharedValue(0);
+  const orb2TranslateX = useSharedValue(0);
+  const orb2TranslateY = useSharedValue(0);
+
   useEffect(() => {
-    orbProgress.value = withTiming(1, { duration: 4000 });
+    orb1TranslateX.value = withRepeat(
+      withTiming(width * 0.2, { duration: 8000, easing: Easing.inOut(Easing.sin) }),
+      -1,
+      true
+    );
+    orb1TranslateY.value = withRepeat(
+      withTiming(height * 0.1, { duration: 11000, easing: Easing.inOut(Easing.sin) }),
+      -1,
+      true
+    );
+    orb2TranslateX.value = withRepeat(
+      withTiming(-width * 0.15, { duration: 9000, easing: Easing.inOut(Easing.sin) }),
+      -1,
+      true
+    );
+    orb2TranslateY.value = withRepeat(
+      withTiming(-height * 0.12, { duration: 10000, easing: Easing.inOut(Easing.sin) }),
+      -1,
+      true
+    );
   }, []);
+
+  const orb1Style = useAnimatedStyle(() => ({
+    transform: [{ translateX: orb1TranslateX.value }, { translateY: orb1TranslateY.value }],
+  }));
+
+  const orb2Style = useAnimatedStyle(() => ({
+    transform: [{ translateX: orb2TranslateX.value }, { translateY: orb2TranslateY.value }],
+  }));
 
   useEffect(() => {
     inputTranslateY.value = withTiming(isTabBarVisible ? 0 : 70, {
@@ -226,8 +256,8 @@ export default function ChatScreen() {
     return (
       <View style={[msgStyles.row, isUser && msgStyles.rowRight]}>
         {!isUser && (
-          <View style={[msgStyles.avatar, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }]}>
-            <Text style={msgStyles.avatarText}>Z</Text>
+          <View style={[msgStyles.avatar, { backgroundColor: 'rgba(255,255,255,0.08)' }]}>
+            <Text style={[msgStyles.avatarText, { color: '#FFF' }]}>Z</Text>
           </View>
         )}
         <View style={msgStyles.bubbleWrapper}>
@@ -244,14 +274,14 @@ export default function ChatScreen() {
                {item.content.split('\n').map((line, lidx) => (
                   <Text key={lidx} style={[
                     msgStyles.text,
-                    { color: isUser ? '#000' : '#FFF' },
+                    { color: isUser ? '#FFF' : '#FFF' },
                     line.startsWith('•') && { marginLeft: 8 }
                   ]}>
                     {line}
                   </Text>
                ))}
             </View>
-            <Text style={[msgStyles.time, { color: isUser ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.4)' }]}>
+            <Text style={[msgStyles.time, { color: 'rgba(255,255,255,0.4)' }]}>
               {item.createdAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </Text>
           </View>
@@ -262,32 +292,21 @@ export default function ChatScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor: colors.surface }]}
+      style={[styles.container, { backgroundColor: '#000' }]} // Strict deep black background
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={0}
     >
       {/* Cinematic Animated Glass Background */}
       <View style={StyleSheet.absoluteFill}>
-        <View style={styles.orb1} />
-        <View style={styles.orb2} />
+        <Animated.View style={[styles.orb1, orb1Style]} />
+        <Animated.View style={[styles.orb2, orb2Style]} />
         <BlurView intensity={100} tint="dark" style={StyleSheet.absoluteFill} />
       </View>
 
       {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 8, borderBottomColor: 'rgba(255,255,255,0.05)' }]}>
-        <BlurView intensity={80} tint="dark" style={StyleSheet.absoluteFill} />
-        <View style={styles.headerLeft}>
-          <View style={[styles.aiDot, { backgroundColor: '#34C759' }]} />
-          <View>
-            <Text style={[styles.headerTitle, { color: '#FFF' }]}>ZICA AI</Text>
-            <Text style={[styles.headerSub, { color: 'rgba(255,255,255,0.5)' }]}>Your personal style assistant</Text>
-          </View>
-        </View>
-        <View style={[styles.aiBadge, { backgroundColor: 'rgba(255,255,255,0.1)' }]}>
-          <Ionicons name="sparkles" size={13} color="#FFF" />
-          <Text style={[styles.aiBadgeText, { color: '#FFF' }]}>AI</Text>
-        </View>
-      </View>
+      <GlassHeader title="ZICA AI" showBack />
+
+
 
       {/* Messages */}
       <FlatList
@@ -295,7 +314,7 @@ export default function ChatScreen() {
         data={messages}
         keyExtractor={(item) => item.id}
         renderItem={renderMessage}
-        contentContainerStyle={[styles.messagesList, { paddingBottom: 16 }]}
+        contentContainerStyle={{ paddingHorizontal: 4, paddingBottom: 100, paddingTop: insets.top + 70 }}
         showsVerticalScrollIndicator={false}
         onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
         onScroll={onScroll}
@@ -306,7 +325,7 @@ export default function ChatScreen() {
       {isTyping && (
         <View style={[styles.typingRow, { paddingBottom: 4 }]}>
           <View style={[msgStyles.avatar, { backgroundColor: 'rgba(255,255,255,0.08)' }]}>
-            <Text style={msgStyles.avatarText}>Z</Text>
+            <Text style={[msgStyles.avatarText, { color: '#FFF' }]}>Z</Text>
           </View>
           <View style={styles.typingBubbleWrapper}>
             <BlurView intensity={60} tint="dark" style={[StyleSheet.absoluteFill, { borderRadius: 20 }]} />
@@ -418,16 +437,16 @@ const msgStyles = StyleSheet.create({
     paddingVertical: 12,
   },
   userBubble: {
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: 'rgba(255,255,255,0.08)', // Refined subtle dark styling 
   },
   aiBubble: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: 'rgba(255,255,255,0.02)', // Deeper contrast for AI
   },
   text: {
-    fontSize: 14,
+    fontSize: 14.5,
     lineHeight: 22,
     fontWeight: '400',
-    letterSpacing: -0.2,
+    letterSpacing: -0.3,
   },
   textContainer: {
     gap: 4,

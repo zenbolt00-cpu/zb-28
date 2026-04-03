@@ -2,9 +2,8 @@ const { getDefaultConfig } = require('expo/metro-config');
 
 const config = getDefaultConfig(__dirname);
 
-config.resolver.assetExts.push('woff');
-config.resolver.assetExts.push('ttf');
-config.resolver.assetExts.push('otf');
+// Font + 3D model extensions as static assets
+const extraAssetExts = ['woff', 'woff2', 'ttf', 'otf', 'glb', 'gltf'];
+config.resolver.assetExts = [...new Set([...config.resolver.assetExts, ...extraAssetExts])];
 
 module.exports = config;
-

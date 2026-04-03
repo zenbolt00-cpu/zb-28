@@ -399,6 +399,7 @@ model MfgProductionBatch {
   currentStage         String
   isSampleDone         Boolean                 @default(false)
   isCuttingDone        Boolean                 @default(false)
+  isStitchingDone      Boolean                 @default(false)
   isPrintingDone       Boolean                 @default(false)
   isEmbroideryDone     Boolean                 @default(false)
   isWashingDone        Boolean                 @default(false)

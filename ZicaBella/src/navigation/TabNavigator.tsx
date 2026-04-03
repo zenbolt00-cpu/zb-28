@@ -28,6 +28,7 @@ import PolicyScreen from '../screens/PolicyScreen';
 import { BlurView } from 'expo-blur';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import CartDrawer from '../components/CartDrawer';
+import BookmarkDrawer from '../components/BookmarkDrawer';
 import { useNavigation } from '@react-navigation/native';
 
 const Tab = createBottomTabNavigator();
@@ -153,7 +154,7 @@ function CustomTabBar({ state, descriptors, navigation, onCartPress }: any) {
 
 export const TabNavigator = () => {
   const itemCount = useCartStore((s) => s.itemCount());
-  const { isCartOpen, setCartOpen } = useUIStore();
+  const { isCartOpen, setCartOpen, isBookmarkOpen, setBookmarkOpen } = useUIStore();
   const rootNavigation = useNavigation<any>();
 
   return (
@@ -214,6 +215,10 @@ export const TabNavigator = () => {
         setCartOpen(false);
         rootNavigation.navigate('Checkout');
       }}
+    />
+    <BookmarkDrawer
+      visible={isBookmarkOpen}
+      onClose={() => setBookmarkOpen(false)}
     />
     {!useUIStore(s => s.isTabBarVisible) && (
       <TouchableOpacity 

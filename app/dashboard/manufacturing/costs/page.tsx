@@ -306,11 +306,11 @@ export default function CostLedgerPage() {
             </p>
           )}
         </div>
-        <div className="flex flex-wrap items-center gap-2 mt-4 lg:mt-0">
+        <div className="flex flex-col sm:flex-row flex-wrap items-center gap-2 mt-4 lg:mt-0 w-full lg:w-auto">
           <button
             type="button"
             onClick={() => loadLedger()}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-foreground/10 text-[12px] font-semibold hover:bg-foreground/[0.04]"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl border border-foreground/10 text-[12px] font-semibold hover:bg-foreground/[0.04]"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
             Refresh
@@ -319,7 +319,7 @@ export default function CostLedgerPage() {
             type="button"
             onClick={exportCsv}
             disabled={batches.length === 0}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-foreground/10 text-[12px] font-semibold hover:bg-foreground/[0.04] disabled:opacity-40"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl border border-foreground/10 text-[12px] font-semibold hover:bg-foreground/[0.04] disabled:opacity-40"
           >
             <Download className="w-4 h-4" />
             Export CSV
@@ -330,10 +330,10 @@ export default function CostLedgerPage() {
               setMiscOpen(true);
               setMiscErr({});
             }}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-foreground text-background text-[12px] font-bold"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl bg-foreground text-background text-[12px] font-bold shadow-lg"
           >
             <Plus className="w-4 h-4" />
-            Add miscellaneous expense
+            Add misc expense
           </button>
         </div>
       </header>
@@ -364,12 +364,12 @@ export default function CostLedgerPage() {
                 >
                   {summary ? formatInr(summary[c.key]) : "—"}
                 </p>
-                <div className="pb-0.5">
+                <div className="pb-1 sm:pb-0.5">
                   <DeltaBadge delta={trendDeltas?.[c.key]} />
                 </div>
               </div>
               <p className="text-[9px] text-foreground/35 mt-2 font-medium">
-                vs previous refresh on this page
+                vs previous refresh
               </p>
             </div>
           ))

@@ -1,34 +1,44 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useMemo, useRef, useState, useEffect, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  ActivityIndicator, Dimensions, Alert, Animated,
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+  Dimensions,
+  Alert,
+  Modal,
+  FlatList,
+  Animated,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
-import { Image } from 'expo-image';
-import GlassHeader from '../components/GlassHeader';
+import FastImage, { FastImagePriority } from '../components/FastImage';
 import { useColors } from '../constants/colors';
 import { useThemeStore } from '../store/themeStore';
-import { formatPrice } from '../utils/formatPrice';
 import { haptics } from '../utils/haptics';
 import { useProductByHandle, useProducts } from '../hooks/useProducts';
 import { useCartStore } from '../store/cartStore';
 import { RootStackParamList } from '../navigation/RootNavigator';
-import ImageCarousel from '../components/ImageCarousel';
 import ProductCard from '../components/ProductCard';
 import QuickAddModal from '../components/QuickAddModal';
-import { FlatProduct } from '../api/types';
+import { FlatProduct, Media } from '../api/types';
 import { useRecentStore } from '../store/recentStore';
 import { useBookmarkStore } from '../store/bookmarkStore';
 import { useUIStore } from '../store/uiStore';
 import { Typography } from '../components/Typography';
 import ImageGalleryModal from '../components/ImageGalleryModal';
+import { WebView } from 'react-native-webview';
 
-const { width, height } = Dimensions.get('window');
-const HERO_HEIGHT = height * 0.78;
-const CONTENT_OVERLAP = 40;
+const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
+const HERO_HEIGHT = SCREEN_H * 0.72;
+const THUMB_SIZE = 100;
+const THUMB_RADIUS = 20;
+const NAV_PILL_H = 48;
+const SIZE_GAP = 8;
 
 export default function ProductDetailScreen() {
   const insets = useSafeAreaInsets();
@@ -36,39 +46,108 @@ export default function ProductDetailScreen() {
   const route = useRoute<RouteProp<RootStackParamList, 'ProductDetail'>>();
   const { handle } = route.params;
   const colors = useColors();
-  const { theme } = useThemeStore();
+  const { theme, toggleTheme } = useThemeStore();
   const isDark = theme === 'dark';
 
   const { product, loading, error } = useProductByHandle(handle);
   const { products: allProducts } = useProducts(10);
   const { addItem } = useCartStore();
+  const cartCount = useCartStore(s => s.itemCount());
 
   const [selectedProduct, setSelectedProduct] = useState<FlatProduct | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState('Description');
+  const [activeTab, setActiveTab] = useState<'DESCRIPTION' | 'DETAILS' | 'CARE' | 'BRAND'>('DESCRIPTION');
   const { addBookmark, removeBookmark, isBookmarked } = useBookmarkStore();
   const bookmarked = isBookmarked(product?.id || '');
   const { addProduct, recentProducts } = useRecentStore();
   const [showFullDescription, setShowFullDescription] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isGalleryVisible, setIsGalleryVisible] = useState(false);
-  
-  useEffect(() => {
-    if (product) {
-      addProduct(product);
-    }
-  }, [product, addProduct]);
+  const [isSizeGuideVisible, setIsSizeGuideVisible] = useState(false);
 
-  const scrollY = useRef(new Animated.Value(0)).current;
   const setTabBarVisible = useUIStore(s => s.setTabBarVisible);
   const lastScrollY = useRef(0);
+  const heroRef = useRef<FlatList<any> | null>(null);
+  const pulse = useRef(new Animated.Value(0)).current;
+
+  // ---- Stable derived values (must be above early returns) ----
+  const sizes = useMemo(() => ['XS', 'S', 'M', 'L', 'XL', 'XXL'], []);
+
+  const variantBySize = useMemo(() => {
+    const map = new Map<string, any>();
+    for (const v of (product?.variants || []) as any[]) {
+      if (!v?.size) continue;
+      map.set(String(v.size).toUpperCase(), v);
+    }
+    return map;
+  }, [product?.variants]);
+
+  const productMedia: Media[] = useMemo(() => {
+    if (!product) return [];
+    if ((product as any).allMedia && (product as any).allMedia.length > 0) return (product as any).allMedia as Media[];
+    return (product.images || []).map((img: string) => ({
+      mediaContentType: 'IMAGE' as const,
+      image: { url: img, altText: null },
+      alt: null,
+    }));
+  }, [product]);
+
+  const heroImages = useMemo(
+    () =>
+      productMedia
+        .filter(m => m.mediaContentType !== 'VIDEO')
+        .map(m => m.image?.url || (m as any).url || (m as any).src)
+        .filter(Boolean),
+    [productMedia],
+  );
+
+  const imageOnlyMedia = useMemo(() => productMedia.filter(m => m.mediaContentType !== 'VIDEO'), [productMedia]);
+
+  const priceNumber = useMemo(() => {
+    const raw = (product as any)?.price;
+    const n = Number(String(raw || '0').replace(/[^0-9.]/g, '')) || 0;
+    return n;
+  }, [product]);
+
+  const formattedPrice = useMemo(() => {
+    try {
+      return new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: 'INR',
+        maximumFractionDigits: 0,
+      }).format(priceNumber);
+    } catch {
+      return `₹${Math.round(priceNumber).toLocaleString('en-IN')}`;
+    }
+  }, [priceNumber]);
+
+  const recommended = useMemo(
+    () => allProducts.filter((p: FlatProduct) => p.id !== (product?.id || '')).slice(0, 6),
+    [allProducts, product?.id],
+  );
+
+  const recentFiltered = useMemo(
+    () => recentProducts.filter((p: FlatProduct) => p.id !== (product?.id || '')).slice(0, 4),
+    [recentProducts, product?.id],
+  );
+
+  useEffect(() => {
+    if (product) addProduct(product);
+  }, [product, addProduct]);
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 1, duration: 650, useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 0, duration: 650, useNativeDriver: true }),
+      ]),
+    ).start();
+  }, [pulse]);
 
   const handleScroll = (event: any) => {
     const currentY = event.nativeEvent.contentOffset.y;
     const diff = currentY - lastScrollY.current;
-
     if (Math.abs(diff) > 5) {
       const isVisible = useUIStore.getState().isTabBarVisible;
       if (diff > 0 && currentY > 100) {
@@ -77,33 +156,38 @@ export default function ProductDetailScreen() {
         if (!isVisible) setTabBarVisible(true);
       }
     }
-    
     lastScrollY.current = currentY;
   };
 
-  const handleSizeSelect = (size: string) => {
+  const handleSizeSelect = useCallback((size: string) => {
     setSelectedSize(size);
-    haptics.buttonTap();
+    haptics.buttonTap(); // impactLight
+  }, []);
+
+  const handleQuickAdd = (p: FlatProduct) => {
+    setSelectedProduct(p);
+    setModalVisible(true);
   };
 
-  const handleQuickAdd = (product: FlatProduct) => {
-    setSelectedProduct(product);
-    setModalVisible(true);
+  const resolveVariant = () => {
+    if (!product) return null;
+    if (product.variants.length > 1 && !selectedSize) return null;
+    return selectedSize
+      ? product.variants.find(v => v.size === selectedSize)
+      : product.variants[0];
   };
 
   const handleAddToCart = () => {
     if (!product) return;
-    if (product.variants.length > 1 && !selectedSize) {
+    const variant = resolveVariant();
+    if (!variant) {
       Alert.alert('Select Size', 'Please select a size first');
       return;
     }
-
-    const variant = selectedSize 
-      ? product.variants.find(v => v.size === selectedSize)
-      : product.variants[0];
-
-    if (!variant) return;
-
+    if (!variant.availableForSale) {
+      Alert.alert('Sold Out', 'Selected size is currently sold out.');
+      return;
+    }
     addItem({
       productId: product.id,
       variantId: variant.id,
@@ -113,23 +197,20 @@ export default function ProductDetailScreen() {
       price: variant.price,
       image: product.images[0] || product.featuredImage || '',
     });
-
     haptics.addToCart();
   };
 
   const handleBuyNow = () => {
     if (!product) return;
-    if (product.variants.length > 1 && !selectedSize) {
+    const variant = resolveVariant();
+    if (!variant) {
       Alert.alert('Select Size', 'Please select a size first');
       return;
     }
-
-    const variant = selectedSize 
-      ? product.variants.find(v => v.size === selectedSize)
-      : product.variants[0];
-
-    if (!variant) return;
-
+    if (!variant.availableForSale) {
+      Alert.alert('Sold Out', 'Selected size is currently sold out.');
+      return;
+    }
     addItem({
       productId: product.id,
       variantId: variant.id,
@@ -139,14 +220,13 @@ export default function ProductDetailScreen() {
       price: variant.price,
       image: product.images[0] || product.featuredImage || '',
     });
-
     haptics.success();
-    navigation.navigate('Cart');
+    navigation.navigate('Checkout');
   };
 
   if (loading) {
     return (
-      <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
+      <View style={[styles.center, { backgroundColor: colors.background }]}>
         <ActivityIndicator size="small" color={colors.textExtraLight} />
       </View>
     );
@@ -154,162 +234,209 @@ export default function ProductDetailScreen() {
 
   if (error || !product) {
     return (
-      <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
+      <View style={[styles.center, { backgroundColor: colors.background }]}>
         <Text style={[styles.errorText, { color: colors.text }]}>Product not found</Text>
-        <TouchableOpacity 
-          onPress={() => navigation.goBack()} 
-          style={[styles.backBtn, { backgroundColor: colors.text }]}
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={[styles.goBackBtn, { backgroundColor: colors.text }]}
         >
-          <Text style={[styles.backBtnText, { color: colors.background }]}>GO BACK</Text>
+          <Text style={[styles.goBackBtnText, { color: colors.background }]}>GO BACK</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
-  const sizes = product.variants
-    ?.map(v => v.size)
-    .filter((v, i, a) => v && a.indexOf(v) === i) || [];
+  // NOTE: derived values are computed above (before early returns) to keep hook order stable.
 
-  const recommended = allProducts.filter((p: FlatProduct) => p.id !== product.id).slice(0, 6);
+  const selectedSizeVariant = selectedSize
+    ? product.variants.find(v => v.size === selectedSize)
+    : product.variants[0];
+  const selectedVariantSoldOut = selectedSizeVariant
+    ? !selectedSizeVariant.availableForSale
+    : product.isSoldOut;
 
-  const blurIntensity = scrollY.interpolate({
-    inputRange: [0, 200],
-    outputRange: [0, 50],
-    extrapolate: 'clamp',
-  });
+  const sizeChartValue = product.sizeChart?.trim();
+  const sizeChartIsUrl = Boolean(sizeChartValue && /^https?:\/\//i.test(sizeChartValue));
+  const sizeChartIsImageUrl = Boolean(
+    sizeChartValue && /\.(png|jpe?g|webp|gif|svg)(\?.*)?$/i.test(sizeChartValue),
+  );
+  const showGuideButton = Boolean(sizeChartValue);
 
-  const heroTranslateY = scrollY.interpolate({
-    inputRange: [-HERO_HEIGHT, 0, HERO_HEIGHT],
-    outputRange: [-HERO_HEIGHT * 0.12, 0, HERO_HEIGHT * 0.28],
-    extrapolate: 'clamp',
-  });
+  const borderLight = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.1)';
+  const borderUltra = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)';
+  const glassBg = 'rgba(255,255,255,0.18)'; // spec
+  const glassInner = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)';
+  const sizeBoxW = Math.floor((SCREEN_W - 40 - SIZE_GAP * 5) / 6);
 
-  const bgOpacity = scrollY.interpolate({
-    inputRange: [0, HERO_HEIGHT * 0.8, HERO_HEIGHT * 1.2],
-    outputRange: [1, 1, 0.4],
-    extrapolate: 'clamp',
-  });
+  // formattedPrice comes from the stable memo above.
 
-  const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
-  const glassStroke = isDark ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.7)';
-  const glassFill = isDark ? 'rgba(8,12,20,0.62)' : 'rgba(255,255,255,0.72)';
-  const glassFillSoft = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.52)';
-  const glassFillStrong = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.82)';
+  const goCart = () => {
+    haptics.buttonTap();
+    useUIStore.getState().setCartOpen(true);
+  };
+
+  const onThumbPress = (idx: number) => {
+    setCurrentImageIndex(idx);
+    heroRef.current?.scrollToIndex({ index: idx, animated: true });
+    haptics.buttonTap();
+  };
+
+  // heroImages comes from the stable memo above.
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <GlassHeader 
-        title={product.title}
-        showBack={true}
-        isBookmarked={bookmarked}
-        onPressBookmarks={() => {
-          if (bookmarked) removeBookmark(product.id);
-          else addBookmark(product);
-          haptics.buttonTap();
-        }}
-      />
-
-      <Animated.View
-        pointerEvents="box-none"
-        style={[
-          styles.fixedHeroMedia,
-          {
-            height: HERO_HEIGHT,
-            opacity: bgOpacity,
-            transform: [{ translateY: heroTranslateY }],
-          },
-        ]}
-      >
-        <ImageCarousel 
-          media={product.allMedia || []} 
-          height={HERO_HEIGHT}
-          showThumbnails={false}
-          externalActiveIndex={currentImageIndex}
-          onIndexChange={setCurrentImageIndex}
-          onPress={(index: number) => {
-            setCurrentImageIndex(index);
-            setIsGalleryVisible(true);
+    <View style={[styles.root, { backgroundColor: colors.background }]}>
+      {/* Full-bleed hero (behind nav) */}
+      <View style={styles.heroWrap}>
+        <FlatList
+          ref={(r) => {
+            heroRef.current = r;
           }}
+          data={heroImages}
+          keyExtractor={(uri, idx) => `${idx}_${uri}`}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onMomentumScrollEnd={(e) => {
+            const idx = Math.round(e.nativeEvent.contentOffset.x / SCREEN_W);
+            setCurrentImageIndex(idx);
+          }}
+          renderItem={({ item, index }) => (
+            <TouchableOpacity
+              activeOpacity={0.95}
+              onPress={() => {
+                setCurrentImageIndex(index);
+                setIsGalleryVisible(true);
+              }}
+              style={{ width: SCREEN_W, height: HERO_HEIGHT }}
+            >
+              <FastImage
+                source={{ uri: item || undefined }}
+                style={StyleSheet.absoluteFill}
+                contentFit="cover"
+                transition={250}
+                priority={FastImagePriority.high}
+              />
+            </TouchableOpacity>
+          )}
         />
+      </View>
 
-        <View style={styles.heroOverlay}>
-          <BlurView
-            intensity={isDark ? 55 : 75}
-            tint={isDark ? 'dark' : 'light'}
+      {/* Floating frosted nav pill */}
+      <View style={[styles.navWrap, { top: insets.top + 8 }]}>
+        <View style={styles.navPill}>
+          <BlurView intensity={16} tint="light" style={StyleSheet.absoluteFill} />
+          <View style={[StyleSheet.absoluteFill, { backgroundColor: glassBg }]} />
+
+          <TouchableOpacity
+            onPress={() => {
+              haptics.buttonTap();
+              navigation.goBack();
+            }}
+            style={styles.navCircleBtn}
+            activeOpacity={0.75}
+          >
+            <BlurView intensity={16} tint="light" style={StyleSheet.absoluteFill} />
+            <View style={[StyleSheet.absoluteFill, { backgroundColor: glassBg }]} />
+            <Ionicons name="chevron-back" size={20} color="#fff" />
+          </TouchableOpacity>
+
+          <Text numberOfLines={1} style={styles.navTitle}>
+            {product.title.toUpperCase()}
+          </Text>
+
+          <View style={styles.navIcons}>
+            <TouchableOpacity
+              onPress={() => {
+                haptics.buttonTap();
+                toggleTheme();
+              }}
+              activeOpacity={0.75}
+            >
+              <Ionicons name={isDark ? 'moon' : 'moon-outline'} size={22} color="#fff" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => {
+                if (bookmarked) removeBookmark(product.id);
+                else addBookmark(product);
+                haptics.buttonTap();
+              }}
+              activeOpacity={0.75}
+            >
+              <Ionicons name={bookmarked ? 'bookmark' : 'bookmark-outline'} size={22} color="#fff" />
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={goCart} activeOpacity={0.75} style={{ paddingRight: 2 }}>
+              <View>
+                <Ionicons name="cart-outline" size={22} color="#fff" />
+                {cartCount > 0 && (
+                  <View style={styles.cartBadge}>
+                    <Text style={styles.cartBadgeText}>{cartCount > 9 ? '9+' : String(cartCount)}</Text>
+                  </View>
+                )}
+              </View>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+
+      <ScrollView
+        style={styles.scroll}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 120 + insets.bottom, paddingTop: HERO_HEIGHT }}
+      >
+        {/* Thumbnail strip */}
+        {heroImages.length > 1 && (
+          <View
             style={[
-              styles.heroBadge,
-              {
-                borderColor: glassStroke,
-                backgroundColor: glassFillSoft,
-              },
+              styles.thumbStrip,
+              { backgroundColor: isDark ? '#0a0a0a' : '#ffffff' },
             ]}
           >
-            <Typography size={7} weight="600" color={colors.text} letterSpacing={1.2}>
-              {String(currentImageIndex + 1).padStart(2, '0')} / {String(Math.max(product.allMedia?.length || 1, 1)).padStart(2, '0')}
-            </Typography>
-          </BlurView>
-        </View>
-
-        <AnimatedBlurView 
-          pointerEvents="none"
-          intensity={blurIntensity} 
-          tint={isDark ? 'dark' : 'light'} 
-          style={StyleSheet.absoluteFill} 
-        />
-      </Animated.View>
-
-      <Animated.ScrollView
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          {
-            useNativeDriver: false,
-            listener: handleScroll,
-          }
-        )}
-        scrollEventThrottle={16}
-        nestedScrollEnabled
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingTop: HERO_HEIGHT - CONTENT_OVERLAP },
-        ]}
-      >
-        {/* Thumbnails Row - Now in the scrolling layer */}
-        {(product.allMedia?.length || 0) > 1 && (
-          <View style={styles.thumbnailSection}>
-            <ScrollView 
-              horizontal 
-              nestedScrollEnabled
+            <BlurView intensity={isDark ? 28 : 18} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+            <View
+              style={[
+                StyleSheet.absoluteFill,
+                { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.72)' },
+              ]}
+            />
+            <ScrollView
+              horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.thumbScrollContent}
-              style={styles.thumbRow}
+              contentContainerStyle={styles.thumbStripContent}
             >
-              {product.allMedia?.map((item: any, idx: number) => {
-                const isSelected = currentImageIndex === idx;
+              {heroImages.map((uri, idx) => {
+                const active = idx === currentImageIndex;
                 return (
-                  <TouchableOpacity 
-                    key={idx}
-                    onPress={() => {
-                      setCurrentImageIndex(idx);
-                      haptics.buttonTap();
-                    }}
+                  <TouchableOpacity
+                    key={`${idx}_${uri}`}
+                    activeOpacity={0.8}
+                    onPress={() => onThumbPress(idx)}
                     style={[
-                      styles.appleThumb,
-                      { 
-                        borderColor: isSelected ? glassStroke : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.45)'),
-                        borderWidth: isSelected ? 2 : 1,
-                        backgroundColor: isSelected ? glassFillStrong : glassFillSoft,
-                        transform: [{ scale: isSelected ? 1 : 0.96 }],
-                      }
+                      styles.thumbItem,
+                      {
+                        borderColor: active ? '#ffffff' : 'transparent',
+                        borderWidth: active ? 1.5 : 0,
+                      },
                     ]}
-                    activeOpacity={0.7}
                   >
-                    <Image 
-                      source={{ uri: item.image?.url || item.url || item.src }} 
-                      style={styles.appleThumbImage}
+                    <FastImage
+                      source={{ uri: uri || undefined }}
+                      style={StyleSheet.absoluteFill}
                       contentFit="cover"
+                      transition={200}
+                      priority={FastImagePriority.normal}
                     />
-                    {!isSelected && <View style={[styles.thumbOverlay, { backgroundColor: isDark ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.1)' }]} />}
+                    {!active && (
+                      <View
+                        style={[
+                          StyleSheet.absoluteFill,
+                          { backgroundColor: isDark ? 'rgba(0,0,0,0.18)' : 'rgba(255,255,255,0.08)' },
+                        ]}
+                      />
+                    )}
                   </TouchableOpacity>
                 );
               })}
@@ -317,570 +444,773 @@ export default function ProductDetailScreen() {
           </View>
         )}
 
-        {/* Details Card */}
-        <View style={[styles.detailsCard, { 
-          backgroundColor: glassFill,
-          borderColor: glassStroke,
-          marginTop: 1,
-        }]}>
-          <BlurView 
-            intensity={95} 
-            tint={isDark ? 'dark' : 'light'} 
-            style={[StyleSheet.absoluteFill, { borderRadius: 32 }]} 
-          />
-          <View style={[styles.cardIndicator, { backgroundColor: colors.borderLight }]} />
+        {/* Gap between thumbnails and details */}
+        <View style={{ height: 14 }} />
 
-          <View style={styles.mainInfo}>
-            <View style={styles.titleRow}>
-              <View style={{ flex: 1 }}>
-                <Typography size={11.5} color={colors.text} weight="600" letterSpacing={1.6} style={styles.title}>
-                  {product.title}
-                </Typography>
-                <View style={styles.priceRow}>
-                  <Typography size={12} weight="400" color={colors.textSecondary}>
-                    {formatPrice(product.price)}
-                  </Typography>
-                  {product.compareAtPrice && (
-                    <Typography size={10} weight="300" color={colors.textExtraLight} style={styles.comparePrice}>
-                      {formatPrice(product.compareAtPrice)}
-                    </Typography>
-                  )}
-                </View>
-              </View>
-              <TouchableOpacity
-                onPress={() => {
-                  if (bookmarked) removeBookmark(product.id);
-                  else addBookmark(product);
-                  haptics.buttonTap();
-                }}
-                style={[styles.bookmarkCircle, { backgroundColor: glassFillSoft, borderColor: glassStroke }]}
-              >
-                <Ionicons 
-                  name={bookmarked ? "bookmark" : "bookmark-outline"} 
-                  size={18} 
-                  color={colors.text} 
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Size Selection Section */}
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Typography size={7} color={colors.textExtraLight} style={styles.sectionLabel}>SELECT SIZE</Typography>
-              <TouchableOpacity>
-                <Typography size={7} color={colors.textExtraLight} style={styles.guideBtn}>GUIDE</Typography>
-              </TouchableOpacity>
-            </View>
-            
-            <View style={styles.sizeSectionContainer}>
-              <View style={styles.sizeRow}>
-                {sizes.map((s, i) => {
-                  const isSelected = selectedSize === s;
-                  return (
-                    <TouchableOpacity 
-                      key={i} 
-                      style={[
-                        styles.sizeBox, 
-                        { 
-                          borderColor: isSelected ? glassStroke : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.45)'),
-                          backgroundColor: isSelected ? glassFillStrong : glassFillSoft,
-                          borderWidth: isSelected ? 1.3 : 1,
-                        }
-                      ]}
-                      onPress={() => s && handleSizeSelect(s)}
-                    >
-                      <Typography size={8} weight="600" color={colors.text}>
-                        {s?.toUpperCase()}
-                      </Typography>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </View>
-          </View>
-
-          {/* Action Buttons - High Contrast */}
-          <View style={styles.actions}>
-            <TouchableOpacity 
+        {/* Info card */}
+        <View
+          style={[
+            styles.infoCard,
+            {
+              backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.88)',
+              marginTop: 0,
+              borderColor: borderLight,
+            },
+          ]}
+        >
+          <BlurView intensity={isDark ? 52 : 24} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+          <View style={styles.infoRow1}>
+            <Text style={[styles.pdpTitle, { color: colors.text }]} numberOfLines={2}>
+              {product.title.toUpperCase()}
+            </Text>
+            <TouchableOpacity
+              onPress={() => {
+                if (bookmarked) removeBookmark(product.id);
+                else addBookmark(product);
+                haptics.buttonTap();
+              }}
+              activeOpacity={0.75}
               style={[
-                styles.addBtn, 
-                { 
-                  borderColor: glassStroke,
-                  backgroundColor: glassFillSoft,
-                },
-                (product.isSoldOut) && styles.addBtnDisabled
-              ]} 
-              onPress={handleAddToCart}
+                styles.bookmarkBtn,
+                { borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)' },
+              ]}
             >
-              <BlurView intensity={isDark ? 36 : 54} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
-              <Typography size={8} color={colors.text} weight="700" letterSpacing={1.1}>
-                {product.isSoldOut ? 'SOLD OUT' : 'ADD TO BAG'}
-              </Typography>
+              <Ionicons name={bookmarked ? 'bookmark' : 'bookmark-outline'} size={18} color={colors.text} />
             </TouchableOpacity>
+          </View>
+          <Text style={[styles.pdpPrice, { color: colors.textSecondary }]}>{formattedPrice}</Text>
 
-            {!product.isSoldOut && (
-              <TouchableOpacity 
-                style={[
-                  styles.buyNowBtn, 
-                  { 
-                    backgroundColor: glassFillStrong,
-                    borderColor: glassStroke,
-                    borderWidth: 1,
-                  }
-                ]} 
-                onPress={handleBuyNow}
-                activeOpacity={0.8}
-              >
-                <BlurView intensity={isDark ? 44 : 68} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
-                <Typography size={8} color={colors.text} weight="700" letterSpacing={1.1}>
-                  BUY NOW
-                </Typography>
+          {/* Size selector */}
+          <View style={styles.sizeHeader}>
+            <Text style={[styles.mutedLabel, { color: colors.textLight }]}>SELECT SIZE</Text>
+            {showGuideButton && (
+              <TouchableOpacity onPress={() => setIsSizeGuideVisible(true)} activeOpacity={0.8}>
+                <Text style={[styles.mutedLabel, { color: colors.textLight, textDecorationLine: 'underline' }]}>
+                  GUIDE
+                </Text>
               </TouchableOpacity>
             )}
           </View>
 
-          {/* Description & Tabs Section */}
-          <View style={styles.tabsSection}>
-            <View style={{ height: 44, paddingBottom: 8 }}>
-              <ScrollView 
-                horizontal 
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.tabBarScroll}
-              >
-                {['Description', 'Details', 'Care', 'Brand'].map((t) => {
-                  const isActive = activeTab === t;
-                  return (
-                    <TouchableOpacity 
-                      key={t} 
-                      onPress={() => setActiveTab(t)}
+          <View style={styles.sizePillsRow}>
+            {sizes.map((s) => {
+              const v = variantBySize.get(s);
+              const out = !v || !v.availableForSale;
+              const selected = selectedSize === s;
+              const pillBorder = isDark ? 'rgba(255,255,255,0.14)' : 'rgba(0,0,0,0.12)';
+
+              return (
+                <TouchableOpacity
+                  key={s}
+                  onPress={() => (!out ? handleSizeSelect(s) : undefined)}
+                  activeOpacity={out ? 1 : 0.8}
+                  style={[
+                    styles.sizePill2,
+                    selected && styles.sizePillSelected,
+                    {
+                      width: sizeBoxW,
+                      borderColor: selected ? (isDark ? 'rgba(255,255,255,0.22)' : 'rgba(0,0,0,0.22)') : pillBorder,
+                      backgroundColor: selected
+                        ? (isDark ? '#ffffff' : '#000000')
+                        : (isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)'),
+                      opacity: out ? 0.45 : 1,
+                    },
+                  ]}
+                >
+                  <Text style={[styles.sizeText, { color: selected ? (isDark ? '#000' : '#fff') : colors.text }]}>
+                    {s}
+                  </Text>
+                  {out && (
+                    <View
+                      pointerEvents="none"
                       style={[
-                        styles.pillTab, 
-                        { 
-                          backgroundColor: isActive ? glassFillStrong : 'transparent',
-                          borderColor: isActive ? glassStroke : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.4)'),
-                          borderWidth: 1
-                        }
+                        styles.diagonalStrike,
+                        { backgroundColor: isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.28)' },
                       ]}
-                    >
-                      <Typography size={6.5} color={isActive ? colors.text : colors.textLight} weight="600">
-                        {t.toUpperCase()}
-                      </Typography>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-            </View>
-            
-            <View style={[styles.tabContentBox, { backgroundColor: glassFillSoft, borderColor: glassStroke }]}>
-              {activeTab === 'Description' && (
-                <View style={styles.contentInside}>
-                  <Typography size={8} color={colors.textSecondary} style={styles.tabPaneText} numberOfLines={showFullDescription ? undefined : 3}>
-                    {product.description}
-                  </Typography>
-                  <TouchableOpacity 
-                    onPress={() => setShowFullDescription(!showFullDescription)} 
-                    style={[styles.viewMorePill, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.035)' }]}
-                  >
-                    <Typography size={6.5} color={colors.textSecondary} weight="600">
-                      {showFullDescription ? 'VIEW LESS' : 'VIEW MORE'}
-                    </Typography>
-                  </TouchableOpacity>
-                </View>
-              )}
-              {activeTab === 'Details' && (
-                <View style={styles.contentInside}>
-                  <Typography size={8} color={colors.textSecondary} style={styles.tabPaneText}>
-                    {product.details || "Premium craftsmanship and high-quality materials tailored for modern comfort."}
-                  </Typography>
-                </View>
-              )}
-              {activeTab === 'Care' && (
-                <View style={styles.contentInside}>
-                  <Typography size={8} color={colors.textSecondary} style={styles.tabPaneText}>
-                    {product.care || "Dry clean only. Hand wash with cold water. Do not bleach. Iron at low temperature."}
-                  </Typography>
-                </View>
-              )}
-              {activeTab === 'Brand' && (
-                <View style={styles.contentInside}>
-                  <Typography size={8} color={colors.textSecondary} style={styles.tabPaneText}>
-                    ZICA BELLA creates limited-edition streetwear pieces that blend architectural geometry with casual luxury, designed in London and crafted globally.
-                  </Typography>
-                </View>
-              )}
-            </View>
+                    />
+                  )}
+                </TouchableOpacity>
+              );
+            })}
           </View>
 
-          {/* Lifestyle Video Section (Above Curated Pairs) */}
-          {product.productVideo && (
-            <View style={styles.lifestyleSection}>
-              <Typography heading size={7.5} color={colors.textLight} style={[styles.sectionLabel, { paddingHorizontal: 24, marginBottom: 12 }]}>THE MOVEMENTS</Typography>
-              <View style={styles.videoCard}>
-                 <ImageCarousel 
-                   media={[{ 
-                     mediaContentType: 'VIDEO', 
-                     sources: [{ url: product.productVideo, mimeType: 'video/mp4' }] 
-                   } as any]} 
-                   height={600}
-                   muted={isMuted}
-                   onPress={() => {
-                     setIsMuted(!isMuted);
-                     haptics.buttonTap();
-                   }}
-                 />
-                 <TouchableOpacity 
-                   style={styles.muteBtn}
-                   onPress={() => {
-                     setIsMuted(!isMuted);
-                     haptics.buttonTap();
-                   }}
-                 >
-                    <Ionicons 
-                      name={isMuted ? "volume-mute" : "volume-high"} 
-                      size={14} 
-                      color="#FFF" 
-                    />
-                 </TouchableOpacity>
-              </View>
-            </View>
-          )}
+          {/* Action buttons */}
+          <View style={styles.actions2}>
+            <TouchableOpacity
+              onPress={() => {
+                haptics.buttonTap();
+                handleAddToCart();
+              }}
+              activeOpacity={0.85}
+              style={[
+                styles.actionBtnOutline,
+                {
+                  borderColor: isDark ? 'rgba(255,255,255,0.16)' : 'rgba(0,0,0,0.14)',
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.6)',
+                },
+              ]}
+            >
+              <BlurView intensity={isDark ? 20 : 14} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+              <Text style={[styles.actionBtnText, { color: isDark ? '#fff' : '#0a0a0a' }]}>
+                ADD TO BAG
+              </Text>
+            </TouchableOpacity>
 
-          {/* Curated Pairs Section */}
-          <View style={[styles.curatedSection, { paddingHorizontal: 0 }]}>
-            <View style={[styles.sectionHeader, { paddingHorizontal: 16, marginBottom: 16 }]}>
-              <Typography heading size={7.5} color={colors.textLight} style={styles.sectionLabel}>CURATED PAIRS</Typography>
-              <View style={{ flexDirection: 'row' }}>
-                <Ionicons name="arrow-back-outline" size={16} color={colors.textExtraLight} style={{ marginRight: 24 }} />
-                <Ionicons name="arrow-forward-outline" size={16} color={colors.textExtraLight} />
+            <TouchableOpacity
+              onPress={() => {
+                haptics.buttonTap();
+                handleBuyNow();
+              }}
+              activeOpacity={0.85}
+              style={[
+                styles.actionBtnSolid,
+                {
+                  backgroundColor: isDark ? '#ffffff' : '#000000',
+                },
+              ]}
+            >
+              <Text style={[styles.actionBtnText, { color: isDark ? '#000' : '#fff' }]}>
+                BUY NOW
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Tabs */}
+          <View style={styles.tabsRow}>
+            {(['DESCRIPTION', 'DETAILS', 'CARE', 'BRAND'] as const).map((t) => {
+              const active = activeTab === t;
+              return (
+                <TouchableOpacity
+                  key={t}
+                  onPress={() => setActiveTab(t)}
+                  activeOpacity={0.85}
+                  style={[
+                    styles.tabItem,
+                    active && {
+                      backgroundColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.06)',
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.tabText2,
+                      { color: active ? colors.text : colors.textLight },
+                    ]}
+                  >
+                    {t}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          {/* Description body */}
+          <View style={styles.descBody}>
+            <Text
+              style={[
+                styles.descText,
+                { color: isDark ? 'rgba(255,255,255,0.72)' : 'rgba(0,0,0,0.72)' },
+              ]}
+              numberOfLines={showFullDescription ? undefined : 3}
+            >
+              {(activeTab === 'DESCRIPTION'
+                ? product.description
+                : activeTab === 'DETAILS'
+                  ? product.details || product.description
+                  : activeTab === 'CARE'
+                    ? product.care || product.description
+                    : 'ZICA BELLA')?.toUpperCase()}
+            </Text>
+
+            {activeTab === 'DESCRIPTION' && (
+              <TouchableOpacity
+                onPress={() => setShowFullDescription(!showFullDescription)}
+                activeOpacity={0.85}
+                style={[
+                  styles.viewMoreBtn,
+                  { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' },
+                ]}
+              >
+                <Text style={[styles.viewMoreText, { color: colors.textSecondary }]}>
+                  {showFullDescription ? 'VIEW LESS' : 'VIEW MORE'}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+
+        {/* Curated pairs */}
+        {recommended.length > 0 && (
+          <View style={styles.curatedWrap}>
+            <View style={styles.curatedHeader}>
+              <Text style={[styles.curatedTitle, { color: colors.text }]}>CURATED PAIRS</Text>
+              <View style={{ flexDirection: 'row', gap: 14 }}>
+                <TouchableOpacity activeOpacity={0.8} onPress={() => onThumbPress(Math.max(0, currentImageIndex - 1))}>
+                  <Ionicons name="arrow-back-outline" size={18} color={colors.textLight} />
+                </TouchableOpacity>
+                <TouchableOpacity activeOpacity={0.8} onPress={() => onThumbPress(Math.min(heroImages.length - 1, currentImageIndex + 1))}>
+                  <Ionicons name="arrow-forward-outline" size={18} color={colors.textLight} />
+                </TouchableOpacity>
               </View>
             </View>
-            <ScrollView 
-              horizontal 
-              showsHorizontalScrollIndicator={false} 
-              contentContainerStyle={styles.curatedList}
-              snapToInterval={(width * 0.85) + 2} // width + gap
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.curatedList2}
+              snapToInterval={SCREEN_W * 0.85 + 14}
               decelerationRate="fast"
             >
-              {recommended.map((p: FlatProduct) => (
-                <TouchableOpacity 
-                  key={p.id} 
-                  style={styles.curatedItem}
+              {recommended.map((p) => (
+                <TouchableOpacity
+                  key={p.id}
+                  activeOpacity={0.9}
                   onPress={() => navigation.push('ProductDetail', { handle: p.handle })}
+                  style={styles.curatedCard}
                 >
-                  <View style={[styles.curatedImageContainer, { backgroundColor: colors.surface }]}>
-                    <Image source={{ uri: p.featuredImage || undefined }} style={styles.curatedImage} contentFit="cover" />
+                  <View style={styles.curatedImg}>
+                    <FastImage source={{ uri: p.featuredImage || undefined }} style={StyleSheet.absoluteFill} contentFit="cover" priority={FastImagePriority.normal} />
                   </View>
-                  <View style={styles.curatedInfo}>
-                    <View style={{ flex: 1, gap: 2 }}>
-                      <Typography heading size={8} color={colors.textSecondary} numberOfLines={1}>{p.title}</Typography>
-                      <Typography size={8} color={colors.textExtraLight}>{formatPrice(p.price)}</Typography>
+                  <View style={[styles.curatedMetaBar, { borderTopColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }]}>
+                    <BlurView intensity={isDark ? 30 : 20} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+                    <View style={[StyleSheet.absoluteFill, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.7)' }]} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.curatedName, { color: colors.text }]} numberOfLines={1}>
+                        {p.title.toUpperCase()}
+                      </Text>
+                      <Text style={[styles.curatedPrice, { color: colors.textSecondary }]}>
+                        {(() => {
+                          const n = Number(String(p.price || '0').replace(/[^0-9.]/g, '')) || 0;
+                          try {
+                            return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
+                          } catch {
+                            return `₹${Math.round(n).toLocaleString('en-IN')}`;
+                          }
+                        })()}
+                      </Text>
                     </View>
-                    <TouchableOpacity 
-                      onPress={() => handleQuickAdd(p)}
-                      activeOpacity={0.7}
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        handleQuickAdd(p);
+                      }}
                       style={styles.curatedQuickAdd}
                     >
-                      <Ionicons name="add-outline" size={24} color={colors.textMuted} />
+                      <Ionicons name="add" size={18} color={colors.text} />
                     </TouchableOpacity>
                   </View>
                 </TouchableOpacity>
               ))}
+              <View style={{ width: SCREEN_W * 0.15 }} />
             </ScrollView>
           </View>
+        )}
 
-        </View>
-
-        {/* Recently Viewed (Premium Edge-To-Edge Grid) */}
-        {recentProducts.length > 1 && (
+        {/* Recently viewed (keep existing) */}
+        {recentFiltered.length > 0 && (
           <View style={[styles.recentSection, { backgroundColor: colors.background }]}>
-            <View style={[styles.sectionHeader, { paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: colors.borderLight, paddingBottom: 12 }]}>
-              <Typography heading size={7.5} color={colors.textLight} style={[styles.sectionLabel, { opacity: 0.8 }]}>RECENTLY VIEWED</Typography>
+            <View
+              style={[
+                styles.sectionHeaderRow,
+                {
+                  paddingHorizontal: 16,
+                  borderBottomWidth: StyleSheet.hairlineWidth,
+                  borderBottomColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
+                  paddingBottom: 12,
+                },
+              ]}
+            >
+              <Typography
+                heading
+                size={7.5}
+                color={colors.textLight}
+                style={[styles.sectionLabel, { opacity: 0.8 }]}
+              >
+                RECENTLY VIEWED
+              </Typography>
             </View>
             <View style={styles.recentGrid}>
-              {recentProducts.filter((p: FlatProduct) => p.id !== product.id).slice(0, 4).map((p: FlatProduct) => (
-                <View key={p.id} style={[styles.recentCardWrapper, { borderColor: colors.borderLight }]}>
-                  <ProductCard 
-                    product={p} 
-                    onQuickAdd={handleQuickAdd} 
-                  />
+              {recentFiltered.map((p: FlatProduct) => (
+                <View key={p.id} style={styles.recentCard}>
+                  <ProductCard product={p} onQuickAdd={handleQuickAdd} />
                 </View>
               ))}
             </View>
           </View>
         )}
+      </ScrollView>
 
-        <View style={{ height: 160 + insets.bottom }} />
-      </Animated.ScrollView>
-      <QuickAddModal visible={modalVisible} product={selectedProduct} onClose={() => setModalVisible(false)} />
-      <ImageGalleryModal 
-        visible={isGalleryVisible} 
-        media={product.allMedia || []} 
-        initialIndex={currentImageIndex} 
-        onClose={() => setIsGalleryVisible(false)} 
+      {/* ───── Modals ───── */}
+      <QuickAddModal
+        visible={modalVisible}
+        product={selectedProduct}
+        onClose={() => setModalVisible(false)}
       />
+
+      <ImageGalleryModal
+        visible={isGalleryVisible}
+        media={imageOnlyMedia}
+        initialIndex={Math.max(
+          0,
+          imageOnlyMedia.findIndex((media: any) => {
+            const mediaUrl = media?.image?.url || media?.url || media?.src;
+            const currentUrl =
+              productMedia[currentImageIndex]?.image?.url ||
+              (productMedia[currentImageIndex] as any)?.url ||
+              (productMedia[currentImageIndex] as any)?.src;
+            return mediaUrl && mediaUrl === currentUrl;
+          }),
+        )}
+        onClose={() => setIsGalleryVisible(false)}
+      />
+
+      {/* Size Guide Modal */}
+      <Modal
+        visible={isSizeGuideVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setIsSizeGuideVisible(false)}
+      >
+        <View style={styles.guideBackdrop}>
+          <BlurView intensity={95} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+          <View
+            style={[
+              styles.guideCard,
+              {
+                backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.85)',
+                borderColor: borderLight,
+              },
+            ]}
+          >
+            <View style={styles.guideHeader}>
+              <Typography size={7} weight="600" color={colors.text} letterSpacing={1.2}>
+                SIZE GUIDE
+              </Typography>
+              <TouchableOpacity
+                style={[
+                  styles.guideClose,
+                  { backgroundColor: glassInner, borderColor: borderLight },
+                ]}
+                onPress={() => setIsSizeGuideVisible(false)}
+              >
+                <Ionicons name="close" size={16} color={colors.text} />
+              </TouchableOpacity>
+            </View>
+
+            {sizeChartIsImageUrl && sizeChartValue ? (
+              <FastImage
+                source={{ uri: sizeChartValue }}
+                style={styles.guideImage}
+                contentFit="contain"
+                priority={FastImagePriority.high}
+              />
+            ) : sizeChartIsUrl && sizeChartValue ? (
+              <WebView source={{ uri: sizeChartValue }} style={styles.guideWebView} />
+            ) : sizeChartValue ? (
+              <WebView source={{ html: sizeChartValue }} style={styles.guideWebView} />
+            ) : (
+              <View style={styles.guideEmpty}>
+                <Typography size={8} color={colors.textSecondary}>
+                  Size chart is unavailable for this product.
+                </Typography>
+              </View>
+            )}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  fixedHeroMedia: {
-    position: 'absolute', 
-    top: 0, 
-    left: 0, 
-    right: 0, 
-    zIndex: 0,
+  root: {
+    flex: 1,
   },
-  headerActions: { position: 'absolute', left: 12, right: 12, zIndex: 100, flexDirection: 'row', justifyContent: 'space-between' },
-  headerBtn: { width: 38, height: 38, borderRadius: 19, overflow: 'hidden', justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.1)', borderWidth: 1 },
-  scrollContent: { paddingBottom: 0 },
-  heroOverlay: {
+  scroll: {
+    flex: 1,
+  },
+  heroWrap: {
     position: 'absolute',
-    left: 20,
-    right: 20,
-    bottom: 20,
-    alignItems: 'flex-end',
-    zIndex: 3,
+    top: 0,
+    left: 0,
+    right: 0,
+    height: HERO_HEIGHT,
+    backgroundColor: '#000',
   },
-  heroBadge: {
-    minWidth: 70,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+  navWrap: {
+    position: 'absolute',
+    left: 16,
+    right: 16,
+    zIndex: 10,
+  },
+  navPill: {
+    height: NAV_PILL_H,
     borderRadius: 999,
     overflow: 'hidden',
-    borderWidth: 1,
+    paddingLeft: 6,
+    paddingRight: 10,
     alignItems: 'center',
+    flexDirection: 'row',
   },
-  detailsCard: { 
-    borderTopLeftRadius: 38, 
-    borderTopRightRadius: 38, 
-    paddingTop: 10, 
-    overflow: 'hidden', 
-    borderWidth: 1, 
-    borderTopWidth: 1, 
-    borderBottomWidth: 0,
-    marginTop: 1, 
-  },
-  cardIndicator: { width: 36, height: 3, borderRadius: 1.5, alignSelf: 'center', marginBottom: 12, opacity: 0.15 },
-  mainInfo: { paddingHorizontal: 22, marginBottom: 6 },
-  titleRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginBottom: 4 },
-  title: { flex: 1, textTransform: 'uppercase', lineHeight: 16 },
-  saleBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4 },
-  saleBadgeText: { color: '#FFF', fontSize: 7, fontWeight: '700', textTransform: 'uppercase' },
-  priceRow: { flexDirection: 'row', alignItems: 'baseline', gap: 8, marginTop: 6 },
-  price: { fontSize: 12, fontWeight: '400' },
-  comparePrice: { fontSize: 10, fontWeight: '300', textDecorationLine: 'line-through' },
-  section: { paddingHorizontal: 22, marginBottom: 14 },
-  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
-  sectionLabel: { fontSize: 7, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 1.5, opacity: 0.4 },
-  guideBtn: { fontSize: 7, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 1, opacity: 0.4, textDecorationLine: 'underline' },
-  sizeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  sizeBtn: { width: (width - 48 - 40) / 6, aspectRatio: 1, borderRadius: 8, borderWidth: 1, justifyContent: 'center', alignItems: 'center' },
-  sizeBtnSoldOut: { opacity: 0.3 },
-  sizeBtnText: { fontSize: 8, fontWeight: '500' },
-  actions: { paddingHorizontal: 22, gap: 8, marginBottom: 14 },
-  addBtn: { width: '100%', height: 48, borderRadius: 18, borderWidth: 1, justifyContent: 'center', alignItems: 'center', overflow: 'hidden' },
-  buyNowBtn: { width: '100%', height: 48, borderRadius: 18, justifyContent: 'center', alignItems: 'center', overflow: 'hidden' },
-  addBtnDisabled: { opacity: 0.5 },
-  addBtnText: { fontSize: 8, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 2 },
-  buyNowBtnText: { fontSize: 8, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 2 },
-  description: { fontSize: 13, lineHeight: 20, marginBottom: 12, fontWeight: '300' },
-  viewMore: { fontSize: 8, fontWeight: '600', letterSpacing: 1.5, textTransform: 'uppercase' },
-  tabsSection: { marginTop: 4, paddingHorizontal: 24 },
-  tabBar: { flexDirection: 'row', gap: 20, paddingBottom: 12 },
-  tabItem: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12 },
-  tabItemActive: { backgroundColor: 'rgba(0,0,0,0.05)' },
-  tabText: { fontSize: 7, fontWeight: '600', letterSpacing: 1.5, textTransform: 'uppercase' },
-  bookmarkCircle: { width: 42, height: 42, borderRadius: 21, justifyContent: 'center', alignItems: 'center', borderWidth: 1 },
-  tabContent: { paddingTop: 20 },
-  tabPaneText: { fontSize: 8.5, lineHeight: 14, fontWeight: '400' },
-  sizeRow: { flexDirection: 'row', gap: 8, width: '100%' },
-  sizeSectionContainer: { marginTop: 8 },
-  sizeBox: { flex: 1, height: 42, borderRadius: 14, borderWidth: 1, justifyContent: 'center', alignItems: 'center' },
-  sizeBoxText: { fontSize: 8, fontWeight: '600' },
-  lifestyleSection: { marginTop: 16, marginBottom: 16 },
-  videoCard: { width: '100%', height: 600, overflow: 'hidden', position: 'relative' },
-  muteBtn: { position: 'absolute', bottom: 20, right: 20, width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
-  curatedSection: { marginTop: 8, marginBottom: 16 },
-  curatedList: { paddingHorizontal: 0, gap: 2 },
-  curatedItem: { width: width * 0.85 },
-  curatedImageContainer: { width: '100%', aspectRatio: 3 / 4.4, borderRadius: 0, overflow: 'hidden', marginBottom: 12 },
-  curatedImage: { width: '100%', height: '100%' },
-  curatedInfo: { paddingHorizontal: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  curatedTitle: { fontSize: 10, fontWeight: '500', textTransform: 'uppercase', letterSpacing: 2, marginBottom: 4 },
-  curatedPrice: { fontSize: 9, fontWeight: '300', letterSpacing: 2 },
-  curatedQuickAdd: { marginTop: 0, opacity: 0.6 },
-  recentSection: { marginTop: 12, marginBottom: 24 },
-  recentGrid: { 
-    flexDirection: 'row', 
-    flexWrap: 'wrap', 
-    justifyContent: 'space-between', 
-    paddingHorizontal: 2,
-    gap: 2,
-  },
-  recentCardWrapper: {
-    width: '49.6%',
-    marginBottom: 2,
-  },
-  badge: { position: 'absolute', top: -4, right: -4, minWidth: 14, height: 14, borderRadius: 7, justifyContent: 'center', alignItems: 'center', zIndex: 1 },
-  badgeText: { color: '#FFF', fontSize: 7, fontWeight: '700' },
-  errorText: { fontSize: 14, marginBottom: 20, fontWeight: '300', letterSpacing: 2 },
-  backBtn: { paddingHorizontal: 32, paddingVertical: 14, borderRadius: 99 },
-  backBtnText: { fontSize: 10, fontWeight: '600', letterSpacing: 4 },
-  
-  // Header Additions
-  headerTitleContainer: {
-    flex: 1,
-    height: 38,
-    marginHorizontal: 12,
-    borderRadius: 19,
+  navCircleBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     overflow: 'hidden',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
+    marginRight: 10,
   },
-  headerTitle: {
-    fontSize: 9,
-    fontWeight: '600',
-    textTransform: 'uppercase',
+  navTitle: {
+    flex: 1,
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '500',
     letterSpacing: 2,
-    paddingHorizontal: 16,
+    textTransform: 'uppercase',
   },
-  headerRight: {
-    flexDirection: 'row',
-  },
-  arrowRow: {
+  navIcons: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 12,
   },
-  favBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+  cartBadge: {
+    position: 'absolute',
+    top: -6,
+    right: -10,
+    minWidth: 16,
+    height: 16,
+    paddingHorizontal: 4,
+    borderRadius: 8,
+    backgroundColor: '#FF3B30',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cartBadgeText: {
+    color: '#fff',
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 0.2,
+  },
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  thumbStrip: {
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    borderBottomWidth: 0.5,
+    borderBottomColor: 'rgba(0,0,0,0.06)',
+  },
+  thumbStripContent: {
+    paddingHorizontal: 6,
+  },
+  thumbItem: {
+    width: THUMB_SIZE,
+    height: THUMB_SIZE,
+    borderRadius: THUMB_RADIUS,
+    overflow: 'hidden',
+    marginHorizontal: 6,
+  },
+
+  infoCard: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 20,
+    paddingTop: 18,
+    paddingBottom: 16,
+    borderWidth: 0.5,
+  },
+  infoRow1: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  pdpTitle: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: '700',
+    letterSpacing: 1.1,
+    textTransform: 'uppercase',
+  },
+  bookmarkBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     borderWidth: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  pillTab: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 24,
-    marginRight: 4,
+  pdpPrice: {
+    fontSize: 15,
+    fontWeight: '500',
+    marginTop: 6,
   },
-  pillTabText: {
-    fontSize: 9,
-    fontWeight: '600',
-    textTransform: 'uppercase',
+  sizeHeader: {
+    marginTop: 14,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  mutedLabel: {
+    fontSize: 8,
+    fontWeight: '500',
     letterSpacing: 1.5,
+    textTransform: 'uppercase',
+  },
+  sizePillsRow: {
+    flexDirection: 'row',
+    flexWrap: 'nowrap',
+    gap: SIZE_GAP,
+    marginTop: 10,
+    justifyContent: 'space-between',
+  },
+  sizePill2: {
+    height: 44,
+    borderRadius: 12,
+    borderWidth: 0.5,
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  sizePillSelected: {
+    backgroundColor: '#000000',
+  },
+  sizeText: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 1,
+  },
+  diagonalStrike: {
+    position: 'absolute',
+    width: '160%',
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.55)',
+    transform: [{ rotate: '-25deg' }],
+  },
+  actions2: {
+    paddingTop: 14,
+    gap: 10,
+  },
+  actionBtnOutline: {
+    width: '100%',
+    height: 50,
+    borderRadius: 12,
+    borderWidth: 0.5,
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  actionBtnSolid: {
+    width: '100%',
+    height: 50,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  actionBtnText: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 1.7,
+    textTransform: 'uppercase',
+  },
+  tabsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingVertical: 10,
+    paddingTop: 14,
+  },
+  tabItem: {
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 999,
+  },
+  tabText2: {
+    fontSize: 9,
+    fontWeight: '500',
+    letterSpacing: 1.3,
+    textTransform: 'uppercase',
+  },
+  descBody: {
+    paddingBottom: 6,
+  },
+  descText: {
+    fontSize: 8,
+    lineHeight: 13,
+    letterSpacing: 0.2,
+    textTransform: 'uppercase',
   },
   viewMoreBtn: {
-    marginTop: 16,
     alignSelf: 'flex-start',
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    marginTop: 10,
   },
   viewMoreText: {
     fontSize: 8,
-    fontWeight: '700',
-    letterSpacing: 1,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.1)',
+    fontWeight: '600',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
   },
-  soldOutLine: {
-    position: 'absolute',
-    width: '140%',
-    height: 1,
-    transform: [{ rotate: '45deg' }],
-  },
-  thumbRow: { 
-    width: '100%', 
+
+  curatedWrap: {
     paddingTop: 16,
-    paddingBottom: 0,
+    paddingBottom: 12,
   },
-  thumbScrollContent: {
+  curatedHeader: {
     paddingHorizontal: 20,
-    gap: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
   },
-  appleThumb: {
-    width: 88,
-    height: 88,
-    borderRadius: 28,
-    borderWidth: 1,
-    overflow: 'hidden',
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    elevation: 2,
-  },
-  appleThumbImage: {
-    width: '100%',
-    height: '100%',
-  },
-  thumbOverlay: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  thumbnailSection: {
-    marginTop: 12,
-    paddingBottom: 0,
-  },
-  tabBarScroll: {
-    paddingRight: 40,
-    gap: 12,
-  },
-  tabContentBox: {
-    borderRadius: 22,
-    marginTop: 12,
-    overflow: 'hidden',
-    borderWidth: 1,
-  },
-  contentInside: {
-    padding: 20,
-    gap: 12,
-  },
-  boxTitle: {
-    fontSize: 7.5,
+  curatedTitle: {
+    fontSize: 10,
     fontWeight: '700',
+    letterSpacing: 1.7,
     textTransform: 'uppercase',
-    letterSpacing: 2.5,
-    marginBottom: 2,
   },
-  viewMorePill: {
-    alignSelf: 'flex-start',
+  curatedList2: {
+    paddingLeft: 20,
+    paddingRight: 4,
+    gap: 14,
+  },
+  curatedCard: {
+    width: SCREEN_W * 0.85,
+  },
+  curatedImg: {
+    width: '100%',
+    height: SCREEN_H * 0.64,
+    overflow: 'hidden',
+    backgroundColor: '#000',
+  },
+  curatedMetaBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
     paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    backgroundColor: 'rgba(0,0,0,0.05)',
-    marginTop: 8,
-  },
-  viewMorePillText: {
-    fontSize: 8,
-    fontWeight: '700',
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-  },
-  experimentalSection: {
-    marginTop: 20,
-    marginBottom: 40,
-    paddingHorizontal: 24,
-  },
-  experimentalImageContainer: {
-    width: '100%',
-    height: 500,
-    borderRadius: 32,
+    paddingVertical: 10,
+    borderTopWidth: 0.5,
     overflow: 'hidden',
-    marginTop: 10,
   },
-  experimentalImage: {
-    width: '100%',
-    height: '100%',
-  },
-  backBtnCircle: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: '#58CCCD',
+  curatedQuickAdd: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 0.5,
+    borderColor: 'rgba(255,255,255,0.18)',
+    backgroundColor: 'rgba(255,255,255,0.04)',
+  },
+  curatedName: {
+    fontSize: 9,
+    fontWeight: '600',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+  curatedPrice: {
+    fontSize: 8,
+    fontWeight: '500',
+    marginTop: 3,
+  },
+
+  /* ── Recently Viewed ── */
+  recentSection: {
+    marginTop: 12,
+    marginBottom: 24,
+  },
+  recentGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    paddingHorizontal: 2,
+    gap: 2,
+  },
+  recentCard: {
+    width: '49.6%',
+    marginBottom: 2,
+  },
+
+  /* ── Size Guide Modal ── */
+  guideBackdrop: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+  guideCard: {
+    width: '100%',
+    maxHeight: '82%',
+    borderRadius: 24,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  guideHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(255,255,255,0.15)',
+  },
+  guideClose: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  guideImage: {
+    width: '100%',
+    height: 480,
+    backgroundColor: 'transparent',
+  },
+  guideWebView: {
+    width: '100%',
+    height: 480,
+    backgroundColor: 'transparent',
+  },
+  guideEmpty: {
+    paddingHorizontal: 16,
+    paddingVertical: 32,
+    alignItems: 'center',
+  },
+
+  /* ── Error State ── */
+  errorText: {
+    fontSize: 14,
+    marginBottom: 20,
+    fontWeight: '300',
+    letterSpacing: 2,
+  },
+  goBackBtn: {
+    paddingHorizontal: 32,
+    paddingVertical: 14,
+    borderRadius: 99,
+  },
+  goBackBtnText: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 4,
+  },
+
+  /* shared */
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  sectionLabel: {
+    fontSize: 7,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+    opacity: 0.4,
   },
 });

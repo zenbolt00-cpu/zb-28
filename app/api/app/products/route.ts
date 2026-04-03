@@ -1,10 +1,29 @@
 import { NextResponse } from 'next/server';
-import { fetchAllProducts, fetchCollectionByHandle, ShopifyProduct } from '@/lib/shopify-admin';
+import { fetchAllProducts, fetchCollectionByHandle, resolveShopifyGid, ShopifyProduct } from '@/lib/shopify-admin';
 
 export const dynamic = 'force-dynamic';
 
 // Transform Shopify Admin product to the flat shape the React Native app expects
-function flattenProduct(p: ShopifyProduct) {
+function normalizeMetaKey(value: string): string {
+  return value.toLowerCase().replace(/[\s_-]+/g, '');
+}
+
+function getMetafieldRaw(p: ShopifyProduct, keys: string[]): string | undefined {
+  if (!p.metafields?.length) return undefined;
+  const keySet = new Set(keys.map(normalizeMetaKey));
+  const metafield = p.metafields.find(
+    (m) => m.namespace === 'custom' && keySet.has(normalizeMetaKey(m.key))
+  );
+  return metafield?.value || undefined;
+}
+
+async function resolveMetafieldValue(value?: string): Promise<string | undefined> {
+  if (!value) return undefined;
+  if (!value.startsWith('gid://shopify/')) return value;
+  return (await resolveShopifyGid(value)) || undefined;
+}
+
+async function flattenProduct(p: ShopifyProduct) {
   const variants = (p.variants || []).map(v => ({
     id: `gid://shopify/ProductVariant/${v.id}`,
     title: v.title,
@@ -21,16 +40,29 @@ function flattenProduct(p: ShopifyProduct) {
   const isSoldOut = !variants.some(v => v.availableForSale);
 
   // Build media array from images
-  const allMedia = (p.images || []).map(img => ({
+  const allMedia: Array<{
+    mediaContentType: 'IMAGE' | 'VIDEO';
+    image?: { url: string; altText: null };
+    alt: null;
+    sources?: { url: string; mimeType: string }[];
+  }> = (p.images || []).map((img) => ({
     mediaContentType: 'IMAGE' as const,
     image: { url: img.src, altText: null },
     alt: null,
   }));
 
-  // Check metafields for video
-  const videoMetafield = p.metafields?.find(
-    m => m.namespace === 'custom' && m.key === 'product_video'
-  );
+  const [productVideo, sizeChart] = await Promise.all([
+    resolveMetafieldValue(getMetafieldRaw(p, ['product_video', 'product-video', 'product video'])),
+    resolveMetafieldValue(getMetafieldRaw(p, ['size_chart', 'size-chart', 'size chart', 'size_chart_image', 'size-chart-image', 'size chart image'])),
+  ]);
+
+  if (productVideo) {
+    allMedia.push({
+      mediaContentType: 'VIDEO',
+      alt: null,
+      sources: [{ url: productVideo, mimeType: 'video/mp4' }],
+    });
+  }
 
   return {
     id: `gid://shopify/Product/${p.id}`,
@@ -51,8 +83,8 @@ function flattenProduct(p: ShopifyProduct) {
     allMedia,
     details: getMetafieldText(p, 'details'),
     care: getMetafieldText(p, 'care'),
-    sizeChart: p.metafields?.find(m => m.namespace === 'custom' && m.key === 'size_chart')?.value,
-    productVideo: videoMetafield?.value || undefined,
+    sizeChart,
+    productVideo,
   };
 }
 
@@ -90,7 +122,7 @@ export async function GET(req: Request) {
       products = await fetchAllProducts(limit);
     }
 
-    const flat = products.map(flattenProduct);
+    const flat = await Promise.all(products.map(flattenProduct));
 
     return NextResponse.json({ products: flat }, {
       headers: {

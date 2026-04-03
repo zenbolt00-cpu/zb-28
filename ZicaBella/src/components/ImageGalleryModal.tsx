@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect } from 'react';
 import { 
   View, 
   Modal, 
@@ -11,9 +11,7 @@ import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-g
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
-  withTiming, 
   withSpring,
-  clamp
 } from 'react-native-reanimated';
 import { Image } from 'expo-image';
 import { BlurView } from 'expo-blur';
@@ -36,6 +34,16 @@ export default function ImageGalleryModal({ visible, media, initialIndex, onClos
   const translateY = useSharedValue(0);
   const savedTranslateX = useSharedValue(0);
   const savedTranslateY = useSharedValue(0);
+
+  useEffect(() => {
+    if (!visible) return;
+    scale.value = 1;
+    savedScale.value = 1;
+    translateX.value = 0;
+    translateY.value = 0;
+    savedTranslateX.value = 0;
+    savedTranslateY.value = 0;
+  }, [visible, initialIndex, savedScale, savedTranslateX, savedTranslateY, scale, translateX, translateY]);
 
   const pinchGesture = Gesture.Pinch()
     .onUpdate((event) => {

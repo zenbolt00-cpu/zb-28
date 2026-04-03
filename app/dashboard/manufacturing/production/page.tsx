@@ -23,6 +23,7 @@ type BatchRow = {
   currentStage: string;
   isSampleDone: boolean;
   isCuttingDone: boolean;
+  isStitchingDone: boolean;
   isPrintingDone: boolean;
   isEmbroideryDone: boolean;
   isWashingDone: boolean;
@@ -41,6 +42,8 @@ type ActionKey =
   | "RETURN_PRINTING"
   | "SEND_EMBROIDERY"
   | "RETURN_EMBROIDERY"
+  | "SEND_STITCHING"
+  | "RETURN_STITCHING"
   | "MARK_SAMPLE"
   | "QC_PASS"
   | "QC_REJECT";
@@ -69,7 +72,7 @@ function num(v: unknown): number {
 }
 
 function actionsForBatch(batch: BatchRow): { key: ActionKey; label: string }[] {
-  const { currentStage, isSampleDone, isCuttingDone, isPrintingDone, isEmbroideryDone, isWashingDone } = batch;
+  const { currentStage, isSampleDone, isCuttingDone, isStitchingDone, isPrintingDone, isEmbroideryDone, isWashingDone } = batch;
 
   // 1. If Sample is NOT done, and we haven't started cutting, show Sample options
   if (!isSampleDone && !isCuttingDone && currentStage === "READY_FOR_PRODUCTION") {
@@ -93,6 +96,17 @@ function actionsForBatch(batch: BatchRow): { key: ActionKey; label: string }[] {
 
     case "IN_PRODUCTION_CUTTING":
       return [
+        { key: "SEND_STITCHING", label: "Send to Stitching" },
+        { key: "SEND_PRINTING", label: "Send to Printing" },
+        { key: "SEND_EMBROIDERY", label: "Send to Embroidery" },
+        { key: "SEND_WASH", label: "Send to Wash" },
+        { key: "QC_PASS", label: "Final QC Pass" },
+        { key: "QC_REJECT", label: "Final QC Reject" },
+      ];
+
+    case "IN_PRODUCTION_STITCHING":
+      return [
+        { key: "RETURN_STITCHING", label: "Returned from Stitching" },
         { key: "SEND_PRINTING", label: "Send to Printing" },
         { key: "SEND_EMBROIDERY", label: "Send to Embroidery" },
         { key: "SEND_WASH", label: "Send to Wash" },
@@ -111,6 +125,7 @@ function actionsForBatch(batch: BatchRow): { key: ActionKey; label: string }[] {
 
     case "RETURNED_COMBINED":
       const actions: { key: ActionKey; label: string }[] = [];
+      if (!isStitchingDone) actions.push({ key: "SEND_STITCHING", label: "Send to Stitching" });
       if (!isPrintingDone) actions.push({ key: "SEND_PRINTING", label: "Send to Printing" });
       if (!isEmbroideryDone) actions.push({ key: "SEND_EMBROIDERY", label: "Send to Embroidery" });
       if (!isWashingDone) actions.push({ key: "SEND_WASH", label: "Send to Wash" });
@@ -303,12 +318,12 @@ export default function ProductionTrackerPage() {
     const e: Record<string, string> = {};
     const a = modal.action;
     if (
-      ["SEND_WASH", "SEND_PRINTING", "SEND_EMBROIDERY", "RETURN_WASH", "RETURN_PRINTING", "RETURN_EMBROIDERY", "MARK_SAMPLE"].includes(a) &&
+      ["SEND_WASH", "SEND_PRINTING", "SEND_EMBROIDERY", "SEND_STITCHING", "RETURN_WASH", "RETURN_PRINTING", "RETURN_EMBROIDERY", "RETURN_STITCHING", "MARK_SAMPLE"].includes(a) &&
       !act.quantity.trim()
     ) {
       e.quantity = "Required";
     }
-    if (["SEND_WASH", "SEND_PRINTING", "SEND_EMBROIDERY"].includes(a) && !act.pricePerUnit.trim()) {
+    if (["SEND_WASH", "SEND_PRINTING", "SEND_EMBROIDERY", "SEND_STITCHING"].includes(a) && !act.pricePerUnit.trim()) {
       e.pricePerUnit = "Required";
     }
     if (["RETURN_WASH"].includes(a) && !act.washTotalCost.trim()) {

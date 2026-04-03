@@ -18,10 +18,10 @@ import RingCarouselSection from '../components/RingCarouselSection';
 import { useProducts, useCollections, useCollectionByHandle } from '../hooks/useProducts';
 import { FlatProduct } from '../api/types';
 import MenuDrawer from '../components/MenuDrawer';
-import BookmarkDrawer from '../components/BookmarkDrawer';
 import SpotlightSection from '../components/SpotlightSection';
 import FlipbookSection from '../components/FlipbookSection';
 import CommunitySection from '../components/CommunitySection';
+import FooterLogo3D from '../components/FooterLogo3D';
 import { useAdminSettings } from '../hooks/useAdminFeatures';
 import { useUIStore } from '../store/uiStore';
 import { Typography } from '../components/Typography';
@@ -57,7 +57,6 @@ export default function HomeScreen() {
   const [selectedProduct, setSelectedProduct] = useState<FlatProduct | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
-  const [bookmarksVisible, setBookmarksVisible] = useState(false);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -106,7 +105,6 @@ export default function HomeScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <GlassHeader 
         onPressMenu={() => setMenuVisible(true)}
-        onPressBookmarks={() => setBookmarksVisible(true)}
       />
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -124,14 +122,6 @@ export default function HomeScreen() {
         {/* ═══ HERO VIDEO ═══ */}
         <View style={{ position: 'relative' }}>
           <HeroVideo source={heroVideoSrc} />
-          {showHeroText && (
-            <View style={[StyleSheet.absoluteFill, { justifyContent: 'flex-end', alignItems: 'center', paddingBottom: 100 }]} pointerEvents="none">
-              <Typography size={46} color="#fff" style={{ textAlign: 'center', textTransform: 'uppercase', textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: {width: 0, height: 2}, textShadowRadius: 8, fontFamily: 'Rocaston', lineHeight: 46 }}>{heroTitle}</Typography>
-              {heroSubtitle ? (
-                <Typography size={10} color="#fff" weight="400" style={{ textAlign: 'center', textTransform: 'uppercase', letterSpacing: 4, marginTop: 4, textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: {width: 0, height: 1}, textShadowRadius: 4 }}>{heroSubtitle}</Typography>
-              ) : null}
-            </View>
-          )}
         </View>
 
         {/* ═══ CONTENT BELOW HERO ═══ */}
@@ -154,13 +144,13 @@ export default function HomeScreen() {
           )}
           <View style={styles.sectionHeader}>
             <View style={styles.headerLeft}>
-              <Typography size={7} color={colors.textExtraLight} weight="300" style={styles.sectionTag}>{latestCurationSubtitle}</Typography>
+              <Typography size={6} color={colors.textExtraLight} weight="300" style={styles.sectionTag}>{latestCurationSubtitle}</Typography>
             </View>
             <View style={styles.headerCenter}>
-              <Typography size={8} color={colors.text} weight="600" style={styles.sectionTitle}>{latestCurationTitle}</Typography>
+              <Typography size={7} color={colors.text} weight="600" style={styles.sectionTitle}>{latestCurationTitle}</Typography>
             </View>
             <TouchableOpacity style={styles.headerRight} onPress={() => navigation.navigate('SearchTab')}>
-              <Typography size={6.5} color={colors.textExtraLight} weight="400">VIEW ALL</Typography>
+              <Typography size={6} color={colors.textExtraLight} weight="400">VIEW ALL</Typography>
             </TouchableOpacity>
           </View>
           
@@ -183,13 +173,13 @@ export default function HomeScreen() {
 
           <View style={styles.collectionsSection}>
             <View style={styles.archiveLabel}>
-              <Typography size={8} color={colors.textExtraLight} weight="300" style={styles.archiveLabelText}>— THE WARDROBE —</Typography>
+              <Typography size={7} color={colors.textExtraLight} weight="300" style={styles.archiveLabelText}>— THE WARDROBE —</Typography>
             </View>
 
             <CollectionCarousel collections={collections} />
 
             <View style={styles.archiveLabel}>
-              <Typography size={7} color={colors.textExtraLight} weight="300" style={styles.archiveSubtext}>SUSTAINABLE EVOLUTION</Typography>
+              <Typography size={6.5} color={colors.textExtraLight} weight="300" style={styles.archiveSubtext}>SUSTAINABLE EVOLUTION</Typography>
             </View>
           </View>
 
@@ -200,7 +190,6 @@ export default function HomeScreen() {
           <SpotlightSection 
             collectionHandle="dystra-summer26" 
             title="AUTHENTIC STREETWEAR" 
-            subtitle="Luxury Indian streetwear for modern men." 
           />
 
           {/* ═══ PRODUCT GRID 3 ═══ */}
@@ -212,28 +201,44 @@ export default function HomeScreen() {
           {/* ═══ PRODUCT GRID 4 ═══ */}
           {products.length > 16 && renderProductGrid(products.slice(16, 20))}
 
-          {/* ═══ FOOTER ═══ */}
-          <View style={[styles.footer, { borderTopColor: colors.borderLight }]}>
-            <Typography heading size={13} color={colors.textMuted} style={styles.footerBrand}>ZICA BELLA</Typography>
-            <Typography size={7.5} color={colors.textExtraLight} weight="300" style={styles.footerTag}>LUXURY INDIAN STREETWEAR</Typography>
+          {/* ═══ FOOTER (aligned with app.zicabella.com) ═══ */}
+          <View style={styles.footer}>
+            <FooterLogo3D />
+            <Typography heading size={14} color={colors.textMuted} style={styles.footerBrand}>
+              ZICA BELLA
+            </Typography>
+            <Typography size={8} color={colors.textExtraLight} weight="300" style={styles.footerEst}>
+              Est. 2024
+            </Typography>
 
             <View style={styles.policyLinks}>
               {[
-                { label: 'Privacy Policy', url: config.policies.privacy },
-                { label: 'Refund Policy', url: config.policies.refund },
-                { label: 'Shipping Policy', url: config.policies.shipping },
-                { label: 'Terms of Service', url: config.policies.terms },
-              ].map((policy) => (
-                <TouchableOpacity
-                  key={policy.label}
-                  onPress={() => navigation.navigate('Policy', { url: policy.url, title: policy.label })}
-                >
-                  <Typography size={8} color={colors.textMuted} weight="300" style={styles.policyLink}>{policy.label}</Typography>
-                </TouchableOpacity>
+                { label: 'Contact', url: config.contactPage },
+                { label: 'Privacy policy', url: config.policies.privacy },
+                { label: 'Refund policy', url: config.policies.refund },
+                { label: 'Shipping', url: config.policies.shipping },
+                { label: 'Terms of service', url: config.policies.terms },
+              ].map((policy, index) => (
+                <React.Fragment key={policy.label}>
+                  {index > 0 ? (
+                    <Typography size={8} color={colors.textExtraLight} weight="300" style={styles.footerDot}>
+                      ·
+                    </Typography>
+                  ) : null}
+                  <TouchableOpacity
+                    onPress={() => navigation.navigate('Policy', { url: policy.url, title: policy.label })}
+                  >
+                    <Typography size={8} color={colors.textMuted} weight="300" style={styles.policyLink}>
+                      {policy.label}
+                    </Typography>
+                  </TouchableOpacity>
+                </React.Fragment>
               ))}
             </View>
 
-            <Typography size={7} color={colors.textExtraLight} weight="300" style={styles.copyright}>© 2024 Zica Bella. All rights reserved.</Typography>
+            <Typography size={7} color={colors.textExtraLight} weight="300" style={styles.copyright}>
+              © {new Date().getFullYear()} ZICA BELLA · LUXURY STREETWEAR
+            </Typography>
           </View>
         </View>
 
@@ -246,11 +251,6 @@ export default function HomeScreen() {
         visible={menuVisible} 
         onClose={() => setMenuVisible(false)} 
       />
-      <BookmarkDrawer 
-        visible={bookmarksVisible} 
-        onClose={() => setBookmarksVisible(false)} 
-      />
-
       {/* Quick Add Modal */}
       <QuickAddModal 
         visible={modalVisible}
@@ -267,10 +267,10 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 0,
-    paddingTop: 32,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    marginTop: -20,
+    paddingTop: 28,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    marginTop: -14,
     width: '100%',
   },
   sectionHeader: {
@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
     letterSpacing: 3,
   },
   sectionTitle: {
-    letterSpacing: 2.5,
+    letterSpacing: 3,
     textTransform: 'uppercase',
   },
   viewAllButton: {
@@ -366,40 +366,52 @@ const styles = StyleSheet.create({
   },
   footer: {
     alignItems: 'center',
-    paddingVertical: 40,
-    paddingHorizontal: 16,
-    marginTop: 40,
-    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingVertical: 48,
+    paddingHorizontal: 20,
+    marginTop: 32,
   },
   footerBrand: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '300',
-    letterSpacing: 5,
-    marginBottom: 6,
+    letterSpacing: 6,
+    textTransform: 'uppercase',
+    marginBottom: 8,
   },
-  footerTag: {
+  footerEst: {
     fontSize: 8,
     fontWeight: '300',
     letterSpacing: 3,
-    marginBottom: 32,
+    marginBottom: 28,
+    opacity: 0.75,
   },
   policyLinks: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
-    gap: 16,
-    marginBottom: 24,
+    alignItems: 'center',
+    rowGap: 10,
+    columnGap: 4,
+    marginBottom: 28,
+    paddingHorizontal: 8,
+  },
+  footerDot: {
+    fontSize: 8,
+    marginHorizontal: 4,
+    opacity: 0.45,
   },
   policyLink: {
     fontSize: 8,
     fontWeight: '300',
-    textTransform: 'uppercase',
-    letterSpacing: 1.5,
+    letterSpacing: 0.8,
+    textTransform: 'none',
   },
   copyright: {
     fontSize: 7,
     fontWeight: '300',
-    letterSpacing: 1,
+    letterSpacing: 1.6,
+    textTransform: 'uppercase',
+    opacity: 0.55,
+    textAlign: 'center',
   },
   loadingContainer: {
     paddingVertical: 100,

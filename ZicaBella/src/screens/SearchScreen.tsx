@@ -123,7 +123,10 @@ export default function SearchScreen() {
 
       {query.length > 0 && !loading && results.length === 0 && (
         <View style={styles.emptyState}>
-          <View style={styles.emptyIcon}>
+          <View style={[styles.emptyIcon, {
+            backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
+            borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+          }]}>
             <Ionicons name="search-outline" size={20} color={colors.textExtraLight} />
           </View>
           <Typography heading weight="300" size={11} color={colors.textMuted} style={styles.emptyTitle}>No results for "{query}"</Typography>
@@ -141,7 +144,10 @@ export default function SearchScreen() {
               {config.trending.map((term) => (
                 <TouchableOpacity
                   key={term}
-                  style={styles.trendingPill}
+                  style={[styles.trendingPill, { 
+                    backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
+                    borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'
+                  }]}
                   onPress={() => handleSearch(term)}
                   activeOpacity={0.7}
                 >
@@ -172,7 +178,7 @@ export default function SearchScreen() {
               {collections.slice(0, 10).map((c) => (
                 <TouchableOpacity
                   key={c.id}
-                  style={styles.collectionRow}
+                  style={[styles.collectionRow, { borderBottomColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }]}
                   onPress={() => navigation.navigate('Collection', { handle: c.handle })}
                   activeOpacity={0.7}
                 >
@@ -222,7 +228,6 @@ const styles = StyleSheet.create({
     fontSize: 8,
     textTransform: 'uppercase',
     letterSpacing: 2,
-    color: 'rgba(5,5,6,0.4)',
   },
   resultsHeader: {
     flexDirection: 'row',
@@ -234,13 +239,11 @@ const styles = StyleSheet.create({
   queryLabel: {
     fontSize: 10,
     fontWeight: '300',
-    color: 'rgba(5,5,6,0.8)',
     textTransform: 'uppercase',
     letterSpacing: 2,
   },
   countLabel: {
     fontSize: 8,
-    color: 'rgba(5,5,6,0.4)',
     textTransform: 'uppercase',
     letterSpacing: 2,
     fontWeight: '300',
@@ -270,21 +273,17 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: 32,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(0,0,0,0.1)',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.02)',
   },
   emptyTitle: {
     fontSize: 11,
     textTransform: 'uppercase',
     letterSpacing: 3,
-    color: 'rgba(5,5,6,0.5)',
     fontWeight: '300',
   },
   emptySubtitle: {
     fontSize: 9,
-    color: 'rgba(5,5,6,0.3)',
     textTransform: 'uppercase',
     letterSpacing: 2,
     fontWeight: '300',
@@ -297,7 +296,6 @@ const styles = StyleSheet.create({
     fontWeight: '300',
     letterSpacing: 4,
     textTransform: 'uppercase',
-    color: 'rgba(5,5,6,0.4)',
     marginBottom: 16,
     paddingHorizontal: 12,
   },
@@ -311,15 +309,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 999,
-    backgroundColor: 'rgba(0,0,0,0.02)',
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(0,0,0,0.05)',
   },
   trendingText: {
     fontSize: 9,
     textTransform: 'uppercase',
     letterSpacing: 2,
-    color: 'rgba(5,5,6,0.6)',
     fontWeight: '300',
   },
   collectionRow: {
@@ -328,7 +323,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(0,0,0,0.05)',
     paddingHorizontal: 20,
   },
   collectionTitle: {
@@ -336,6 +330,5 @@ const styles = StyleSheet.create({
     fontWeight: '300',
     textTransform: 'uppercase',
     letterSpacing: 2,
-    color: 'rgba(5,5,6,0.7)',
   },
 });

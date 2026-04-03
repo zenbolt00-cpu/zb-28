@@ -159,7 +159,7 @@ export default function VendorsPage() {
           <button
             type="button"
             onClick={loadVendors}
-            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl border border-foreground/10 text-xs font-semibold hover:bg-foreground/5"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl border border-foreground/10 text-xs font-semibold hover:bg-foreground/5"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
             Refresh
@@ -171,7 +171,7 @@ export default function VendorsPage() {
               setForm({ name: "", address: "", mobile: "", category: "Fabric", customCategory: "" });
               setModalOpen(true);
             }}
-            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl bg-foreground text-background text-xs font-bold shadow-lg"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl bg-foreground text-background text-xs font-bold shadow-lg"
           >
             <Plus className="w-4 h-4" />
             Add vendor
@@ -180,22 +180,22 @@ export default function VendorsPage() {
       </header>
 
       {/* Filters */}
-      <section className="flex flex-col lg:flex-row gap-4 items-center">
-        <div className="relative w-full max-w-md">
+      <section className="flex flex-col gap-4 lg:flex-row lg:items-center">
+        <div className="relative w-full lg:max-w-md">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/30" />
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search vendors by name or category…"
+            placeholder="Search vendors..."
             className="w-full rounded-2xl border border-foreground/10 bg-foreground/[0.04] pl-11 pr-4 py-3 text-sm focus:ring-2 focus:ring-foreground/15 outline-none transition-shadow"
           />
         </div>
-        <div className="flex gap-2 overflow-x-auto pb-1 w-full lg:w-auto scrollbar-none px-1">
+        <div className="flex gap-2 overflow-x-auto pb-2 w-full lg:w-auto scrollbar-thin px-1 -mx-1">
           <button
             onClick={() => setFilterCategory(null)}
-            className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${
+            className={`px-4 py-2 rounded-xl text-[11px] font-bold whitespace-nowrap transition-all border ${
               !filterCategory 
-                ? "bg-foreground text-background border-foreground" 
+                ? "bg-foreground text-background border-foreground shadow-md" 
                 : "bg-foreground/5 text-foreground/60 border-transparent hover:border-foreground/20"
             }`}
           >
@@ -205,9 +205,9 @@ export default function VendorsPage() {
             <button
               key={cat}
               onClick={() => setFilterCategory(cat)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${
+              className={`px-4 py-2 rounded-xl text-[11px] font-bold whitespace-nowrap transition-all border ${
                 filterCategory === cat 
-                  ? "bg-foreground text-background border-foreground" 
+                  ? "bg-foreground text-background border-foreground shadow-md" 
                   : "bg-foreground/5 text-foreground/60 border-transparent hover:border-foreground/20"
               }`}
             >

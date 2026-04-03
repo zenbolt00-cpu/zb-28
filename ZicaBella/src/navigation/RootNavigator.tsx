@@ -15,6 +15,7 @@ import CollectionScreen from '../screens/CollectionScreen';
 import CheckoutScreen from '../screens/CheckoutScreen';
 import OrderConfirmationScreen from '../screens/OrderConfirmationScreen';
 import OrderHistoryScreen from '../screens/OrderHistoryScreen';
+import OrderDetailScreen from '../screens/OrderDetailScreen';
 import PolicyScreen from '../screens/PolicyScreen';
 import CommunityScreen from '../screens/CommunityScreen';
 import StoryScreen from '../screens/StoryScreen';
@@ -29,7 +30,8 @@ export type RootStackParamList = {
   Collection: { handle: string; title?: string };
   Checkout: undefined;
   OrderConfirmation: { orderId: string };
-  OrderHistory: undefined;
+  OrderHistory: { openReturnFor?: string } | undefined;
+  OrderDetail: { orderForDetail: any };
   Policy: { url: string; title?: string };
   Community: undefined;
   Story: undefined;
@@ -39,7 +41,7 @@ export type RootStackParamList = {
   Wishlist: undefined;
 };
 
-const navigationRef = createNavigationContainerRef<any>();
+export const navigationRef = createNavigationContainerRef<any>();
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 // Deep linking config
@@ -62,6 +64,7 @@ const linking = {
       Community: 'community',
       Checkout: 'checkout',
       OrderConfirmation: 'order-confirmation',
+      OrderDetail: 'order-detail',
       Story: 'story',
       FAQ: 'faq',
       Blogs: 'blogs',
@@ -150,6 +153,7 @@ export const RootNavigator = () => {
           <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
           <Stack.Screen name="Collection" component={CollectionScreen} />
           <Stack.Screen name="OrderHistory" component={OrderHistoryScreen} />
+          <Stack.Screen name="OrderDetail" component={OrderDetailScreen} />
           <Stack.Screen name="Policy" component={PolicyScreen} />
           <Stack.Screen name="Community" component={CommunityScreen} />
           <Stack.Screen name="Story" component={StoryScreen} />

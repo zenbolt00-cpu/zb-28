@@ -1,6 +1,7 @@
 export const MFG_STAGE_KEYS = [
   "READY_FOR_PRODUCTION",
   "IN_PRODUCTION_CUTTING",
+  "IN_PRODUCTION_STITCHING",
   "SENT_PRINTING",
   "SENT_EMBROIDERY",
   "SENT_WASH",
@@ -15,6 +16,7 @@ export type MfgStageKey = (typeof MFG_STAGE_KEYS)[number];
 export const MFG_STAGE_LABEL: Record<string, string> = {
   READY_FOR_PRODUCTION: "Ready for Production",
   IN_PRODUCTION_CUTTING: "In Production / Cutting",
+  IN_PRODUCTION_STITCHING: "In Production / Stitching",
   SENT_PRINTING: "Sent for Printing",
   SENT_EMBROIDERY: "Sent for Embroidery",
   SENT_WASH: "Sent for Wash",
@@ -28,6 +30,7 @@ export const MFG_STAGE_LABEL: Record<string, string> = {
 export const MFG_STAGE_EMOJI: Record<string, string> = {
   READY_FOR_PRODUCTION: "📦",
   IN_PRODUCTION_CUTTING: "✂️",
+  IN_PRODUCTION_STITCHING: "👔",
   SENT_PRINTING: "🎨",
   SENT_EMBROIDERY: "🪡",
   SENT_WASH: "🧺",
@@ -40,6 +43,7 @@ export const MFG_STAGE_EMOJI: Record<string, string> = {
 export const MFG_STAGE_BADGE_CLASS: Record<string, string> = {
   READY_FOR_PRODUCTION: "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/20",
   IN_PRODUCTION_CUTTING: "bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/20",
+  IN_PRODUCTION_STITCHING: "bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-500/20",
   SENT_PRINTING: "bg-violet-500/15 text-violet-700 dark:text-violet-300 border-violet-500/20",
   SENT_EMBROIDERY: "bg-fuchsia-500/15 text-fuchsia-700 dark:text-fuchsia-300 border-fuchsia-500/20",
   SENT_WASH: "bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border-cyan-500/20",

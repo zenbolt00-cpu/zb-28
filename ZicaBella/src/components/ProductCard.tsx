@@ -41,20 +41,32 @@ export default function ProductCard({ product, onQuickAdd, style }: Props) {
   };
 
   return (
-    <View style={[
-      styles.container, 
-      product.isSoldOut && styles.soldOut, 
-      style, 
-      { 
-        borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)', 
-        backgroundColor: 'transparent'
-      }
-    ]}>
-      <BlurView 
-        intensity={95} 
-        tint={isDark ? 'dark' : 'light'} 
-        style={StyleSheet.absoluteFill} 
-      />
+    <View
+      style={[
+        styles.container,
+        product.isSoldOut && styles.soldOut,
+        style,
+        isDark
+          ? {
+              backgroundColor: colors.card,
+              borderColor: colors.border,
+              borderWidth: StyleSheet.hairlineWidth,
+            }
+          : {
+              backgroundColor: '#FFFFFF',
+              borderWidth: 0,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 6 },
+              shadowOpacity: 0.06,
+              shadowRadius: 8,
+              elevation: 2,
+            },
+      ]}
+    >
+      {/* Dark mode: true black-glass. Light mode: clean white card. */}
+      {isDark ? (
+        <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
+      ) : null}
       
       {/* Badges */}
       <View style={styles.badgeContainer}>
@@ -80,16 +92,34 @@ export default function ProductCard({ product, onQuickAdd, style }: Props) {
           contentFit="cover"
           transition={300}
         />
+        
+        {/* Floating Quick Add Button Overlay */}
+        {!product.isSoldOut && onQuickAdd && (
+          <TouchableOpacity
+            onPress={handleQuickAdd}
+            style={styles.floatingAddButton}
+            activeOpacity={0.7}
+            disabled={isLoading}
+          >
+            <BlurView intensity={isDark ? 50 : 80} tint={isDark ? 'dark' : 'light'} style={styles.floatingAddBlur}>
+              {isLoading ? (
+                <ActivityIndicator size="small" color={colors.text} />
+              ) : (
+                <Ionicons name="add" size={16} color={colors.text} />
+              )}
+            </BlurView>
+          </TouchableOpacity>
+        )}
       </TouchableOpacity>
 
       {/* Info row */}
       <View style={styles.infoRow}>
         <View style={styles.textContainer}>
-          <Typography size={5.5} weight="400" color={colors.text} numberOfLines={1} style={{ letterSpacing: 1, textTransform: 'uppercase' }}>
+          <Typography size={5.5} weight="500" color={colors.text} numberOfLines={1} style={{ letterSpacing: 1.5, textTransform: 'uppercase' }}>
             {product.title}
           </Typography>
           <View style={styles.priceRow}>
-            <Typography size={7} weight="300" color={colors.textSecondary} style={product.isOnSale ? { color: colors.sale } : undefined}>
+            <Typography size={7} weight="500" color={colors.textSecondary} style={product.isOnSale ? { color: colors.sale } : undefined}>
               {formatPrice(product.price)}
             </Typography>
             {product.isOnSale && product.compareAtPrice && (
@@ -99,20 +129,6 @@ export default function ProductCard({ product, onQuickAdd, style }: Props) {
             )}
           </View>
         </View>
-        {!product.isSoldOut && onQuickAdd && (
-          <TouchableOpacity
-            onPress={handleQuickAdd}
-            style={[styles.addButton, { borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}
-            activeOpacity={0.6}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <ActivityIndicator size="small" color={colors.text} />
-            ) : (
-              <Ionicons name="add-outline" size={10} color={colors.textLight} />
-            )}
-          </TouchableOpacity>
-        )}
       </View>
     </View>
   );
@@ -122,7 +138,6 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
     borderRadius: 20,
-    borderWidth: StyleSheet.hairlineWidth,
     overflow: 'hidden',
   },
   soldOut: {
@@ -199,11 +214,22 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     textDecorationLine: 'line-through',
   },
-  addButton: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: StyleSheet.hairlineWidth,
+  floatingAddButton: {
+    position: 'absolute',
+    bottom: 8,
+    right: 8,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  floatingAddBlur: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },

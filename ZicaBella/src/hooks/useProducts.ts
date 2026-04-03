@@ -98,6 +98,24 @@ function normalizeProduct(product: any): FlatProduct | null {
         alt: null,
       }));
 
+  const normalizedProductVideo =
+    typeof product.productVideo === 'string'
+      ? product.productVideo
+      : (product.productVideo as any)?.url || undefined;
+
+  const hasVideoMedia = normalizedMedia.some(
+    (media: any) =>
+      media?.mediaContentType === 'VIDEO'
+      || media?.mediaContentType === 'EXTERNAL_VIDEO'
+  );
+  if (normalizedProductVideo && !hasVideoMedia) {
+    normalizedMedia.push({
+      mediaContentType: 'VIDEO',
+      alt: null,
+      sources: [{ url: normalizedProductVideo, mimeType: 'video/mp4' }],
+    } as any);
+  }
+
   return {
     id: String(product.id || ''),
     title: String(product.title || ''),
@@ -119,7 +137,7 @@ function normalizeProduct(product: any): FlatProduct | null {
       typeof product.isSoldOut === 'boolean'
         ? product.isSoldOut
         : variants.length > 0
-          ? !variants.some((variant) => variant.availableForSale)
+          ? !variants.some((variant: any) => variant.availableForSale)
           : !Boolean(product.availableForSale ?? true),
     isOnSale:
       typeof product.isOnSale === 'boolean'
@@ -130,7 +148,7 @@ function normalizeProduct(product: any): FlatProduct | null {
     details: product.details,
     care: product.care,
     sizeChart: product.sizeChart,
-    productVideo: product.productVideo,
+    productVideo: normalizedProductVideo,
   };
 }
 
@@ -174,7 +192,7 @@ function extractProducts(payload: any): FlatProduct[] {
 
   return rawProducts
     .map(normalizeProduct)
-    .filter((product): product is FlatProduct => Boolean(product?.id));
+    .filter((product: FlatProduct | null): product is FlatProduct => Boolean(product?.id));
 }
 
 function extractProduct(payload: any): FlatProduct | null {
@@ -201,7 +219,7 @@ function extractCollections(payload: any): FlatCollection[] {
 
   return rawCollections
     .map(normalizeCollection)
-    .filter((collection): collection is FlatCollection => Boolean(collection?.id));
+    .filter((collection: FlatCollection | null): collection is FlatCollection => Boolean(collection?.id));
 }
 
 export function useProducts(count = 24) {

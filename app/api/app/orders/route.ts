@@ -1,62 +1,158 @@
 import { NextResponse } from 'next/server';
-import { fetchOrdersByCustomerId, createOrder, ShopifyOrder } from '@/lib/shopify-admin';
+import prisma from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
+
+const corsHeaders = { 'Access-Control-Allow-Origin': '*' };
 
 export async function GET(req: Request) {
   try {
     const url = new URL(req.url);
-    const customerId = url.searchParams.get('customerId');
+    const customerId = url.searchParams.get('customerId')?.trim();
+    const phone = url.searchParams.get('phone')?.trim();
+    const email = url.searchParams.get('email')?.trim();
+    const limitRaw = url.searchParams.get('limit');
+    const offsetRaw = url.searchParams.get('offset');
+    const limit = limitRaw ? Math.max(1, Math.min(50, parseInt(limitRaw, 10) || 10)) : null;
+    const offset = offsetRaw ? Math.max(0, parseInt(offsetRaw, 10) || 0) : 0;
 
-    if (!customerId) {
+    if (!customerId && !phone && !email) {
       return NextResponse.json(
-        { orders: [], error: 'customerId parameter is required' },
-        { status: 400, headers: { 'Access-Control-Allow-Origin': '*' } }
+        { orders: [], error: 'customerId, phone or email query parameter required' },
+        { status: 400, headers: corsHeaders }
       );
     }
 
-    const orders = await fetchOrdersByCustomerId(customerId);
+    const whereClause: any = { OR: [] };
+    if (customerId) whereClause.OR.push({ id: customerId });
+    if (phone) whereClause.OR.push({ phone });
+    if (email) whereClause.OR.push({ email });
 
-    // Transform to a simpler format for the app
-    const flatOrders = orders.map((o: ShopifyOrder) => ({
-      id: String(o.id),
-      name: o.name,
-      orderNumber: o.order_number,
-      email: o.email,
-      createdAt: o.created_at,
-      totalPrice: o.total_price,
-      subtotalPrice: o.subtotal_price,
-      currency: o.currency,
-      financialStatus: o.financial_status,
-      fulfillmentStatus: o.fulfillment_status,
-      lineItems: (o.line_items || []).map(li => ({
-        id: String(li.id),
-        title: li.title,
-        quantity: li.quantity,
-        price: li.price,
-        sku: li.sku,
-        variantTitle: li.variant_title,
-      })),
-      shippingAddress: o.shipping_address ? {
-        name: `${o.shipping_address.first_name} ${o.shipping_address.last_name}`,
-        address1: o.shipping_address.address1,
-        city: o.shipping_address.city,
-        province: o.shipping_address.province,
-        zip: o.shipping_address.zip,
-        country: o.shipping_address.country,
-      } : null,
-      note: o.note,
-      tags: o.tags,
-    }));
+    if (whereClause.OR.length === 0) {
+      return NextResponse.json({ orders: [] }, { headers: corsHeaders });
+    }
 
-    return NextResponse.json({ orders: flatOrders }, {
-      headers: { 'Access-Control-Allow-Origin': '*' },
+    const customers = await prisma.customer.findMany({
+      where: whereClause,
+      select: { id: true },
     });
+
+    if (customers.length === 0) {
+      return NextResponse.json({ orders: [] }, { headers: corsHeaders });
+    }
+
+    const customerIds = customers.map((c: { id: string }) => c.id);
+
+    const orders = await prisma.order.findMany({
+      where: { customerId: { in: customerIds } },
+      include: {
+        items: {
+          include: {
+            product: { select: { id: true, shopifyProductId: true, title: true } },
+          },
+        },
+        shipments: true,
+        returns: true,
+        exchanges: true,
+        payments: true,
+      },
+      orderBy: { createdAt: 'desc' },
+      ...(limit ? { skip: offset, take: limit } : {}),
+    });
+
+    const formatted = orders.map((o: any) => {
+      const latestShipment = o.shipments?.sort(
+        (a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )[0];
+
+      let parsedShippingAddress = null;
+      if (o.shippingAddress) {
+        try {
+          parsedShippingAddress = JSON.parse(o.shippingAddress);
+        } catch {
+          parsedShippingAddress = { raw: o.shippingAddress };
+        }
+      }
+
+      return {
+        id: o.id,
+        orderNumber: o.shopifyOrderId,
+        createdAt: o.createdAt,
+        updatedAt: o.updatedAt,
+        status: o.status,
+        paymentStatus: o.paymentStatus,
+        fulfillmentStatus: o.fulfillmentStatus,
+        deliveryStatus: o.deliveryStatus,
+        trackingNumber: latestShipment?.trackingNumber || null,
+        trackingUrl: latestShipment?.trackingNumber
+          ? `https://www.delhivery.com/track/package/${latestShipment.trackingNumber}`
+          : null,
+        courier: latestShipment?.courier || null,
+        shipmentCreatedAt: latestShipment?.createdAt || null,
+        totalPrice: o.totalPrice,
+        subtotalPrice: o.subtotalPrice,
+        currency: o.currency,
+        note: o.note,
+        paymentMethod: o.payments?.[0]?.gateway || null,
+        shippingAddress: parsedShippingAddress,
+        items: o.items.map((item: any) => ({
+          id: item.id,
+          lineItemId: item.shopifyLineItemId,
+          title: item.title,
+          quantity: item.quantity,
+          price: item.price,
+          sku: item.sku,
+          productId: item.productId,
+          image: item.product?.shopifyProductId
+            ? null // app can resolve images from Shopify product ID if needed
+            : null,
+        })),
+        returns: (o.returns || []).map((r: any) => ({
+          id: r.id,
+          productId: r.productId,
+          reason: r.reason,
+          status: r.status,
+          requestedAt: r.requestedAt,
+        })),
+        exchanges: (o.exchanges || []).map((e: any) => ({
+          id: e.id,
+          originalProductId: e.originalProductId,
+          newProductId: e.newProductId,
+          status: e.status,
+          priceDifference: e.priceDifference,
+          createdAt: e.createdAt,
+        })),
+        timeline: {
+          placedAt: o.createdAt,
+          confirmedAt: o.paymentStatus === 'paid' ? o.updatedAt : null,
+          packedAt:
+            (o.fulfillmentStatus && String(o.fulfillmentStatus).toLowerCase() !== 'unfulfilled')
+              ? o.updatedAt
+              : null,
+          shippedAt: latestShipment?.createdAt || (o.fulfillmentStatus ? o.updatedAt : null),
+          outForDeliveryAt:
+            String(o.deliveryStatus || '').toLowerCase() === 'out_for_delivery' ? o.updatedAt : null,
+          deliveredAt: String(o.deliveryStatus || '').toLowerCase() === 'delivered' ? o.updatedAt : null,
+        },
+      };
+    });
+
+    // Optional pagination metadata (kept non-breaking: existing callers can ignore).
+    let hasMore: boolean | undefined = undefined;
+    if (limit) {
+      const total = await prisma.order.count({
+        where: { customerId: { in: customerIds } },
+      });
+      hasMore = offset + formatted.length < total;
+      return NextResponse.json({ orders: formatted, page: { limit, offset, total, hasMore } }, { headers: corsHeaders });
+    }
+
+    return NextResponse.json({ orders: formatted }, { headers: corsHeaders });
   } catch (error: any) {
     console.error('[App API] Orders error:', error.message);
     return NextResponse.json(
       { orders: [], error: error.message },
-      { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } }
+      { status: 500, headers: corsHeaders }
     );
   }
 }
@@ -64,25 +160,24 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
+    const { lineItems, customer, shippingAddress, billingAddress, financialStatus, tags, note } = body;
 
-    const order = await createOrder({
-      line_items: body.lineItems || body.line_items || [],
-      customer: body.customer,
-      shipping_address: body.shippingAddress || body.shipping_address,
-      billing_address: body.billingAddress || body.billing_address,
-      financial_status: body.financialStatus || 'pending',
-      tags: body.tags || 'mobile-app',
-      note: body.note || '',
-    });
+    if (!lineItems?.length || !customer) {
+      return NextResponse.json(
+        { success: false, error: 'lineItems and customer are required' },
+        { status: 400, headers: corsHeaders }
+      );
+    }
 
-    return NextResponse.json({ success: true, order: { id: String(order.id), name: order.name } }, {
-      headers: { 'Access-Control-Allow-Origin': '*' },
-    });
+    return NextResponse.json(
+      { success: false, error: 'Direct order creation via this endpoint is disabled. Use checkout flow.' },
+      { status: 403, headers: corsHeaders }
+    );
   } catch (error: any) {
     console.error('[App API] Create order error:', error.message);
     return NextResponse.json(
       { success: false, error: error.message },
-      { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } }
+      { status: 500, headers: corsHeaders }
     );
   }
 }

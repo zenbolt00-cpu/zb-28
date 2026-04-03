@@ -40,8 +40,9 @@ export default function DashboardLoginPage() {
 
       if (res.ok && data.success) {
         clearTimeout(timeout);
-        // Use window.location for a hard redirect to ensure cookies are fresh
-        window.location.href = from;
+        // Smoother SPA redirect
+        router.push(from);
+        router.refresh(); // Ensure the layout/middleware picks up the new cookie
       } else {
         clearTimeout(timeout);
         setError(data.error || 'Invalid credentials. Please try again.');

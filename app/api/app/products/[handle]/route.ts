@@ -1,13 +1,32 @@
 import { NextResponse } from 'next/server';
-import { fetchProductByHandle, ShopifyProduct } from '@/lib/shopify-admin';
+import { fetchProductByHandle, resolveShopifyGid, ShopifyProduct } from '@/lib/shopify-admin';
 
 export const dynamic = 'force-dynamic';
 
+function normalizeMetaKey(value: string): string {
+  return value.toLowerCase().replace(/[\s_-]+/g, '');
+}
+
+function getMetafieldRaw(p: ShopifyProduct, keys: string[]): string | undefined {
+  if (!p.metafields?.length) return undefined;
+  const keySet = new Set(keys.map(normalizeMetaKey));
+  const metafield = p.metafields.find(
+    (m) => m.namespace === 'custom' && keySet.has(normalizeMetaKey(m.key))
+  );
+  return metafield?.value || undefined;
+}
+
+async function resolveMetafieldValue(value?: string): Promise<string | undefined> {
+  if (!value) return undefined;
+  if (!value.startsWith('gid://shopify/')) return value;
+  return (await resolveShopifyGid(value)) || undefined;
+}
+
 function getMetafieldText(p: ShopifyProduct, key: string): string | undefined {
-  const mf = p.metafields?.find(m => m.namespace === 'custom' && m.key === key);
-  if (!mf?.value) return undefined;
+  const rawValue = getMetafieldRaw(p, [key]);
+  if (!rawValue) return undefined;
   try {
-    const data = JSON.parse(mf.value);
+    const data = JSON.parse(rawValue);
     let text = '';
     const extract = (node: any) => {
       if (node.type === 'text') text += node.value;
@@ -18,11 +37,11 @@ function getMetafieldText(p: ShopifyProduct, key: string): string | undefined {
     extract(data);
     return text.trim();
   } catch {
-    return mf.value;
+    return rawValue;
   }
 }
 
-function flattenProduct(p: ShopifyProduct) {
+async function flattenProduct(p: ShopifyProduct) {
   const variants = (p.variants || []).map(v => ({
     id: `gid://shopify/ProductVariant/${v.id}`,
     title: v.title,
@@ -38,11 +57,29 @@ function flattenProduct(p: ShopifyProduct) {
   const isOnSale = compareAtPrice ? parseFloat(compareAtPrice) > parseFloat(price) : false;
   const isSoldOut = !variants.some(v => v.availableForSale);
 
-  const allMedia = (p.images || []).map(img => ({
+  const allMedia: Array<{
+    mediaContentType: 'IMAGE' | 'VIDEO';
+    image?: { url: string; altText: null };
+    alt: null;
+    sources?: { url: string; mimeType: string }[];
+  }> = (p.images || []).map((img) => ({
     mediaContentType: 'IMAGE' as const,
     image: { url: img.src, altText: null },
     alt: null,
   }));
+
+  const [productVideo, sizeChart] = await Promise.all([
+    resolveMetafieldValue(getMetafieldRaw(p, ['product_video', 'product-video', 'product video'])),
+    resolveMetafieldValue(getMetafieldRaw(p, ['size_chart', 'size-chart', 'size chart', 'size_chart_image', 'size-chart-image', 'size chart image'])),
+  ]);
+
+  if (productVideo) {
+    allMedia.push({
+      mediaContentType: 'VIDEO',
+      alt: null,
+      sources: [{ url: productVideo, mimeType: 'video/mp4' }],
+    });
+  }
 
   return {
     id: `gid://shopify/Product/${p.id}`,
@@ -62,8 +99,8 @@ function flattenProduct(p: ShopifyProduct) {
     allMedia,
     details: getMetafieldText(p, 'details'),
     care: getMetafieldText(p, 'care'),
-    sizeChart: p.metafields?.find(m => m.namespace === 'custom' && m.key === 'size_chart')?.value,
-    productVideo: p.metafields?.find(m => m.namespace === 'custom' && m.key === 'product_video')?.value || undefined,
+    sizeChart,
+    productVideo,
   };
 }
 
@@ -81,7 +118,7 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({ product: flattenProduct(product) }, {
+    return NextResponse.json({ product: await flattenProduct(product) }, {
       headers: {
         'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
         'Access-Control-Allow-Origin': '*',

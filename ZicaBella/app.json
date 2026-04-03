@@ -24,7 +24,9 @@
         "NSFaceIDUsageDescription": "Verify your identity to access your profile",
         "NSCameraUsageDescription": "Allow camera access to update your profile photo",
         "NSPhotoLibraryUsageDescription": "Allow photo library access to update your profile photo",
-        "UIBackgroundModes": ["remote-notification"]
+        "UIBackgroundModes": [
+          "remote-notification"
+        ]
       }
     },
     "plugins": [
@@ -34,11 +36,22 @@
       "expo-local-authentication",
       [
         "expo-notifications",
-        { "icon": "./assets/icon.png", "color": "#000000" }
+        {
+          "icon": "./assets/icon.png",
+          "color": "#000000"
+        }
       ],
       "@react-native-firebase/app",
       "@react-native-firebase/messaging",
-      ["expo-build-properties", { "ios": { "useFrameworks": "static" } }]
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static"
+          }
+        }
+      ],
+      "expo-asset"
     ]
   }
 }

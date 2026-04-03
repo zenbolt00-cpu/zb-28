@@ -8,9 +8,28 @@ import { useColors } from '../constants/colors';
 
 const { width } = Dimensions.get('window');
 
-const MediaItem = ({ item, width, height, muted = true, onPress }: { item: Media, width: number, height: number, muted?: boolean, onPress?: (index: number) => void }) => {
+const MediaItem = ({
+  item,
+  width,
+  height,
+  muted = true,
+  onPress,
+  autoplay = true,
+}: {
+  item: Media;
+  width: number;
+  height: number;
+  muted?: boolean;
+  onPress?: () => void;
+  autoplay?: boolean;
+}) => {
   const isVideo = item.mediaContentType === 'VIDEO';
-  const videoUrl = isVideo ? item.sources?.[0]?.url ?? null : null;
+  const videoUrl = isVideo
+    ? item.sources?.find((source) => source?.mimeType?.includes('video'))?.url
+      || item.sources?.[0]?.url
+      || (item as any).url
+      || null
+    : null;
 
   const player = useVideoPlayer(videoUrl, (p) => {
     if (!videoUrl) {
@@ -19,19 +38,21 @@ const MediaItem = ({ item, width, height, muted = true, onPress }: { item: Media
 
     p.loop = true;
     p.muted = muted;
-    p.play();
+    if (autoplay) {
+      p.play();
+    }
   });
 
   React.useEffect(() => {
     player.muted = muted;
   }, [muted, player]);
 
-  if (isVideo) {
+  if (isVideo && videoUrl) {
     return (
       <TouchableOpacity 
         style={[styles.mediaContainer, { width, height }]} 
         activeOpacity={1} 
-        onPress={() => onPress?.(0)} // The specific index is handled in renderItem
+        onPress={onPress}
       >
         <VideoView 
           player={player} 
@@ -44,14 +65,18 @@ const MediaItem = ({ item, width, height, muted = true, onPress }: { item: Media
   }
 
   return (
-    <View style={[styles.mediaContainer, { width, height }]}>
+    <TouchableOpacity
+      style={[styles.mediaContainer, { width, height }]}
+      activeOpacity={1}
+      onPress={onPress}
+    >
       <Image 
         source={{ uri: item.image?.url || (item as any).url || (item as any).src }} 
         style={StyleSheet.absoluteFill}
         contentFit="cover"
         transition={300}
       />
-    </View>
+    </TouchableOpacity>
   );
 };
 
@@ -59,24 +84,28 @@ interface Props {
   media: Media[];
   height: number;
   showThumbnails?: boolean;
+  showPagination?: boolean;
   muted?: boolean;
   onPress?: (index: number) => void;
   scrollEnabled?: boolean;
   externalActiveIndex?: number;
   onIndexChange?: (index: number) => void;
   loop?: boolean;
+  autoplay?: boolean;
 }
 
 export default function ImageCarousel({ 
   media, 
   height, 
   showThumbnails = false, 
+  showPagination = true,
   muted = true, 
   onPress,
   scrollEnabled = true,
   externalActiveIndex,
   onIndexChange,
-  loop = true
+  loop = true,
+  autoplay = true,
 }: Props) {
   const colors = useColors();
   const [internalActiveIndex, setInternalActiveIndex] = useState(0);
@@ -202,7 +231,14 @@ export default function ImageCarousel({
             width={width} 
             height={height} 
             muted={muted} 
-            onPress={() => onPress?.(loop ? (index === 0 ? media.length - 1 : index === adjustedMedia.length - 1 ? 0 : index - 1) : index)} 
+            autoplay={autoplay}
+            onPress={() =>
+              onPress?.(
+                loop
+                  ? (index === 0 ? media.length - 1 : index === adjustedMedia.length - 1 ? 0 : index - 1)
+                  : index
+              )
+            }
           />
         )}
         getItemLayout={(_, index) => ({
@@ -223,7 +259,7 @@ export default function ImageCarousel({
         }}
       />
 
-      {!showThumbnails && media.length > 1 && (
+      {!showThumbnails && showPagination && media.length > 1 && (
         <View pointerEvents="none" style={styles.paginationContainer}>
           {media.map((_, index) => (
             <View

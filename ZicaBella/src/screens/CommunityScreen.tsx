@@ -22,6 +22,7 @@ export default function CommunityScreen() {
   const colors = useColors();
   const { user, isAuthenticated } = useAuth();
   const theme = useThemeStore(s => s.theme);
+  const isDark = theme === 'dark';
 
   const [updates, setUpdates] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -166,11 +167,15 @@ export default function CommunityScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {/* Announcement Banner */}
-        <View style={[styles.banner, { backgroundColor: colors.foreground }]}>
-          <Typography heading size={8} weight="700" color={colors.background} style={styles.bannerLabel}>DROP ALERT</Typography>
-          <Typography heading size={18} weight="700" color={colors.background} style={styles.bannerTitle}>New season arriving soon</Typography>
-          <Typography size={11} color={colors.background} style={styles.bannerSub}>Be the first to know</Typography>
-        </View>
+        <BlurView 
+          intensity={isDark ? 80 : 100} 
+          tint={isDark ? 'dark' : 'light'} 
+          style={[styles.banner, { borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)', borderWidth: 1 }]}
+        >
+          <Typography heading size={8} weight="700" color={isDark ? colors.textLight : colors.textMuted} style={styles.bannerLabel}>DROP ALERT</Typography>
+          <Typography heading size={18} weight="700" color={colors.text} style={styles.bannerTitle}>New season arriving soon</Typography>
+          <Typography size={11} color={colors.textSecondary} style={styles.bannerSub}>Be the first to know</Typography>
+        </BlurView>
 
         {/* Featured Button */}
         <TouchableOpacity 
@@ -192,13 +197,18 @@ export default function CommunityScreen() {
           <View style={styles.section}>
             <Typography heading size={8} color={colors.textLight} style={styles.sectionLabel}>LIVE UPDATES</Typography>
             {updates.map((update: any, idx: number) => (
-              <View key={update.id || idx} style={[styles.updateCard, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}>
+              <BlurView 
+                key={update.id || idx} 
+                intensity={isDark ? 80 : 100} 
+                tint={isDark ? 'dark' : 'light'} 
+                style={[styles.updateCard, { borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)' }]}
+              >
                 <View style={styles.updateBadge}>
                    <Typography heading size={7} weight="700" color={update.type === 'EVENT' ? colors.primary : '#34C759'}>{update.type}</Typography>
                 </View>
                 <Typography heading size={14} color={colors.text} style={{ marginBottom: 4 }}>{update.title}</Typography>
                 <Typography size={11} color={colors.textSecondary}>{update.description}</Typography>
-              </View>
+              </BlurView>
             ))}
           </View>
         )}
@@ -206,19 +216,22 @@ export default function CommunityScreen() {
         {/* Form Overlay */}
         {showForm && (
           <View style={StyleSheet.absoluteFill}>
-             <BlurView intensity={100} tint="dark" style={StyleSheet.absoluteFill} />
-             <ScrollView style={styles.formContainer} contentContainerStyle={{ padding: 24, paddingBottom: 100 }}>
+             <BlurView intensity={isDark ? 80 : 100} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+             <ScrollView style={[styles.formContainer, { backgroundColor: 'transparent' }]} contentContainerStyle={{ padding: 24, paddingBottom: 100 }}>
                 <View style={styles.formHeader}>
-                   <Typography heading size={18} color="#FFF">Publish Look</Typography>
+                   <Typography heading size={18} color={colors.text}>Publish Look</Typography>
                    <TouchableOpacity onPress={() => setShowForm(false)}>
-                      <Ionicons name="close-circle" size={24} color="rgba(255,255,255,0.5)" />
+                      <Ionicons name="close-circle" size={24} color={colors.textMuted} />
                    </TouchableOpacity>
                 </View>
-                <Typography size={10} color="rgba(255,255,255,0.5)" style={{ marginBottom: 24 }}>Share your fit with the community</Typography>
+                <Typography size={10} color={colors.textSecondary} style={{ marginBottom: 24 }}>Share your fit with the community</Typography>
 
                 {/* Image Upload */}
                 <TouchableOpacity 
-                   style={[styles.uploadZone, { borderColor: 'rgba(255,255,255,0.1)' }]} 
+                   style={[styles.uploadZone, { 
+                     borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                     backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.4)',
+                   }]} 
                    onPress={pickImage}
                    disabled={isUploading}
                 >
@@ -226,52 +239,66 @@ export default function CommunityScreen() {
                      <Image source={{ uri: form.imageUrl }} style={styles.previewImage} />
                    ) : (
                      <View style={styles.uploadPlaceholder}>
-                        <Ionicons name="camera-outline" size={32} color="rgba(255,255,255,0.3)" />
-                        <Typography size={10} color="rgba(255,255,255,0.3)">{isUploading ? 'UPLOADING...' : 'TAP TO UPLOAD PHOTO'}</Typography>
+                        <Ionicons name="camera-outline" size={32} color={colors.textExtraLight} />
+                        <Typography size={10} color={colors.textMuted}>{isUploading ? 'UPLOADING...' : 'TAP TO UPLOAD PHOTO'}</Typography>
                      </View>
                    )}
                 </TouchableOpacity>
 
                 <View style={styles.inputGroup}>
-                   <Typography heading size={7} color="rgba(255,255,255,0.4)" style={styles.inputLabel}>NAME</Typography>
+                   <Typography heading size={7} color={colors.textMuted} style={styles.inputLabel}>NAME</Typography>
                    <TextInput 
                       value={form.name}
                       onChangeText={(t) => setForm({...form, name: t})}
                       placeholder="Your Name"
-                      placeholderTextColor="rgba(255,255,255,0.2)"
-                      style={styles.formInput}
+                      placeholderTextColor={colors.textExtraLight}
+                      style={[styles.formInput, {
+                        backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.6)',
+                        borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+                        color: colors.text
+                      }]}
                    />
                 </View>
 
                 <View style={styles.inputGroup}>
-                   <Typography heading size={7} color="rgba(255,255,255,0.4)" style={styles.inputLabel}>INSTAGRAM URL (OPTIONAL)</Typography>
+                   <Typography heading size={7} color={colors.textMuted} style={styles.inputLabel}>INSTAGRAM URL (OPTIONAL)</Typography>
                    <TextInput 
                       value={form.instagramUrl}
                       onChangeText={(t) => setForm({...form, instagramUrl: t})}
                       placeholder="https://instagram.com/p/..."
-                      placeholderTextColor="rgba(255,255,255,0.2)"
-                      style={styles.formInput}
+                      placeholderTextColor={colors.textExtraLight}
+                      style={[styles.formInput, {
+                        backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.6)',
+                        borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+                        color: colors.text
+                      }]}
                    />
                 </View>
 
                 <View style={styles.inputGroup}>
-                   <Typography heading size={7} color="rgba(255,255,255,0.4)" style={styles.inputLabel}>STYLE NARRATIVE</Typography>
+                   <Typography heading size={7} color={colors.textMuted} style={styles.inputLabel}>STYLE NARRATIVE</Typography>
                    <TextInput 
                       value={form.quote}
                       onChangeText={(t) => setForm({...form, quote: t})}
                       placeholder="Describe your curation..."
-                      placeholderTextColor="rgba(255,255,255,0.2)"
-                      style={[styles.formInput, { height: 100, textAlignVertical: 'top' }]}
+                      placeholderTextColor={colors.textExtraLight}
+                      style={[styles.formInput, { 
+                        height: 100, 
+                        textAlignVertical: 'top',
+                        backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.6)',
+                        borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+                        color: colors.text
+                      }]}
                       multiline
                    />
                 </View>
 
                 <TouchableOpacity 
-                   style={[styles.submitBtn, { backgroundColor: '#FFF' }]} 
+                   style={[styles.submitBtn, { backgroundColor: colors.foreground }]} 
                    onPress={handleSubmission}
                    disabled={isSubmitting || !form.imageUrl}
                 >
-                   <Typography heading weight="700" size={10} color="#000">
+                   <Typography heading weight="700" size={10} color={colors.background}>
                       {isSubmitting ? 'SUBMITTING...' : 'SUBMIT TO EDITOR'}
                    </Typography>
                 </TouchableOpacity>
@@ -409,7 +436,6 @@ const styles = StyleSheet.create({
   },
   formContainer: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#000',
   },
   formHeader: {
     flexDirection: 'row',
@@ -426,7 +452,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.03)',
   },
   previewImage: {
     width: '100%',
@@ -445,13 +470,10 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   formInput: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
     borderRadius: 16,
     padding: 16,
-    color: '#FFF',
     fontSize: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
   },
   submitBtn: {
     paddingVertical: 18,

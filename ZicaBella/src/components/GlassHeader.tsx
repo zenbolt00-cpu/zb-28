@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Platform, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,45 +7,43 @@ import { useNavigation } from '@react-navigation/native';
 import { Image } from 'expo-image';
 import { useColors } from '../constants/colors';
 import { useThemeStore } from '../store/themeStore';
-import { useCartStore } from '../store/cartStore';
-import { Typography } from './Typography';
-
+import { useUIStore } from '../store/uiStore';
 
 interface Props {
   title?: string;
   showBack?: boolean;
   onPressMenu?: () => void;
-  onPressBookmarks?: () => void;
   isBookmarked?: boolean;
+  hideRightIsland?: boolean;
 }
 
 export default function GlassHeader({ 
-
   title = 'ZICA BELLA', 
   showBack = false,
   onPressMenu,
-  onPressBookmarks,
   isBookmarked = false,
+  hideRightIsland = false,
 }: Props) {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const colors = useColors();
   const { theme, toggleTheme } = useThemeStore();
+  const setBookmarkOpen = useUIStore((state) => state.setBookmarkOpen);
 
   const isDark = theme === 'dark';
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + 8 }]}>
-      {/* Box 1: Left Action (Logo/Back) */}
-      <TouchableOpacity 
-        style={[styles.islandBase, { borderColor: colors.borderLight, backgroundColor: colors.background, width: 38 }]}
-        onPress={() => showBack ? navigation.goBack() : onPressMenu?.()}
+      {/* Left Action: Logo / Back */}
+      <TouchableOpacity
+        style={[styles.islandBase, styles.leftIsland, { borderColor: colors.borderLight, backgroundColor: colors.background }]}
+        onPress={() => showBack ? (navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Main')) : onPressMenu?.()}
         activeOpacity={0.7}
       >
-        <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+        <BlurView intensity={70} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
         <View style={styles.iconCircle}>
           {showBack ? (
-            <Ionicons name="chevron-back" size={16} color={colors.text} />
+            <Ionicons name="chevron-back" size={18} color={colors.text} />
           ) : (
             <Image 
               source={require('../../assets/ZB-logo-silver.svg')} 
@@ -56,31 +54,33 @@ export default function GlassHeader({
         </View>
       </TouchableOpacity>
 
-      {/* Box 1: Left Action (Logo/Back) */}
-
-
-      {/* Box 3: Right Actions */}
-      <View style={[styles.islandBase, { borderColor: colors.borderLight, backgroundColor: colors.background, borderRadius: 19 }]}>
-        <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
-        <View style={styles.rightActions}>
-          <TouchableOpacity style={styles.actionBtn} onPress={toggleTheme}>
-            <Ionicons 
-              name={isDark ? "sunny-outline" : "moon-outline"} 
-              size={14} 
-              color={colors.text} 
-              style={{ opacity: 0.8 }} 
-            />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionBtn} onPress={onPressBookmarks}>
-            <Ionicons 
-              name={isBookmarked ? "bookmark" : "bookmark-outline"} 
-              size={14} 
-              color={isBookmarked ? colors.iosGreen : colors.text} 
-              style={!isBookmarked ? { opacity: 0.7 } : undefined} 
-            />
-          </TouchableOpacity>
+      {/* Right Actions: Theme Toggle + Bookmark */}
+      {!hideRightIsland && (
+        <View style={[styles.islandBase, styles.rightIsland, { borderColor: colors.borderLight, backgroundColor: colors.background }]}>
+          <BlurView intensity={70} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+          <View style={styles.rightActions}>
+            <TouchableOpacity style={styles.actionBtn} onPress={toggleTheme}>
+              <Ionicons 
+                name={isDark ? "sparkles-outline" : "contrast-outline"} 
+                size={16} 
+                color={colors.text} 
+                style={{ opacity: 0.9 }} 
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.actionBtn}
+              onPress={() => setBookmarkOpen(true)}
+            >
+              <Ionicons 
+                name={isBookmarked ? "bookmark" : "bookmark-outline"} 
+                size={16} 
+                color={isBookmarked ? colors.iosGreen : colors.text} 
+                style={!isBookmarked ? { opacity: 0.85 } : undefined} 
+              />
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
+      )}
     </View>
   );
 }
@@ -99,43 +99,38 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   islandBase: {
-    height: 38,
-    borderRadius: 19,
+    height: 42,
+    borderRadius: 21,
     overflow: 'hidden',
     borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.18,
+    shadowRadius: 20,
+    elevation: 12,
+  },
+  leftIsland: {
+    width: 42,
+  },
+  rightIsland: {
+    borderRadius: 21,
   },
   iconCircle: {
-    width: 38,
-    height: 38,
+    width: 42,
+    height: 42,
     justifyContent: 'center',
     alignItems: 'center',
   },
   rightActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 38,
+    height: 42,
     paddingHorizontal: 4,
   },
   actionBtn: {
-    width: 32,
-    height: 38,
+    width: 34,
+    height: 42,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  badge: {
-    position: 'absolute',
-    top: 6,
-    right: 4,
-    minWidth: 14,
-    height: 14,
-    borderRadius: 7,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 3,
-  },
-  badgeText: {
-    color: '#FFF',
-    fontSize: 8,
-    fontWeight: '700',
   },
 });

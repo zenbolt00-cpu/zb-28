@@ -1,7 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity } from 'react-native';
 import { Image } from 'expo-image';
+import { BlurView } from 'expo-blur';
 import { useColors } from '../constants/colors';
+import { useThemeStore } from '../store/themeStore';
 import { Typography } from './Typography';
 
 const { width } = Dimensions.get('window');
@@ -18,6 +20,8 @@ export default function CommunitySection({
   subtitle = "COMMUNITY" 
 }: Props) {
   const colors = useColors();
+  const theme = useThemeStore(s => s.theme);
+  const isDark = theme === 'dark';
   const { users, loading } = useFeaturedUsers(true);
 
   // Fallback default looks in case API is empty or failing
@@ -43,22 +47,40 @@ export default function CommunitySection({
         decelerationRate="fast"
       >
         {displayUsers.map((look) => (
-          <TouchableOpacity key={look.id} style={styles.item} activeOpacity={0.9}>
+          <TouchableOpacity 
+            key={look.id} 
+            style={[styles.item, { 
+              backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
+              borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'
+            }]} 
+            activeOpacity={0.9}
+          >
             <Image 
               source={{ uri: look.imageUrl }} 
               style={styles.image} 
               contentFit="cover" 
               transition={400}
             />
-            <View style={styles.glassLabel}>
-              <Typography size={7} color="#FFFFFF" weight="600" style={styles.labelText}>@{look.name ? look.name.toUpperCase().slice(0, 12) : 'ZICABELLA'}</Typography>
-            </View>
+            <BlurView 
+              intensity={isDark ? 80 : 100} 
+              tint={isDark ? 'dark' : 'light'} 
+              style={[styles.glassLabel, { borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)' }]}
+            >
+              <Typography size={7} color={colors.text} weight="600" style={styles.labelText}>
+                @{look.name ? look.name.toUpperCase().slice(0, 12) : 'ZICABELLA'}
+              </Typography>
+            </BlurView>
           </TouchableOpacity>
         ))}
       </ScrollView>
 
-      <TouchableOpacity style={[styles.joinBtn, { borderColor: colors.borderLight, backgroundColor: colors.surface }]}>
-        <Typography size={8} color={colors.foreground} weight="300" style={styles.joinText}>Join the Collective</Typography>
+      <TouchableOpacity 
+        style={[styles.joinBtn, { 
+          borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)', 
+          backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)' 
+        }]}
+      >
+        <Typography size={8} color={colors.textSecondary} weight="300" style={styles.joinText}>Join the Collective</Typography>
       </TouchableOpacity>
     </View>
   );
@@ -96,9 +118,7 @@ const styles = StyleSheet.create({
     aspectRatio: 4 / 5,
     borderRadius: 24,
     overflow: 'hidden',
-    backgroundColor: 'rgba(0,0,0,0.02)',
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.03)',
   },
   image: {
     width: '100%',
@@ -108,17 +128,15 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 16,
     left: 16,
-    backgroundColor: 'rgba(255,255,255,0.15)',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
+    borderWidth: StyleSheet.hairlineWidth,
+    overflow: 'hidden',
   },
   labelText: {
     fontSize: 7,
     fontWeight: '600',
-    color: '#FFFFFF',
     letterSpacing: 1,
   },
   joinBtn: {
@@ -128,8 +146,6 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 99,
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.05)',
-    backgroundColor: 'rgba(0,0,0,0.02)',
   },
   joinText: {
     fontSize: 8,

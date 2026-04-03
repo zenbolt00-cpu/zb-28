@@ -6,7 +6,6 @@ import { useCollectionByHandle } from '../hooks/useProducts';
 import { useColors } from '../constants/colors';
 import { useAdminSettings } from '../hooks/useAdminFeatures';
 import { Typography } from './Typography';
-import { BlurView } from 'expo-blur';
 import { useThemeStore } from '../store/themeStore';
 
 const { width } = Dimensions.get('window');
@@ -31,7 +30,13 @@ export default function SpotlightSection({
   const shopData = settings?.shop || settings || {};
 
   const resolvedTitle = title || settings?.spotlight?.title || "AUTHENTIC STREETWEAR";
-  const resolvedSubtitle = subtitle || settings?.spotlight?.subtitle || "Luxury Indian streetwear for modern men.";
+  const rawSubtitle =
+    subtitle ||
+    settings?.spotlight?.subtitle ||
+    "Luxury Indian streetwear for modern men.|Redefining bold everyday style.";
+  const subtitleParts = rawSubtitle.split("|").map((s: string) => s.trim()).filter(Boolean);
+  const subtitleLine1 = subtitleParts[0] || "";
+  const subtitleLine2 = subtitleParts[1] || "";
   const resolvedCollectionHandle = collectionHandle || settings?.spotlight?.collection || "tshirts";
 
   const { products, loading } = useCollectionByHandle(resolvedCollectionHandle);
@@ -67,7 +72,14 @@ export default function SpotlightSection({
       >
         <Typography rocaston size={48} color={colors.text} style={styles.titleTop}>{firstWord}</Typography>
         {remainingWords ? <Typography rocaston size={44} color={colors.text} style={styles.titleBottom}>{remainingWords}</Typography> : null}
-        <Typography size={9} color="rgba(100,100,100,0.6)" weight="300" style={styles.subtitle}>{resolvedSubtitle}</Typography>
+        <Typography size={8} color="rgba(160,160,160,0.55)" weight="300" style={styles.subtitleLine}>
+          {subtitleLine1}
+        </Typography>
+        {subtitleLine2 ? (
+          <Typography size={8} color="rgba(160,160,160,0.45)" weight="300" style={styles.subtitleLine2}>
+            {subtitleLine2}
+          </Typography>
+        ) : null}
       </TouchableOpacity>
 
       <View style={styles.grid}>
@@ -79,8 +91,7 @@ export default function SpotlightSection({
             activeOpacity={0.8}
           >
             <View style={styles.imageShadowContainer}>
-              <View style={[styles.imageContainer, { backgroundColor: 'transparent', borderColor: isDark ? 'white' : 'black', borderWidth: 0.5 }]}>
-                <BlurView intensity={20} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+              <View style={[styles.imageContainer, { backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)' }]}>
                 <Image 
                   source={{ uri: product.featuredImage || undefined }} 
                   style={styles.image}
@@ -96,7 +107,7 @@ export default function SpotlightSection({
         {displayProducts.length < 6 && [...Array(6 - displayProducts.length)].map((_, i) => (
           <View key={`empty-${i}`} style={styles.item}>
              <View style={styles.imageShadowContainer}>
-               <View style={[styles.imageContainer, styles.emptyImage, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)', borderColor: colors.borderLight }]}>
+               <View style={[styles.imageContainer, styles.emptyImage, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)' }]}>
                   <Typography size={6} color={colors.textLight} style={styles.emptyText}>ZB Studio</Typography>
                </View>
              </View>
@@ -116,7 +127,7 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginBottom: 48,
+    marginBottom: 40,
   },
   titleTop: {
     fontFamily: 'Rocaston',
@@ -139,15 +150,25 @@ const styles = StyleSheet.create({
     marginTop: 0,
     marginBottom: 24,
   },
-  subtitle: {
-    fontSize: 9,
+  subtitleLine: {
+    fontSize: 8,
     fontWeight: '300',
-    letterSpacing: 1.5,
-    color: 'rgba(100,100,100,0.6)',
+    letterSpacing: 2.2,
     textTransform: 'uppercase',
     textAlign: 'center',
-    maxWidth: 260,
-    lineHeight: 16,
+    maxWidth: 300,
+    lineHeight: 18,
+    marginTop: 4,
+  },
+  subtitleLine2: {
+    fontSize: 8,
+    fontWeight: '300',
+    letterSpacing: 2.2,
+    textTransform: 'uppercase',
+    textAlign: 'center',
+    maxWidth: 300,
+    lineHeight: 18,
+    marginTop: 6,
   },
   grid: {
     flexDirection: 'row',
@@ -162,20 +183,19 @@ const styles = StyleSheet.create({
   },
   imageShadowContainer: {
     width: ITEM_WIDTH,
-    aspectRatio: 1 / 1.15,
-    marginBottom: 16,
+    aspectRatio: 1,
+    marginBottom: 14,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 16 },
+    shadowOpacity: 0.22,
+    shadowRadius: 20,
+    elevation: 6,
   },
   imageContainer: {
     width: '100%',
     height: '100%',
-    borderRadius: 12, // More premium tight corners
+    borderRadius: 26,
     overflow: 'hidden',
-    borderWidth: StyleSheet.hairlineWidth,
   },
   image: {
     width: '100%',
@@ -207,9 +227,9 @@ const styles = StyleSheet.create({
   },
   skeletonItem: {
     width: ITEM_WIDTH,
-    aspectRatio: 1 / 1.15,
+    aspectRatio: 1,
     backgroundColor: 'rgba(0,0,0,0.03)',
-    borderRadius: 24,
+    borderRadius: 26,
     marginBottom: 32,
   },
 });

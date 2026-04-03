@@ -1,11 +1,7 @@
 import React from 'react';
-import { 
-  View, Text, StyleSheet, ScrollView, 
-  TouchableOpacity, Dimensions 
-} from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Image } from 'expo-image';
 import { BlurView } from 'expo-blur';
-import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { FlatProduct } from '../api/types';
 import { useColors } from '../constants/colors';
@@ -27,8 +23,16 @@ export default function RingCarouselSection({ title = "ACCESSORIES", products }:
 
   return (
     <View style={styles.container}>
-      <View style={[styles.glassCard, { borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}>
-        <BlurView intensity={isDark ? 40 : 80} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+      <View
+        style={[
+          styles.glassCard,
+          {
+            backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.55)',
+            shadowOpacity: isDark ? 0.35 : 0.1,
+          },
+        ]}
+      >
+        <BlurView intensity={isDark ? 48 : 88} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
         
         {/* Header */}
         <View style={styles.header}>
@@ -78,10 +82,14 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   glassCard: {
-    borderRadius: 32,
+    borderRadius: 36,
     overflow: 'hidden',
-    paddingVertical: 20,
-    borderWidth: 1,
+    paddingVertical: 22,
+    borderWidth: 0,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 18 },
+    shadowRadius: 28,
+    elevation: 10,
   },
   header: {
     flexDirection: 'row',
@@ -116,10 +124,13 @@ const styles = StyleSheet.create({
   itemContainer: {
     width: 90,
     height: 90,
-    borderRadius: 45, // Circular for rings/accessories looks unique
+    borderRadius: 45,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(128,128,128,0.1)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 4,
   },
   imageWrapper: {
     width: '100%',
