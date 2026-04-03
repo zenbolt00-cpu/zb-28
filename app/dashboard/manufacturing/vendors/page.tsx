@@ -201,10 +201,10 @@ export default function VendorsPage() {
               <Building2 className="w-7 h-7" />
             </div>
             <div>
-              <h1 className="text-4xl md:text-5xl font-bold text-foreground uppercase tracking-tighter leading-none">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground uppercase tracking-tighter leading-none">
                 Vendors
               </h1>
-              <p className="text-[11px] text-foreground/50 dark:text-foreground/30 font-bold uppercase tracking-[0.4em] mt-2">
+              <p className="text-[10px] text-foreground/50 font-bold uppercase tracking-[0.4em] mt-1 lg:mt-2">
                 Manufacturing Partners
               </p>
             </div>
@@ -229,9 +229,9 @@ export default function VendorsPage() {
               setForm({ name: "", address: "", mobile: "", category: "Fabric", customCategory: "" });
               setModalOpen(true);
             }}
-            className="flex items-center gap-3 px-8 py-3 bg-foreground text-background rounded-2xl text-[10px] font-bold uppercase tracking-[0.3em] hover:opacity-90 disabled:opacity-50 transition-all active:scale-95 shadow-xl shadow-foreground/20"
+            className="flex items-center gap-2 lg:gap-3 px-6 lg:px-8 py-2.5 lg:py-3 bg-foreground text-background rounded-xl lg:rounded-2xl text-[9px] lg:text-[10px] font-bold uppercase tracking-[0.2em] lg:tracking-[0.3em] hover:opacity-90 disabled:opacity-50 transition-all active:scale-95 shadow-xl shadow-foreground/10"
           >
-            <Plus className="w-4 h-4" strokeWidth={2.5} />
+            <Plus className="w-3.5 h-3.5 lg:w-4 lg:h-4" strokeWidth={2.5} />
             Add Vendor
           </button>
         </div>
@@ -256,8 +256,8 @@ export default function VendorsPage() {
             />
           </div>
 
-          <div className="bg-foreground/[0.03] backdrop-blur-xl rounded-2xl p-1.5 border border-foreground/5 w-full xl:w-auto overflow-hidden shadow-inner">
-            <div className="flex overflow-x-auto custom-scrollbar gap-2 py-1 px-1 hide-scroll">
+          <div className="bg-foreground/[0.02] backdrop-blur-xl rounded-xl lg:rounded-2xl p-1 border border-foreground/5 w-full xl:w-auto overflow-hidden shadow-inner">
+            <div className="flex overflow-x-auto custom-scrollbar gap-1.5 py-1 px-1 hide-scroll">
               <button
                 onClick={() => setFilterCategory(null)}
                 className={`px-5 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] whitespace-nowrap transition-all flex items-center gap-2 ${
@@ -274,9 +274,9 @@ export default function VendorsPage() {
                   <button
                     key={cat}
                     onClick={() => setFilterCategory(cat)}
-                    className={`px-5 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] whitespace-nowrap transition-all flex items-center gap-2 group ${
+                    className={`px-4 py-2.5 rounded-lg lg:rounded-xl text-[9px] font-bold uppercase tracking-[0.1em] whitespace-nowrap transition-all flex items-center gap-2 group ${
                       filterCategory === cat
-                        ? "bg-foreground text-background shadow-2xl scale-[1.02]"
+                        ? "bg-foreground text-background shadow-xl scale-[1.01]"
                         : "text-foreground/40 hover:bg-foreground/[0.05] hover:text-foreground"
                     }`}
                   >
@@ -303,7 +303,7 @@ export default function VendorsPage() {
             <p className="text-[11px] text-foreground/40 mt-1">Adjust search or filters</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 lg:gap-6">
             {filteredVendors.map((v, i) => {
               const Icon = CAT_ICONS[v.category] || Building2;
               return (
@@ -313,7 +313,7 @@ export default function VendorsPage() {
                   transition={{ delay: i * 0.05 }}
                   whileHover={{ y: -5, scale: 1.01 }}
                   key={v.id}
-                  className="bg-background/40 backdrop-blur-3xl border border-foreground/[0.06] hover:border-foreground/15 rounded-[2rem] p-6 lg:p-8 shadow-sm hover:shadow-2xl transition-all duration-500 group flex flex-col relative overflow-hidden"
+                  className="bg-background/40 backdrop-blur-3xl border border-foreground/[0.06] hover:border-foreground/15 rounded-[2rem] p-5 lg:p-6 shadow-sm hover:shadow-2xl transition-all duration-500 group flex flex-col relative overflow-hidden"
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-foreground/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                   
@@ -326,11 +326,11 @@ export default function VendorsPage() {
                     </span>
                   </div>
                   
-                  <h3 className="text-xl lg:text-2xl font-bold text-foreground leading-tight tracking-tighter mb-8 group-hover:text-foreground/80 transition-colors relative z-10">
+                  <h3 className="text-lg lg:text-xl font-bold text-foreground leading-tight tracking-tight mb-6 group-hover:text-foreground/80 transition-colors relative z-10">
                     {v.name}
                   </h3>
                   
-                  <div className="space-y-4 flex-1 mb-8 relative z-10 border-t border-foreground/5 pt-6">
+                  <div className="space-y-3.5 flex-1 mb-6 relative z-10 border-t border-foreground/5 pt-5">
                     <div className="flex items-center gap-4 text-[12px] font-bold text-foreground/50 tracking-tight">
                       <div className="w-8 h-8 rounded-xl bg-foreground/[0.03] flex items-center justify-center shrink-0 border border-foreground/5"><Phone className="w-3.5 h-3.5 opacity-40 group-hover:opacity-100 transition-opacity" strokeWidth={2.5} /></div>
                       <span className="truncate font-mono">{v.mobile || "N/A"}</span>

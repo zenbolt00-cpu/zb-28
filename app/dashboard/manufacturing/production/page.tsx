@@ -445,21 +445,21 @@ export default function ProductionTrackerPage() {
               <Activity className="w-7 h-7" />
             </div>
             <div>
-              <h1 className="text-4xl md:text-5xl font-bold text-foreground uppercase tracking-tighter leading-none">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground uppercase tracking-tighter leading-none">
                 Production
               </h1>
-              <p className="text-[11px] text-foreground/50 dark:text-foreground/30 font-bold uppercase tracking-[0.4em] mt-2">
+              <p className="text-[10px] text-foreground/50 font-bold uppercase tracking-[0.4em] mt-1 lg:mt-2">
                 Tracker & Lifecycle
               </p>
             </div>
           </div>
-          <p className="text-[11px] lg:text-[12px] text-foreground/70 tracking-wide max-w-xl font-medium leading-relaxed">
-             Real-time pipeline monitoring — {batches.length} active batches. Transitions are recorded in the immutable spectrum ledger.
+          <p className="text-[11px] lg:text-[12px] text-foreground/70 tracking-wide max-w-lg font-medium leading-relaxed">
+             Real-time pipeline monitoring — {batches.length} active batches. Transitions are recorded in the spectrum ledger.
           </p>
         </div>
         
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="bg-foreground/[0.03] p-1.5 rounded-xl flex border border-foreground/5 backdrop-blur-sm">
+        <div className="flex flex-wrap items-center gap-2 lg:gap-3">
+          <div className="bg-foreground/[0.03] p-1 rounded-lg flex border border-foreground/5 backdrop-blur-sm shadow-inner">
             <button
               onClick={() => setView("card")}
               className={`p-2 rounded-lg transition-all ${
@@ -492,9 +492,9 @@ export default function ProductionTrackerPage() {
               setNewOpen(true);
               setNbErr({});
             }}
-            className="flex items-center gap-3 px-8 py-3 bg-foreground text-background rounded-2xl text-[10px] font-bold uppercase tracking-[0.3em] hover:opacity-90 transition-all active:scale-95 shadow-xl shadow-foreground/20"
+            className="flex items-center gap-2 lg:gap-3 px-6 lg:px-8 py-2.5 lg:py-3 bg-foreground text-background rounded-xl lg:rounded-2xl text-[9px] lg:text-[10px] font-bold uppercase tracking-[0.2em] lg:tracking-[0.3em] hover:opacity-90 transition-all active:scale-95 shadow-xl shadow-foreground/10"
           >
-            <Plus className="w-4 h-4" strokeWidth={2.5} />
+            <Plus className="w-3.5 h-3.5 lg:w-4 lg:h-4" strokeWidth={2.5} />
             Initiate Batch
           </button>
         </div>
@@ -507,21 +507,21 @@ export default function ProductionTrackerPage() {
         className="glass-card rounded-[2rem] lg:rounded-[3rem] p-6 lg:p-8 flex flex-col gap-6"
       >
         {/* Stage Pipeline */}
-        <div className="bg-foreground/[0.03] backdrop-blur-xl rounded-2xl p-1.5 border border-foreground/5 overflow-hidden shadow-inner">
-          <div className="flex overflow-x-auto custom-scrollbar gap-2 py-1 px-1 hide-scroll">
+        <div className="bg-foreground/[0.02] backdrop-blur-xl rounded-xl lg:rounded-2xl p-1 border border-foreground/5 overflow-hidden shadow-inner w-full max-w-full">
+          <div className="flex overflow-x-auto custom-scrollbar gap-1.5 py-1 px-1 hide-scroll">
             {MFG_STAGE_KEYS.map((key) => {
               const Icon = STAGE_ICONS[key] || Activity;
               return (
                 <button
                   key={key}
                   onClick={() => setFilterStage((s) => (s === key ? null : key))}
-                  className={`px-5 py-3 rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] whitespace-nowrap transition-all flex items-center gap-2.5 group ${
+                  className={`px-4 py-2.5 rounded-lg lg:rounded-xl text-[9px] font-bold uppercase tracking-[0.1em] whitespace-nowrap transition-all flex items-center gap-2 group ${
                     filterStage === key
-                      ? "bg-foreground text-background shadow-2xl scale-[1.02]"
+                      ? "bg-foreground text-background shadow-xl scale-[1.01]"
                       : "text-foreground/40 hover:bg-foreground/[0.05] hover:text-foreground"
                   }`}
                 >
-                  <Icon className={`w-3.5 h-3.5 ${filterStage === key ? "text-background" : "text-foreground/40 group-hover:text-foreground"}`} strokeWidth={2.5} />
+                  <Icon className={`w-3 h-3 ${filterStage === key ? "text-background" : "text-foreground/40 group-hover:text-foreground"}`} strokeWidth={2.5} />
                   {MFG_STAGE_LABEL[key]}
                 </button>
               );
@@ -529,7 +529,7 @@ export default function ProductionTrackerPage() {
           </div>
         </div>
 
-        <div className="relative w-full max-w-md">
+        <div className="relative w-full max-w-sm">
            <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-foreground/40" />
           <input
             value={q}
@@ -604,7 +604,7 @@ export default function ProductionTrackerPage() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 lg:gap-6">
             {batches.map((b) => {
               const ex = expanded[b.id];
               const ed = expandData[b.id] as { breakdown?: Record<string, number> } | null;
@@ -631,7 +631,7 @@ export default function ProductionTrackerPage() {
                   <button
                     type="button"
                     onClick={() => openDrawer(b.id)}
-                    className="w-full text-left p-6 lg:p-8 pt-8 pb-4 focus:outline-none flex flex-col h-full group"
+                    className="w-full text-left p-5 lg:p-6 pt-7 pb-3 focus:outline-none flex flex-col h-full group"
                   >
                     <div className="flex justify-between items-start gap-4 mb-6">
                       <div className="font-mono text-[10px] font-bold text-foreground/40 backdrop-blur-md bg-foreground/[0.03] px-3 py-1.5 rounded-full border border-foreground/5">{b.batchCode}</div>
@@ -640,12 +640,12 @@ export default function ProductionTrackerPage() {
                           MFG_STAGE_BADGE_CLASS[b.currentStage] || "bg-foreground/5 text-foreground/60 border border-foreground/10"
                         }`}
                       >
-                        <StageIcon className="w-3 h-3" strokeWidth={2.5} />
+                        <StageIcon className="w-2.5 h-2.5" strokeWidth={2.5} />
                         {MFG_STAGE_LABEL[b.currentStage]}
                       </span>
                     </div>
                     
-                    <h3 className="text-xl lg:text-2xl font-bold text-foreground leading-tight tracking-tighter mb-6 group-hover:text-foreground/80 transition-colors">
+                    <h3 className="text-lg lg:text-xl font-bold text-foreground leading-tight tracking-tight mb-5 group-hover:text-foreground/80 transition-colors">
                       {b.productName}
                     </h3>
                     
