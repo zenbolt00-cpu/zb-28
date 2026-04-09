@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,13 +8,17 @@ import { Image } from 'expo-image';
 import { useColors } from '../constants/colors';
 import { useThemeStore } from '../store/themeStore';
 import { useUIStore } from '../store/uiStore';
+import { useCartStore } from '../store/cartStore';
+import { Typography } from './Typography';
+
+const { width } = Dimensions.get('window');
 
 interface Props {
   title?: string;
   showBack?: boolean;
   onPressMenu?: () => void;
   isBookmarked?: boolean;
-  hideRightIsland?: boolean;
+  hideCenter?: boolean;
 }
 
 export default function GlassHeader({ 
@@ -22,65 +26,93 @@ export default function GlassHeader({
   showBack = false,
   onPressMenu,
   isBookmarked = false,
-  hideRightIsland = false,
+  hideCenter = false,
 }: Props) {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const colors = useColors();
   const { theme, toggleTheme } = useThemeStore();
   const setBookmarkOpen = useUIStore((state) => state.setBookmarkOpen);
+  const setCartOpen = useUIStore((state) => state.setCartOpen);
+  const cartCount = useCartStore((s) => s.itemCount());
 
   const isDark = theme === 'dark';
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + 8 }]}>
-      {/* Left Action: Logo / Back */}
+      {/* Box 1: Left Action Capsule (Logo/Back) */}
       <TouchableOpacity
-        style={[styles.islandBase, styles.leftIsland, { borderColor: colors.borderLight, backgroundColor: colors.background }]}
+        style={[styles.islandBase, styles.leftIsland, { borderColor: colors.borderLight }]}
         onPress={() => showBack ? (navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Main')) : onPressMenu?.()}
         activeOpacity={0.7}
       >
-        <BlurView intensity={70} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+        <BlurView intensity={80} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
         <View style={styles.iconCircle}>
           {showBack ? (
-            <Ionicons name="chevron-back" size={18} color={colors.text} />
+            <Ionicons name="chevron-back" size={20} color={colors.text} />
           ) : (
             <Image 
-              source={require('../../assets/ZB-logo-silver.svg')} 
-              style={{ width: 20, height: 20, opacity: 0.9 }} 
+              source={require('../../assets/zb-logo-220px.png')} 
+              style={{ width: 22, height: 22, opacity: 0.8 }} 
               contentFit="contain"
             />
           )}
         </View>
       </TouchableOpacity>
 
-      {/* Right Actions: Theme Toggle + Bookmark */}
-      {!hideRightIsland && (
-        <View style={[styles.islandBase, styles.rightIsland, { borderColor: colors.borderLight, backgroundColor: colors.background }]}>
-          <BlurView intensity={70} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
-          <View style={styles.rightActions}>
-            <TouchableOpacity style={styles.actionBtn} onPress={toggleTheme}>
-              <Ionicons 
-                name={isDark ? "sparkles-outline" : "contrast-outline"} 
-                size={16} 
-                color={colors.text} 
-                style={{ opacity: 0.9 }} 
-              />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.actionBtn}
-              onPress={() => setBookmarkOpen(true)}
-            >
-              <Ionicons 
-                name={isBookmarked ? "bookmark" : "bookmark-outline"} 
-                size={16} 
-                color={isBookmarked ? colors.iosGreen : colors.text} 
-                style={!isBookmarked ? { opacity: 0.85 } : undefined} 
-              />
-            </TouchableOpacity>
-          </View>
-        </View>
+      {/* Box 2: Center Identity Capsule (Minimalist Typography) */}
+      {!hideCenter && (
+        <TouchableOpacity 
+          style={[styles.islandBase, styles.centerIsland, { borderColor: colors.borderLight }]}
+          onPress={() => navigation.navigate('HomeTab')}
+          activeOpacity={0.8}
+        >
+          <BlurView intensity={80} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+          <Typography rocaston size={10} color={colors.text} style={styles.titleText}>
+            {title.toUpperCase()}
+          </Typography>
+        </TouchableOpacity>
       )}
+
+      {/* Box 3: Right Actions Capsule (Consolidated Island) */}
+      <View style={[styles.islandBase, styles.rightIsland, { borderColor: colors.borderLight }]}>
+        <BlurView intensity={80} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+        <View style={styles.rightActions}>
+          <TouchableOpacity style={styles.actionBtn} onPress={toggleTheme}>
+            <Ionicons 
+              name={isDark ? "sparkles-outline" : "contrast-outline"} 
+              size={15} 
+              color={colors.text} 
+              style={{ opacity: 0.7 }} 
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.actionBtn}
+            onPress={() => setBookmarkOpen(true)}
+          >
+            <Ionicons 
+              name={isBookmarked ? "bookmark" : "bookmark-outline"} 
+              size={15} 
+              color={isBookmarked ? colors.primary : colors.text} 
+              style={!isBookmarked ? { opacity: 0.7 } : undefined} 
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.actionBtn}
+            onPress={() => setCartOpen(true)}
+          >
+            <Ionicons 
+              name="bag-outline" 
+              size={15} 
+              color={colors.text} 
+              style={{ opacity: 0.7 }} 
+            />
+            {cartCount > 0 && (
+              <View style={[styles.cartBadge, { backgroundColor: colors.primary }]} />
+            )}
+          </TouchableOpacity>
+        </View>
+      </View>
     </View>
   );
 }
@@ -96,41 +128,64 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 12,
-    gap: 8,
   },
   islandBase: {
-    height: 42,
-    borderRadius: 21,
+    height: 40,
+    borderRadius: 20,
     overflow: 'hidden',
     borderWidth: 1,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.18,
-    shadowRadius: 20,
-    elevation: 12,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    elevation: 8,
   },
   leftIsland: {
-    width: 42,
+    width: 40,
   },
-  rightIsland: {
-    borderRadius: 21,
-  },
-  iconCircle: {
-    width: 42,
-    height: 42,
+  centerIsland: {
+    flex: 1,
+    marginHorizontal: 8,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+  rightIsland: {
+    paddingHorizontal: 4,
+  },
+  iconCircle: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  titleText: {
+    letterSpacing: 2.5,
+    paddingTop: 2,
+    textAlign: 'center',
   },
   rightActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 42,
-    paddingHorizontal: 4,
+    height: 40,
   },
   actionBtn: {
-    width: 34,
-    height: 42,
+    width: 36,
+    height: 38,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  cartBadge: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
 });
+

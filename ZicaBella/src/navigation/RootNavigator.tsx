@@ -9,11 +9,14 @@ import { useThemeStore } from '../store/themeStore';
 import { getColors, useColors } from '../constants/colors';
 import { useUIStore } from '../store/uiStore';
 
+import { useAuthStore } from '../store/authStore';
+import AuthNavigator from './AuthNavigator';
 import TabNavigator from './TabNavigator';
+import CheckoutNavigator from './CheckoutNavigator';
+import ServiceNavigator from './ServiceNavigator';
+import OrderConfirmationScreen from '../screens/OrderConfirmationScreen';
 import ProductDetailScreen from '../screens/ProductDetailScreen';
 import CollectionScreen from '../screens/CollectionScreen';
-import CheckoutScreen from '../screens/CheckoutScreen';
-import OrderConfirmationScreen from '../screens/OrderConfirmationScreen';
 import OrderHistoryScreen from '../screens/OrderHistoryScreen';
 import OrderDetailScreen from '../screens/OrderDetailScreen';
 import PolicyScreen from '../screens/PolicyScreen';
@@ -23,25 +26,27 @@ import FAQScreen from '../screens/FAQScreen';
 import BlogsScreen from '../screens/BlogsScreen';
 import CollaborationsScreen from '../screens/CollaborationsScreen';
 import WishlistScreen from '../screens/WishlistScreen';
+import { withErrorBoundary } from '../components/ErrorBoundary';
+import { RootStackParamList } from './types';
+import { navigationRef } from './navigationUtils';
 
-export type RootStackParamList = {
-  Main: undefined;
-  ProductDetail: { handle: string };
-  Collection: { handle: string; title?: string };
-  Checkout: undefined;
-  OrderConfirmation: { orderId: string };
-  OrderHistory: { openReturnFor?: string } | undefined;
-  OrderDetail: { orderForDetail: any };
-  Policy: { url: string; title?: string };
-  Community: undefined;
-  Story: undefined;
-  FAQ: undefined;
-  Blogs: undefined;
-  Collaborations: undefined;
-  Wishlist: undefined;
-};
+// Wrap every screen with an error boundary so the app never white-screen crashes
+const SafeOrderConfirmation = withErrorBoundary(OrderConfirmationScreen, 'OrderConfirmation');
+const SafeProductDetail = withErrorBoundary(ProductDetailScreen, 'ProductDetail');
+const SafeCollection = withErrorBoundary(CollectionScreen, 'Collection');
+const SafeOrderHistory = withErrorBoundary(OrderHistoryScreen, 'OrderHistory');
+const SafeOrderDetail = withErrorBoundary(OrderDetailScreen, 'OrderDetail');
+const SafePolicy = withErrorBoundary(PolicyScreen, 'Policy');
+const SafeCommunity = withErrorBoundary(CommunityScreen, 'Community');
+const SafeStory = withErrorBoundary(StoryScreen, 'Story');
+const SafeFAQ = withErrorBoundary(FAQScreen, 'FAQ');
+const SafeBlogs = withErrorBoundary(BlogsScreen, 'Blogs');
+const SafeCollaborations = withErrorBoundary(CollaborationsScreen, 'Collaborations');
+const SafeWishlist = withErrorBoundary(WishlistScreen, 'Wishlist');
 
-export const navigationRef = createNavigationContainerRef<any>();
+// Types moved to ./types.ts to break circular dependencies
+
+// navigationRef moved to ./navigationUtils to break circular dependencies
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 // Deep linking config
@@ -49,33 +54,32 @@ const linking = {
   prefixes: ['zicabella://', 'https://app.zicabella.com'],
   config: {
     screens: {
+      Auth: {
+        screens: {
+          Login: 'login',
+          Register: 'register',
+        },
+      },
       Main: {
         screens: {
           HomeTab: '',
           SearchTab: 'search',
-          CartTab: 'cart',
-          ChatTab: 'chat',
+          ShopTab: 'shop',
+          OrdersTab: 'orders',
           ProfileTab: 'profile',
         },
       },
       ProductDetail: 'products/:handle',
       Collection: 'collections/:handle',
-      Policy: 'policy',
-      Community: 'community',
-      Checkout: 'checkout',
+      CheckoutFlow: 'checkout',
       OrderConfirmation: 'order-confirmation',
-      OrderDetail: 'order-detail',
-      Story: 'story',
-      FAQ: 'faq',
-      Blogs: 'blogs',
-      Collaborations: 'collaborations',
-      Wishlist: 'wishlist',
     },
   },
 };
 
 export const RootNavigator = () => {
   const { isCartOpen, setCartOpen } = useUIStore();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
   // Shake to open/close cart — global, works from any screen
   useEffect(() => {
@@ -97,13 +101,12 @@ export const RootNavigator = () => {
       lastMagnitude = magnitude;
 
       const now = Date.now();
-      const COOLDOWN_MS = 1200; // Slightly increased cooldown for better toggle feel
+      const COOLDOWN_MS = 1200;
       const SHAKE_THRESHOLD = 1.3;
 
       if (delta > SHAKE_THRESHOLD && now - lastShakeAt > COOLDOWN_MS) {
         lastShakeAt = now;
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        // Toggle cart visibility
         setCartOpen(!useUIStore.getState().isCartOpen);
       }
     });
@@ -139,28 +142,30 @@ export const RootNavigator = () => {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <NavigationContainer ref={navigationRef} linking={linking as any} theme={navigationTheme}>
-        <Stack.Navigator id="RootStackNavigator" screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' } }}>
-          {/* Core app with Tab Bar */}
-          <Stack.Screen name="Main" component={TabNavigator} />
+        <Stack.Navigator id="RootStackNavigator" screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
+          {/* Conditional Root: Auth or App */}
+          {!isAuthenticated ? (
+            <Stack.Screen name="Auth" component={AuthNavigator} />
+          ) : (
+            <Stack.Screen name="Main" component={TabNavigator} />
+          )}
           
-          {/* Flow-specific screens that hide the tab bar (standard practice for checkout) */}
-          <Stack.Screen name="Checkout" component={CheckoutScreen} />
-          <Stack.Screen name="OrderConfirmation" component={OrderConfirmationScreen} />
+          {/* Flow-specific stacks and full-screen views */}
+          <Stack.Screen name="CheckoutFlow" component={CheckoutNavigator} />
+          <Stack.Screen name="ServiceFlow" component={ServiceNavigator} />
+          <Stack.Screen name="OrderConfirmation" component={SafeOrderConfirmation} />
           
-          {/* These used to be at root, now TabNavigator will handle most via nested stacks if needed, 
-              but for now we keep them here for deep linking while I update TabNavigator to include them.
-          */}
-          <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
-          <Stack.Screen name="Collection" component={CollectionScreen} />
-          <Stack.Screen name="OrderHistory" component={OrderHistoryScreen} />
-          <Stack.Screen name="OrderDetail" component={OrderDetailScreen} />
-          <Stack.Screen name="Policy" component={PolicyScreen} />
-          <Stack.Screen name="Community" component={CommunityScreen} />
-          <Stack.Screen name="Story" component={StoryScreen} />
-          <Stack.Screen name="FAQ" component={FAQScreen} />
-          <Stack.Screen name="Blogs" component={BlogsScreen} />
-          <Stack.Screen name="Collaborations" component={CollaborationsScreen} />
-          <Stack.Screen name="Wishlist" component={WishlistScreen} />
+          <Stack.Screen name="ProductDetail" component={SafeProductDetail} />
+          <Stack.Screen name="Collection" component={SafeCollection} />
+          <Stack.Screen name="OrderHistory" component={SafeOrderHistory} />
+          <Stack.Screen name="OrderDetail" component={SafeOrderDetail} />
+          <Stack.Screen name="Policy" component={SafePolicy} />
+          <Stack.Screen name="Community" component={SafeCommunity} />
+          <Stack.Screen name="Story" component={SafeStory} />
+          <Stack.Screen name="FAQ" component={SafeFAQ} />
+          <Stack.Screen name="Blogs" component={SafeBlogs} />
+          <Stack.Screen name="Collaborations" component={SafeCollaborations} />
+          <Stack.Screen name="Wishlist" component={SafeWishlist} />
         </Stack.Navigator>
       </NavigationContainer>
     </View>

@@ -11,14 +11,14 @@ export const fontSizes = {
   micro: 6,
   tiny: 7,
   xxs: 8,
-  xs: 9,
-  sm: 10,
-  base: 11,
-  md: 13,
-  lg: 15,
-  xl: 17,
-  xxl: 20,
-  title: 24,
+  xs: 10,
+  sm: 11,
+  base: 12,
+  md: 14,
+  lg: 16,
+  xl: 18,
+  xxl: 21,
+  title: 26,
 };
 
 export const fontWeights = {

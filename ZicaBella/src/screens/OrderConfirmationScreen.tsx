@@ -1,11 +1,14 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useColors } from '../constants/colors';
 import { useThemeStore } from '../store/themeStore';
-import { RootStackParamList } from '../navigation/RootNavigator';
+import { RootStackParamList } from '../navigation/types';
+import { Typography } from '../components/Typography';
+import { haptics } from '../utils/haptics';
+import { initPushNotifications } from '../utils/notifications';
 
 export default function OrderConfirmationScreen() {
   const insets = useSafeAreaInsets();
@@ -15,31 +18,67 @@ export default function OrderConfirmationScreen() {
   const { orderId } = route.params;
   const isDark = useThemeStore(s => s.theme) === 'dark';
 
+  React.useEffect(() => {
+    // Delay push notification request until the user places their first order
+    // This is much better for user experience than spamming it on app open
+    setTimeout(() => {
+      initPushNotifications().catch(() => {});
+    }, 1000);
+  }, []);
+
   return (
-    <View style={[styles.container, { paddingTop: insets.top + 40, backgroundColor: colors.background }]}>
-      <View style={[styles.checkCircle, { backgroundColor: isDark ? 'rgba(52,199,89,0.2)' : 'rgba(52,199,89,0.1)' }]}>
-        <Ionicons name="checkmark" size={48} color={colors.success} />
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 100 }]}>
+        <View style={[styles.checkCircle, { backgroundColor: isDark ? 'rgba(52,199,89,0.1)' : 'rgba(52,199,89,0.05)' }]}>
+          <Ionicons name="checkmark-done-circle" size={64} color={colors.success} />
+        </View>
+
+        <Typography heading weight="700" size={24} color={colors.text} style={styles.title}>ORDER CONFIRMED</Typography>
+        <Typography weight="400" size={10} color={colors.textMuted} style={styles.orderId}>ORDER ID: {orderId.toUpperCase()}</Typography>
+        
+        <View style={[styles.divider, { backgroundColor: colors.borderLight }]} />
+
+        <Typography size={12} color={colors.textSecondary} style={styles.message}>
+          THANK YOU FOR YOUR PATRONAGE. WE'RE PREPARING YOUR ARCHIVAL PIECES FOR DISPATCH. YOU'LL RECEIVE A NOTIFICATION AS SOON AS THEY SHIP.
+        </Typography>
+
+        <View style={styles.actions}>
+          <TouchableOpacity 
+            style={[styles.primaryButton, { backgroundColor: colors.foreground }]} 
+            onPress={() => { haptics.buttonTap(); navigation.navigate('Main'); }} 
+            activeOpacity={0.85}
+          >
+            <Typography heading weight="700" size={11} color={colors.background}>CONTINUE SHOPPING</Typography>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.secondaryButton, { borderColor: colors.borderLight }]} 
+            onPress={() => { haptics.buttonTap(); navigation.navigate('OrderHistory'); }} 
+            activeOpacity={0.7}
+          >
+            <Typography heading weight="700" size={9} color={colors.text}>TRACK YOUR ORDER</Typography>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+
+      {/* Signature branding */}
+      <View style={[styles.footer, { paddingBottom: insets.bottom + 20 }]}>
+        <Typography weight="400" size={8} color={colors.textExtraLight} style={{ letterSpacing: 4 }}>ZICA BELLA ARCHIVE</Typography>
       </View>
-      <Text style={[styles.title, { color: colors.text }]}>Order Placed!</Text>
-      <Text style={[styles.orderId, { color: colors.textMuted }]}>Order #{orderId}</Text>
-      <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Thank you for your purchase.{'\n'}You'll receive a confirmation shortly.</Text>
-      <TouchableOpacity 
-        style={[styles.button, { backgroundColor: colors.foreground }]} 
-        onPress={() => navigation.navigate('Main')} 
-        activeOpacity={0.85}
-      >
-        <Text style={[styles.buttonText, { color: colors.background }]}>Continue Shopping</Text>
-      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
-  checkCircle: { width: 96, height: 96, borderRadius: 48, justifyContent: 'center', alignItems: 'center', marginBottom: 24 },
-  title: { fontSize: 22, fontWeight: '700', marginBottom: 8 },
-  orderId: { fontSize: 12, fontWeight: '500', letterSpacing: 1, marginBottom: 16 },
-  subtitle: { fontSize: 13, fontWeight: '300', textAlign: 'center', lineHeight: 20, marginBottom: 40 },
-  button: { width: '100%', paddingVertical: 16, borderRadius: 16, alignItems: 'center' },
-  buttonText: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 2 },
+  container: { flex: 1 },
+  content: { alignItems: 'center', paddingHorizontal: 32 },
+  checkCircle: { width: 120, height: 120, borderRadius: 60, justifyContent: 'center', alignItems: 'center', marginBottom: 40 },
+  title: { letterSpacing: 4, marginBottom: 8, textAlign: 'center' },
+  orderId: { letterSpacing: 2, marginBottom: 32 },
+  divider: { height: 1, width: 40, marginBottom: 32 },
+  message: { textAlign: 'center', lineHeight: 22, opacity: 0.8, marginBottom: 60, letterSpacing: 0.5 },
+  actions: { width: '100%', gap: 16 },
+  primaryButton: { width: '100%', paddingVertical: 24, borderRadius: 24, alignItems: 'center' },
+  secondaryButton: { width: '100%', paddingVertical: 20, borderRadius: 24, alignItems: 'center', borderWidth: 1 },
+  footer: { alignItems: 'center', position: 'absolute', bottom: 0, left: 0, right: 0 },
 });

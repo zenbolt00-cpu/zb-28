@@ -199,14 +199,14 @@ export default function VendorsPage() {
           <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-2xl lg:rounded-[2rem] bg-foreground/5 flex items-center justify-center border border-foreground/10 shadow-inner shrink-0">
              <Building2 className="w-6 h-6 lg:w-8 lg:h-8 text-foreground/40" />
           </div>
-          <div className="min-w-0">
-            <h1 className="text-2xl lg:text-4xl font-bold text-foreground tracking-tighter leading-none truncate">
-              Manufacturing Nodes
-            </h1>
-            <p className="text-[10px] lg:text-[11px] text-foreground/50 dark:text-foreground/30 font-bold uppercase tracking-[0.2em] lg:tracking-[0.4em] mt-1.5 lg:mt-2">
-              Vendors & Supply Chain
-            </p>
-          </div>
+            <div className="min-w-0">
+              <h1 className="text-xl lg:text-4xl font-bold text-foreground tracking-tighter leading-none truncate uppercase">
+                Manufacturing Nodes
+              </h1>
+              <p className="text-[9px] lg:text-[11px] text-foreground/40 font-bold uppercase tracking-[0.2em] lg:tracking-[0.4em] mt-1.5 lg:mt-2">
+                Vendors & Supply Chain
+              </p>
+            </div>
         </div>
 
         <div className="flex items-center gap-3 w-full lg:w-auto">
@@ -308,7 +308,7 @@ export default function VendorsPage() {
                   transition={{ delay: i * 0.05 }}
                   whileHover={{ y: -5, scale: 1.01 }}
                   key={v.id}
-                  className="bg-background/40 backdrop-blur-3xl border border-foreground/[0.06] hover:border-foreground/15 rounded-[2rem] p-4 lg:p-8 shadow-sm hover:shadow-2xl transition-all duration-500 group flex flex-col relative overflow-hidden"
+                  className="bg-background/40 backdrop-blur-3xl border border-foreground/[0.06] hover:border-foreground/15 rounded-[1.5rem] lg:rounded-[2rem] p-5 lg:p-8 shadow-sm hover:shadow-2xl transition-all duration-500 group flex flex-col relative overflow-hidden"
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-foreground/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                   

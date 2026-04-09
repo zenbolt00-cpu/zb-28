@@ -1,9 +1,14 @@
 import React from 'react';
 import { Text, TextProps, TextStyle } from 'react-native';
 import { useColors } from '../constants/colors';
+import { TypographyPresets, TypographyPreset } from '../constants/typography';
 
 interface TypographyProps extends TextProps {
+  /** Apply a named typography preset (display, heading, body, caption, button) */
+  preset?: TypographyPreset;
+  /** Legacy: treat as heading weight */
   heading?: boolean;
+  /** Use the Rocaston brand font */
   rocaston?: boolean;
   size?: number;
   color?: string;
@@ -12,62 +17,52 @@ interface TypographyProps extends TextProps {
   letterSpacing?: number;
 }
 
-export const Typography: React.FC<TypographyProps> = ({ 
-  children, 
-  heading, 
-  rocaston, 
-  size = 14, 
-  color, 
+/**
+ * Unified text component.
+ *
+ * Uses the native iOS system font (SF Pro) by default.
+ * Pass `rocaston` for the brand wordmark font.
+ * Pass `preset` for quick preset styling.
+ */
+export const Typography: React.FC<TypographyProps> = ({
+  children,
+  preset,
+  heading,
+  rocaston,
+  size = 14,
+  color,
   weight,
-  style, 
+  style,
   letterSpacing,
-  ...props 
+  ...props
 }) => {
   const themeColors = useColors();
   const finalColor = color || themeColors.text;
 
-  const baseStyle: TextStyle = { 
-    fontSize: size, 
-    color: finalColor, 
-    letterSpacing 
+  // Resolve preset styles if provided
+  const presetStyle = preset ? TypographyPresets[preset] : undefined;
+
+  // Rocaston is the only custom font we keep; everything else uses system font
+  const fontFamily = rocaston ? 'Rocaston' : undefined;
+
+  // Determine fontWeight: explicit weight > heading shortcut > preset > default
+  const resolvedWeight: TextStyle['fontWeight'] = weight
+    ?? (heading ? '600' : undefined)
+    ?? presetStyle?.fontWeight
+    ?? undefined;
+
+  const baseStyle: TextStyle = {
+    ...presetStyle,
+    fontSize: size ?? presetStyle?.fontSize ?? 14,
+    color: finalColor,
+    letterSpacing: letterSpacing ?? (presetStyle as any)?.letterSpacing,
+    fontWeight: resolvedWeight,
+    ...(fontFamily ? { fontFamily } : {}),
   };
-
-  if (typeof children !== 'string') {
-    return (
-      <Text style={[baseStyle, style]} {...props}>
-        {children}
-      </Text>
-    );
-  }
-
-  // Determine base font family
-  let baseFont = 'System';
-  if (heading) baseFont = 'Poppins-Bold';
-  else if (rocaston) baseFont = 'Rocaston';
-
-  // Split string into numbers and everything else
-  // This regex matches numbers (including decimals/commas like 1,899 or 19.99)
-  const parts = children.split(/([\d,.]+)/);
 
   return (
     <Text style={[baseStyle, style]} {...props}>
-      {parts.map((part, i) => {
-        // If it's a number (or contains only digits, commas, periods)
-        // We use Poppins for any part that is purely numerical + symbols
-        const isNumeric = /^[\d,.]+$/.test(part);
-        
-        return (
-          <Text 
-            key={i} 
-            style={{ 
-              fontFamily: isNumeric ? (weight === 'bold' || weight === '700' ? 'Poppins-Bold' : 'Poppins') : baseFont,
-              fontWeight: weight as any
-            }}
-          >
-            {part}
-          </Text>
-        );
-      })}
+      {children}
     </Text>
   );
 };

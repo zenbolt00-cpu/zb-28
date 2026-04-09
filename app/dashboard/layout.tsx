@@ -27,7 +27,9 @@ import {
   ArrowDownUp,
   ClipboardList,
   Coins,
+  Truck,
   X,
+  TrendingUp,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -67,6 +69,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: "Scanner Records", href: "/dashboard/scanner-records", icon: FileText },
     { name: "Returns", href: "/dashboard/returns", icon: Undo2 },
     { name: "Exchanges", href: "/dashboard/exchanges", icon: ArrowLeftRight },
+    { name: "Logistics", href: "/dashboard/logistics", icon: Truck },
   ];
 
   const aestheticNav = [
@@ -81,10 +84,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   ];
 
   const manufacturingNav = [
+    { name: "Pending Tasks", href: "/dashboard/manufacturing/tasks", icon: ClipboardList },
+    { name: "Production Tracker", href: "/dashboard/manufacturing/production", icon: TrendingUp },
     { name: "Fabric Inventory", href: "/dashboard/manufacturing/fabric", icon: Layers2 },
     { name: "Fabric Movement", href: "/dashboard/manufacturing/movement", icon: ArrowDownUp },
-    { name: "Production Tracker", href: "/dashboard/manufacturing/production", icon: ClipboardList },
-    { name: "Manufacturing Vendors", href: "/dashboard/manufacturing/vendors", icon: Building2 }, // Using Building2 for vendors
+    { name: "Manufacturing Vendors", href: "/dashboard/manufacturing/vendors", icon: Building2 },
     { name: "Cost Ledger", href: "/dashboard/manufacturing/costs", icon: Coins },
   ];
 

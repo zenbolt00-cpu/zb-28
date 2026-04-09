@@ -48,3 +48,21 @@ export async function apiGet<T>(endpoint: string, params?: Record<string, string
 export async function apiPost<T>(endpoint: string, body: any): Promise<T> {
   return apiFetch<T>(endpoint, { method: 'POST', body });
 }
+
+export async function apiPatch<T>(endpoint: string, body: any): Promise<T> {
+  return apiFetch<T>(endpoint, { method: 'PATCH', body });
+}
+
+// Higher-level service helpers
+export const serviceApi = {
+  returns: {
+    create: (body: any) => apiPost('/returns', body),
+    list: (user_id: string) => apiGet<any[]>('/returns', { user_id }),
+    get: (id: string) => apiGet(`/returns/${id}`),
+  },
+  exchanges: {
+    create: (body: any) => apiPost('/exchanges', body),
+    list: (user_id: string) => apiGet<any[]>('/exchanges', { user_id }),
+    get: (id: string) => apiGet(`/exchanges/${id}`),
+  }
+};

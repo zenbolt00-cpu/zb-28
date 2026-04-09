@@ -24,7 +24,7 @@ export async function signInWithApple(): Promise<boolean> {
     };
 
     // Save to auth store
-    useAuthStore.getState().login(user);
+    useAuthStore.getState().login(user, 'apple-demo-token');
 
     // In a production app, you would:
     // 1. Send credential.identityToken to your backend

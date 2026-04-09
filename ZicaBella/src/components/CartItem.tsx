@@ -8,6 +8,8 @@ import { formatPrice } from '../utils/formatPrice';
 import QuantityControl from './QuantityControl';
 import { haptics } from '../utils/haptics';
 
+import { Typography } from './Typography';
+
 interface Props {
   item: {
     id: string;
@@ -38,10 +40,10 @@ export default function CartItem({ item, onUpdateQuantity, onRemove, onPress }: 
         onPress={handleRemove}
         activeOpacity={0.9}
       >
-        <Ionicons name="trash-outline" size={18} color={colors.background} />
+        <Ionicons name="trash-outline" size={18} color="#FFF" />
       </TouchableOpacity>
     );
-  }, [colors.background, colors.error, handleRemove]);
+  }, [colors.error, handleRemove]);
 
   return (
     <Swipeable renderRightActions={renderRightActions}>
@@ -49,36 +51,39 @@ export default function CartItem({ item, onUpdateQuantity, onRemove, onPress }: 
         style={[
           styles.container,
           {
-            backgroundColor: colors.background === '#FFFFFF' ? '#FFFFFF' : colors.surface,
+            backgroundColor: colors.surface,
             borderColor: colors.borderLight,
           },
         ]}
       >
-        {/* Product Image */}
-        <TouchableOpacity onPress={onPress} activeOpacity={0.9}>
-          <View style={[styles.imageContainer, { backgroundColor: colors.surface }]}>
+        <TouchableOpacity onPress={onPress} activeOpacity={0.9} style={styles.contentRow}>
+          {/* Product Image */}
+          <View style={[styles.imageContainer, { backgroundColor: colors.background }]}>
             <Image source={{ uri: item.image }} style={styles.image} contentFit="cover" />
+          </View>
+
+          {/* Details */}
+          <View style={styles.details}>
+            <Typography size={8} weight="600" color={colors.text} numberOfLines={1}>
+              {item.title.toUpperCase()}
+            </Typography>
+            {item.size && (
+              <Typography size={7} weight="400" color={colors.textExtraLight}>
+                SIZE: {item.size}
+              </Typography>
+            )}
+            <Typography size={10} weight="600" color={colors.textSecondary} style={{ marginTop: 2 }}>
+              {formatPrice(parseFloat(item.price))}
+            </Typography>
           </View>
         </TouchableOpacity>
 
-        {/* Details */}
-        <View style={styles.details}>
-          <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
-            {item.title}
-          </Text>
-          {item.size && (
-            <Text style={[styles.size, { color: colors.textExtraLight }]}>
-              {item.size}
-            </Text>
-          )}
-          <Text style={[styles.price, { color: colors.textSecondary }]}>
-            {formatPrice(parseFloat(item.price))}
-          </Text>
-        </View>
-
         {/* Quantity Stepper */}
         <View style={styles.actions}>
-          <QuantityControl quantity={item.quantity} onUpdate={(qty) => onUpdateQuantity(item.id, qty)} />
+          <QuantityControl 
+            quantity={item.quantity} 
+            onUpdate={(qty) => onUpdateQuantity(item.id, qty)} 
+          />
         </View>
       </View>
     </Swipeable>
@@ -89,20 +94,21 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
-    marginBottom: 16,
+    justifyContent: 'space-between',
+    marginBottom: 12,
     padding: 12,
-    borderRadius: 24,
+    borderRadius: 20,
     borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 3,
+  },
+  contentRow: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   imageContainer: {
-    width: 60,
-    height: 60,
+    width: 64,
+    height: 64,
     borderRadius: 12,
     overflow: 'hidden',
   },
@@ -115,33 +121,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 2,
   },
-  title: {
-    fontSize: 10,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  size: {
-    fontSize: 8,
-    fontWeight: '300',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  price: {
-    fontSize: 11,
-    fontWeight: '500',
-    marginTop: 2,
-  },
   actions: {
     justifyContent: 'center',
   },
   deleteButton: {
-    width: 72,
-    marginBottom: 16,
+    width: 64,
+    marginBottom: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 16,
-    marginLeft: 8,
-    marginRight: 0,
+    borderRadius: 20,
+    marginLeft: 12,
   },
 });

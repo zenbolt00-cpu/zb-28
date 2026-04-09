@@ -1,18 +1,21 @@
 import React, { useState, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, RefreshControl, ActivityIndicator, Dimensions } from 'react-native';
+import { View, StyleSheet, ScrollView, RefreshControl, ActivityIndicator, Dimensions } from 'react-native';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 import { useColors } from '../constants/colors';
 import { useThemeStore } from '../store/themeStore';
-import { useCollectionByHandle } from '../hooks/useProducts';
-import { RootStackParamList } from '../navigation/RootNavigator';
+import { useCollectionByHandle, useCollections } from '../hooks/useProducts';
+import { RootStackParamList } from '../navigation/types';
 import ProductCard from '../components/ProductCard';
 import GlassHeader from '../components/GlassHeader';
 import CollectionFilters from '../components/CollectionFilters';
 import QuickAddModal from '../components/QuickAddModal';
+import CollectionHeaderCarousel from '../components/CollectionHeaderCarousel';
+import StorefrontFooter from '../components/StorefrontFooter';
 import { useUIStore } from '../store/uiStore';
 import { FlatProduct } from '../api/types';
+import { Typography } from '../components/Typography';
 
 
 export default function CollectionScreen() {
@@ -25,6 +28,7 @@ export default function CollectionScreen() {
   const isDark = theme === 'dark';
 
   const { collection, products, loading, refetch } = useCollectionByHandle(handle);
+  const { collections: allCollections } = useCollections(20);
   
   const [refreshing, setRefreshing] = useState(false);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
@@ -66,7 +70,7 @@ export default function CollectionScreen() {
   const { width: screenWidth } = Dimensions.get('window');
 
 
-  if (loading) {
+  if (loading && !refreshing) {
     return (
       <View style={[styles.center, { paddingTop: insets.top, backgroundColor: colors.background }]}>
         <ActivityIndicator size="small" color={colors.textExtraLight} />
@@ -102,10 +106,10 @@ export default function CollectionScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <GlassHeader title={collection?.title || 'Collection'} showBack={true} hideRightIsland={!isTabBarVisible} />
+      <GlassHeader title={collection?.title || 'Collection'} showBack={true} />
       
       <ScrollView
-        stickyHeaderIndices={[1]}
+        stickyHeaderIndices={[2]}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl 
@@ -120,6 +124,9 @@ export default function CollectionScreen() {
       >
         <View style={{ height: insets.top + 60 }} />
         
+        {/* Web Parity Collection Carousel */}
+        <CollectionHeaderCarousel currentHandle={handle} collections={allCollections as any[]} />
+
         {/* Filters Sticky Section */}
         <View style={[styles.filterSection, { backgroundColor: colors.background }]}>
           <CollectionFilters 
@@ -135,7 +142,10 @@ export default function CollectionScreen() {
         </View>
 
         <View style={styles.content}>
-          <Text style={[styles.count, { color: colors.textExtraLight }]}>{filteredProducts.length} Products</Text>
+          <Typography size={7} weight="300" color={colors.textExtraLight} style={styles.count}>
+            {filteredProducts.length} PRODUCTS
+          </Typography>
+          
           <View style={[
             styles.grid,
             viewMode === 'list' && styles.listGrid
@@ -158,7 +168,9 @@ export default function CollectionScreen() {
               </View>
             ))}
           </View>
-          <View style={{ height: 160 + insets.bottom }} />
+          <View style={{ height: 40 }} />
+          <StorefrontFooter />
+          <View style={{ height: 100 + insets.bottom }} />
         </View>
       </ScrollView>
 
@@ -181,7 +193,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   filterSection: {
-    paddingTop: 10,
+    paddingTop: 4,
+    paddingBottom: 4,
   },
   content: {
     paddingHorizontal: 0,
@@ -190,12 +203,10 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   count: {
-    fontSize: 8,
-    fontWeight: '300',
-    textTransform: 'uppercase',
-    letterSpacing: 3,
-    marginBottom: 20,
+    letterSpacing: 4,
+    marginBottom: 24,
     textAlign: 'center',
+    marginTop: 12,
   },
   grid: {
     flexDirection: 'row',
@@ -219,3 +230,4 @@ const styles = StyleSheet.create({
     width: '100%',
   },
 });
+

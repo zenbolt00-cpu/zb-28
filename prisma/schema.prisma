@@ -123,6 +123,7 @@ model Order {
   shopifyOrderId    String      @unique
   customerId        String
   status            String
+  orderType         String      @default("REGULAR") // REGULAR, RETURN, EXCHANGE
   totalPrice        Float
   subtotalPrice     Float?
   totalTax          Float?
@@ -188,18 +189,22 @@ model Inventory {
 }
 
 model Return {
-  id          String   @id @default(cuid())
-  orderId     String
-  productId   String
-  customerId  String
-  sku         String?
-  reason      String
-  status      String
-  requestedAt DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  customer    Customer @relation(fields: [customerId], references: [id])
-  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product     Product  @relation(fields: [productId], references: [id])
+  id             String   @id @default(cuid())
+  orderId        String
+  productId      String
+  customerId     String
+  sku            String?
+  reason         String
+  status         String   @default("REQUESTED") // REQUESTED, APPROVED, RECEIVED, REFUNDED, REJECTED
+  returnMethod   String?  // PICKUP, DROP_OFF
+  trackingNumber String?
+  refundAmount   Float?
+  refundStatus   String?  // PENDING, COMPLETED, FAILED
+  requestedAt    DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  customer       Customer @relation(fields: [customerId], references: [id])
+  order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product        Product  @relation(fields: [productId], references: [id])
 }
 
 model Exchange {
@@ -207,8 +212,10 @@ model Exchange {
   orderId           String
   originalProductId String
   newProductId      String
-  status            String
+  status            String   @default("REQUESTED") // REQUESTED, APPROVED, SHIPPED, DELIVERED, REJECTED
   priceDifference   Float    @default(0)
+  paymentStatus     String?  // PENDING, COMPLETED
+  newOrderId        String?  // Link to the new order created for the exchange
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
   newProduct        Product  @relation("NewProduct", fields: [newProductId], references: [id])
@@ -231,14 +238,18 @@ model Payment {
 }
 
 model Shipment {
-  id             String   @id @default(cuid())
-  orderId        String
-  trackingNumber String?
-  courier        String?
-  status         String
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  id                String   @id @default(cuid())
+  orderId           String
+  trackingNumber    String?
+  trackingUrl       String?
+  courier           String?
+  status            String
+  currentLocation   String?
+  estimatedDelivery DateTime?
+  events            String?  @default("[]") // JSON array of { status, location, timestamp, description }
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  order             Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
 
 model FeaturedUser {
@@ -414,6 +425,22 @@ model MfgProductionBatch {
   stageLogs            MfgProductionStageLog[]
   miscExpenses         MfgMiscExpense[]
   batchNotes           MfgBatchNote[]
+  tasks                MfgTask[]
+}
+
+model MfgTask {
+  id            String              @id @default(cuid())
+  title         String
+  description   String?
+  status        String              @default("PENDING") // PENDING, COMPLETED, CANCELLED
+  priority      String              @default("MEDIUM")  // LOW, MEDIUM, HIGH
+  dueDate       DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  createdByName String              @default("Admin")
+  batchId       String?
+  batch         MfgProductionBatch? @relation(fields: [batchId], references: [id], onDelete: SetNull)
 }
 
 model MfgProductionStageLog {

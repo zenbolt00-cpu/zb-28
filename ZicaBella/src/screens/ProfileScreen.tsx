@@ -14,7 +14,7 @@ import { sendOTP, verifyOTP, signOut } from '../auth/firebase';
 import { signInWithApple, isAppleSignInAvailable } from '../auth/apple';
 import { haptics } from '../utils/haptics';
 import { config } from '../constants/config';
-import { navigationRef } from '../navigation/RootNavigator';
+import { navigationRef } from '../navigation/navigationUtils';
 import { useUIStore } from '../store/uiStore';
 import { Typography } from '../components/Typography';
 import { useRef } from 'react';
@@ -325,11 +325,17 @@ export default function ProfileScreen() {
                 onPress={otpSent ? handleVerifyOTP : handleSendOTP}
                 disabled={loading}
                 activeOpacity={0.8}
+                accessibilityLabel={otpSent ? 'Confirm OTP and sign in' : 'Send verification code'}
+                accessibilityRole="button"
               >
                 <Typography heading weight="700" size={9} color={colors.background}>
                   {loading ? 'PROCESSING' : otpSent ? 'CONFIRM OTP' : 'SEND CODE'}
                 </Typography>
               </TouchableOpacity>
+
+              <Typography weight="400" size={8} color={colors.textMuted} style={{ marginTop: 12, textAlign: 'center', lineHeight: 14 }}>
+                Demo OTP is 123456.
+              </Typography>
             </View>
 
             <View style={styles.dividerRow}>
@@ -342,6 +348,8 @@ export default function ProfileScreen() {
               style={[styles.appleButton, { backgroundColor: colors.text }]}
               onPress={handleAppleSignIn}
               activeOpacity={0.8}
+              accessibilityLabel="Sign in with Apple"
+              accessibilityRole="button"
             >
               <Ionicons name="logo-apple" size={16} color={colors.background} />
               <Typography heading weight="600" size={9} color={colors.background} style={{ marginLeft: 6 }}>SIGN IN WITH APPLE</Typography>
@@ -592,6 +600,8 @@ export default function ProfileScreen() {
                   ]}
                   onPress={'onPress' in item ? (item as any).onPress : undefined}
                   activeOpacity={0.7}
+                  accessibilityLabel={item.label}
+                  accessibilityRole={'type' in item && item.type === 'toggle' ? 'none' : 'button'}
                 >
                   <View style={[styles.iconBox, { backgroundColor: colors.surface }]}>
                     <Ionicons name={item.icon} size={16} color={colors.text} />
@@ -602,6 +612,7 @@ export default function ProfileScreen() {
                       value={(item as any).value}
                       onValueChange={(item as any).onToggle}
                       trackColor={{ true: colors.foreground }}
+                      accessibilityLabel={item.label}
                     />
                   ) : (
                     <Ionicons name="chevron-forward" size={14} color={colors.textExtraLight} />
@@ -617,6 +628,8 @@ export default function ProfileScreen() {
           style={[styles.logoutBtn, { borderColor: colors.error + '40' }]} 
           onPress={handleLogout}
           activeOpacity={0.7}
+          accessibilityLabel="Sign out"
+          accessibilityRole="button"
         >
           <Ionicons name="log-out-outline" size={16} color={colors.error} />
           <Typography weight="500" size={11} color={colors.error}>SIGN OUT</Typography>
@@ -636,88 +649,84 @@ const styles = StyleSheet.create({
   },
   loginHeader: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 48,
   },
   logoDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginBottom: 16,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginBottom: 20,
   },
   loginTitle: {
-    letterSpacing: 8,
-    marginBottom: 4,
+    letterSpacing: 10,
+    marginBottom: 8,
   },
   loginSubtitle: {
-    letterSpacing: 4,
+    letterSpacing: 6,
     opacity: 0.6,
   },
   loginCard: {
-    borderRadius: 32,
-    padding: 32,
+    borderRadius: 24,
+    padding: 24,
     overflow: 'hidden',
     borderWidth: 1,
   },
   welcomeText: {
     marginBottom: 32,
-    letterSpacing: 0.5,
+    letterSpacing: 1,
   },
   formSection: {
     width: '100%',
   },
   formLabel: {
     letterSpacing: 2,
-    marginBottom: 10,
-    marginLeft: 4,
+    marginBottom: 12,
   },
   input: {
     width: '100%',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 18,
     borderRadius: 16,
-    fontSize: 13,
+    fontSize: 12,
+    fontWeight: '600',
     borderWidth: 1,
   },
   primaryButton: {
     width: '100%',
-    paddingVertical: 18,
+    paddingVertical: 20,
     borderRadius: 16,
     alignItems: 'center',
-    marginTop: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    marginTop: 32,
   },
   dividerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     width: '100%',
-    marginVertical: 32,
+    marginVertical: 40,
   },
   dividerLine: {
     flex: 1,
     height: 1,
-    opacity: 0.5,
+    opacity: 0.2,
   },
   appleButton: {
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 16,
+    paddingVertical: 18,
     borderRadius: 16,
   },
   profileHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 40,
+    paddingHorizontal: 16,
   },
   avatarGlass: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
@@ -726,44 +735,46 @@ const styles = StyleSheet.create({
   },
   avatarEditDot: {
     position: 'absolute',
-    right: 6,
-    bottom: 6,
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: 'rgba(0,0,0,0.75)',
+    right: 4,
+    bottom: 4,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#000',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#FFF',
   },
   headerInfo: {
     flex: 1,
-    gap: 4,
+    gap: 6,
   },
   statsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 24,
-    paddingHorizontal: 8,
+    paddingVertical: 32,
+    paddingHorizontal: 16,
     marginBottom: 32,
   },
   statItem: {
     alignItems: 'center',
-    gap: 4,
+    gap: 6,
   },
   statDivider: {
     width: 1,
-    height: 20,
-    opacity: 0.3,
+    height: 24,
+    opacity: 0.1,
   },
   sectionContainer: {
-    marginBottom: 32,
+    marginBottom: 40,
+    paddingHorizontal: 16,
   },
   sectionTitle: {
-    letterSpacing: 3,
-    marginBottom: 12,
-    marginLeft: 4,
-    opacity: 0.8,
+    letterSpacing: 4,
+    marginBottom: 16,
+    opacity: 0.7,
   },
   menuGlass: {
     borderRadius: 24,
@@ -773,31 +784,32 @@ const styles = StyleSheet.create({
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 20,
     gap: 16,
   },
   iconBox: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
+    width: 36,
+    height: 36,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
   menuLabel: {
     flex: 1,
-    letterSpacing: 0.3,
+    letterSpacing: 0.5,
   },
   logoutBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 16,
-    borderRadius: 20,
+    gap: 10,
+    paddingVertical: 20,
+    borderRadius: 24,
     borderWidth: 1,
-    marginTop: 8,
-    marginBottom: 32,
+    marginTop: 16,
+    marginBottom: 48,
+    marginHorizontal: 16,
   },
   versionText: {
     textAlign: 'center',
@@ -805,7 +817,7 @@ const styles = StyleSheet.create({
     opacity: 0.4,
   },
   editForm: {
-    padding: 24,
+    padding: 20,
     gap: 20,
   },
   editField: {
@@ -814,26 +826,20 @@ const styles = StyleSheet.create({
   fieldLabel: {
     letterSpacing: 2,
     opacity: 0.6,
-    marginBottom: 4,
   },
   editInput: {
     fontSize: 14,
-    paddingVertical: 8,
     borderBottomWidth: 1,
+    paddingVertical: 4,
   },
   fieldDivider: {
     height: 1,
-    opacity: 0.1,
+    opacity: 0.05,
   },
   saveBtn: {
-    marginTop: 20,
-    paddingVertical: 16,
+    marginTop: 16,
+    paddingVertical: 18,
     borderRadius: 16,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
   },
 });

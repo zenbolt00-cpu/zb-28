@@ -9,9 +9,14 @@ export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  try {
+    const { searchParams } = new URL(request.url);
+    const userIdParam = searchParams.get('user_id');
+
     const session = await getServerSession(authOptions);
-    if (!session || !session.user) {
+    const sessionUserId = session?.user ? (session.user as any).id : null;
+    const sessionEmail = session?.user?.email;
+
+    if (!sessionUserId && !userIdParam) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -38,8 +43,9 @@ export async function GET(
     const customer = await prisma.customer.findFirst({
         where: {
             OR: [
-                { email: session.user.email || "" },
-                { id: (session.user as any).id || "" }
+                { id: userIdParam || "" },
+                { id: sessionUserId || "" },
+                { email: sessionEmail || "" }
             ]
         }
     });
@@ -48,7 +54,29 @@ export async function GET(
        return NextResponse.json({ error: "Unauthorized access to order" }, { status: 403 });
     }
 
-    return NextResponse.json({ order });
+    // Enrich order with tracking data from the latest shipment
+    const latestShipment = order.shipments?.sort(
+      (a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    )[0];
+
+    const enrichedOrder = {
+      ...order,
+      trackingNumber: latestShipment?.trackingNumber || null,
+      trackingUrl: latestShipment?.trackingUrl || null,
+      trackingStatus: latestShipment?.status || null,
+      currentLocation: latestShipment?.currentLocation || null,
+      estimatedDelivery: latestShipment?.estimatedDelivery || null,
+      trackingEvents: latestShipment?.events ? JSON.parse(latestShipment.events) : [],
+      courier: latestShipment?.courier || null,
+      // Build timeline for the TrackingStepper component
+      timeline: latestShipment?.events ? 
+        JSON.parse(latestShipment.events).reduce((acc: any, event: any) => {
+          acc[event.status] = event.timestamp;
+          return acc;
+        }, {}) : {},
+    };
+
+    return NextResponse.json({ order: enrichedOrder });
   } catch (error: any) {
     console.error("Fetch Single Order Error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });

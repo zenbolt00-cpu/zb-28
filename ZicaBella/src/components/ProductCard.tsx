@@ -35,44 +35,26 @@ export default function ProductCard({ product, onQuickAdd, style }: Props) {
     setIsLoading(true);
     haptics.buttonTap();
     // Simulate a brief loading state for "premium" feel
-    await new Promise(resolve => setTimeout(resolve, 400));
+    await new Promise(resolve => setTimeout(resolve, 300));
     onQuickAdd(product);
     setIsLoading(false);
   };
+
+  const isSoldOut = product.isSoldOut;
 
   return (
     <View
       style={[
         styles.container,
-        product.isSoldOut && styles.soldOut,
+        isSoldOut && styles.soldOut,
         style,
-        isDark
-          ? {
-              backgroundColor: colors.card,
-              borderColor: colors.border,
-              borderWidth: StyleSheet.hairlineWidth,
-            }
-          : {
-              backgroundColor: '#FFFFFF',
-              borderWidth: 0,
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 6 },
-              shadowOpacity: 0.06,
-              shadowRadius: 8,
-              elevation: 2,
-            },
       ]}
     >
-      {/* Dark mode: true black-glass. Light mode: clean white card. */}
-      {isDark ? (
-        <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
-      ) : null}
-      
-      {/* Badges */}
+      {/* Badges - Sleeker, higher up */}
       <View style={styles.badgeContainer}>
-        {product.isSoldOut ? (
-          <View style={[styles.soldOutBadge, { backgroundColor: isDark ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.8)' }]}>
-            <Text style={[styles.soldOutText, { color: isDark ? '#000' : '#FFF' }]}>Sold Out</Text>
+        {isSoldOut ? (
+          <View style={styles.soldOutBadge}>
+            <Text style={styles.soldOutText}>Sold Out</Text>
           </View>
         ) : product.isOnSale ? (
           <View style={styles.saleBadge}>
@@ -81,54 +63,78 @@ export default function ProductCard({ product, onQuickAdd, style }: Props) {
         ) : null}
       </View>
 
-      {/* Image - Flush with top/sides */}
-      <TouchableOpacity onPress={handlePress} activeOpacity={0.9} style={styles.imageTapArea}>
+      {/* Image - 3/4.2 aspect ratio from Next.js */}
+      <TouchableOpacity 
+        onPress={handlePress} 
+        activeOpacity={0.94} 
+        style={styles.imageTapArea}
+        accessibilityRole="button"
+        accessibilityLabel={`View product ${product.title}`}
+      >
         <Image
           source={{ uri: product.featuredImage || undefined }}
           style={[
             styles.image,
-            product.isSoldOut && { opacity: 0.6 },
+            isSoldOut && { filter: [{ grayscale: 0.4 }] },
           ]}
           contentFit="cover"
-          transition={300}
+          transition={400}
+          accessibilityIgnoresInvertColors
         />
         
-        {/* Floating Quick Add Button Overlay */}
-        {!product.isSoldOut && onQuickAdd && (
-          <TouchableOpacity
-            onPress={handleQuickAdd}
-            style={styles.floatingAddButton}
-            activeOpacity={0.7}
-            disabled={isLoading}
-          >
-            <BlurView intensity={isDark ? 50 : 80} tint={isDark ? 'dark' : 'light'} style={styles.floatingAddBlur}>
-              {isLoading ? (
-                <ActivityIndicator size="small" color={colors.text} />
-              ) : (
-                <Ionicons name="add" size={16} color={colors.text} />
-              )}
-            </BlurView>
-          </TouchableOpacity>
+        {/* Hover glass overlay feel */}
+        {!isSoldOut && (
+          <View style={styles.imageOverlay} />
         )}
       </TouchableOpacity>
 
-      {/* Info row */}
+      {/* Info Floor - clean typography matches Next.js */}
       <View style={styles.infoRow}>
         <View style={styles.textContainer}>
-          <Typography size={5.5} weight="500" color={colors.text} numberOfLines={1} style={{ letterSpacing: 1.5, textTransform: 'uppercase' }}>
-            {product.title}
+          <Typography 
+            size={8} 
+            weight="600" 
+            color={colors.textLight} 
+            numberOfLines={1} 
+            style={styles.productTitle}
+          >
+            {product.title.toUpperCase()}
           </Typography>
           <View style={styles.priceRow}>
-            <Typography size={7} weight="500" color={colors.textSecondary} style={product.isOnSale ? { color: colors.sale } : undefined}>
+            <Typography 
+              size={9.5} 
+              weight="500" 
+              color={colors.textSecondary} 
+            >
               {formatPrice(product.price)}
             </Typography>
             {product.isOnSale && product.compareAtPrice && (
-              <Typography size={6} weight="300" color={colors.textExtraLight} style={{ textDecorationLine: 'line-through' }}>
+              <Typography 
+                size={8} 
+                weight="300" 
+                color={colors.textExtraLight} 
+                style={{ textDecorationLine: 'line-through' }}
+              >
                 {formatPrice(product.compareAtPrice)}
               </Typography>
             )}
           </View>
         </View>
+
+        {!isSoldOut && onQuickAdd && (
+          <TouchableOpacity
+            onPress={handleQuickAdd}
+            style={styles.quickAddBtn}
+            activeOpacity={0.7}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator size="small" color={colors.textSecondary} />
+            ) : (
+              <Ionicons name="add" size={16} color={colors.textSecondary} />
+            )}
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -137,100 +143,88 @@ export default function ProductCard({ product, onQuickAdd, style }: Props) {
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    borderRadius: 20,
-    overflow: 'hidden',
+    backgroundColor: 'transparent',
   },
   soldOut: {
-    opacity: 0.8,
+    opacity: 0.7,
   },
   badgeContainer: {
     position: 'absolute',
-    top: 12,
-    left: 12,
+    top: 6,
+    left: 6,
     zIndex: 10,
+    gap: 4,
   },
   soldOutBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 2,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   soldOutText: {
-    fontSize: 7,
+    fontSize: 6,
     fontWeight: '700',
     textTransform: 'uppercase',
-    letterSpacing: 1.5,
+    letterSpacing: 0,
+    color: '#FFF',
   },
   saleBadge: {
-    backgroundColor: '#FF453A', // System red
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
+    backgroundColor: 'rgba(0,0,0,0.85)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 2,
   },
   saleText: {
     color: '#FFFFFF',
-    fontSize: 7,
+    fontSize: 6,
     fontWeight: '700',
     textTransform: 'uppercase',
-    letterSpacing: 1.5,
   },
   imageTapArea: {
     width: '100%',
-    aspectRatio: 3 / 4.6,
+    aspectRatio: 3 / 4.8, // Taller for premium feel
+    borderRadius: 6, // Reduced radius per Next.js
+    overflow: 'hidden',
+    backgroundColor: 'rgba(128,128,128,0.05)',
+    marginBottom: 8,
   },
   image: {
     width: '100%',
     height: '100%',
   },
+  imageOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.02)',
+  },
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 10,
+    alignItems: 'flex-start',
+    paddingHorizontal: 4,
   },
   textContainer: {
     flex: 1,
-    marginRight: 6,
     gap: 2,
   },
-  title: {
-    fontSize: 8,
-    fontWeight: '400',
+  productTitle: {
+    letterSpacing: 1.2,
     textTransform: 'uppercase',
-    letterSpacing: 2,
+    opacity: 0.45,
   },
   priceRow: {
     flexDirection: 'row',
-    alignItems: 'baseline',
+    alignItems: 'center',
     gap: 6,
   },
-  price: {
-    fontSize: 9,
-    fontWeight: '300',
-    letterSpacing: 1,
-  },
-  comparePrice: {
-    fontSize: 8,
-    fontWeight: '300',
-    letterSpacing: 0.5,
-    textDecorationLine: 'line-through',
-  },
-  floatingAddButton: {
-    position: 'absolute',
-    bottom: 8,
-    right: 8,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  floatingAddBlur: {
-    flex: 1,
+  quickAddBtn: {
+    width: 20,
+    height: 20,
+    borderRadius: 6,
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 2,
   },
 });
+

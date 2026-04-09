@@ -5,18 +5,25 @@ import prisma from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const { searchParams } = new URL(req.url);
+    const userIdParam = searchParams.get('user_id');
+    
     const session = await getServerSession(authOptions);
-    if (!session || !session.user) {
+    const sessionUserId = session?.user ? (session.user as any).id : null;
+    const sessionEmail = session?.user?.email;
+
+    if (!sessionUserId && !userIdParam) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const customer = await prisma.customer.findFirst({
         where: {
             OR: [
-                { email: session.user.email || "" },
-                { id: (session.user as any).id || "" }
+                { id: userIdParam || "" },
+                { id: sessionUserId || "" },
+                { email: sessionEmail || "" }
             ]
         }
     });

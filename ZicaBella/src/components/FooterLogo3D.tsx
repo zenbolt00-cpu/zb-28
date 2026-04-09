@@ -9,25 +9,27 @@ import type { Group } from 'three';
 const LOGO_SVG = require('../assets/ZB-logo-silver.svg');
 const MODEL = require('../assets/Zicabella-silver-logo.glb');
 
-/** Compact footer footprint — smaller “globe” presence */
-const WRAP_W = 108;
-const WRAP_H = 84;
+/** Exact parity with Next.js StorefrontFooter (w-14 h-14 = 56px) */
+const WRAP_W = 56;
+const WRAP_H = 56;
 
 function LogoMesh({ uri }: { uri: string }) {
   const gltf = useGLTF(uri);
   const group = useRef<Group>(null);
 
-  useFrame((_, dt) => {
+  useFrame((state, dt) => {
     if (group.current) {
-      group.current.rotation.y += dt * 0.35;
-      group.current.rotation.x = Math.sin(group.current.rotation.y * 0.5) * 0.08;
+      // Smooth auto-rotate matching web's model-viewer
+      group.current.rotation.y += dt * 0.4;
+      // Subtle float
+      group.current.position.y = Math.sin(state.clock.elapsedTime) * 0.05;
     }
   });
 
   return (
-    <Center>
+    <Center top>
       <group ref={group}>
-        <primitive object={gltf.scene} scale={1.05} />
+        <primitive object={gltf.scene} scale={1.25} />
       </group>
     </Center>
   );
@@ -36,9 +38,10 @@ function LogoMesh({ uri }: { uri: string }) {
 function Scene({ uri }: { uri: string }) {
   return (
     <>
-      <ambientLight intensity={0.45} />
-      <directionalLight position={[5, 8, 6]} intensity={1.05} />
-      <directionalLight position={[-5, 2, -4]} intensity={0.45} color="#c8d4ee" />
+      <ambientLight intensity={0.65} />
+      <directionalLight position={[10, 10, 5]} intensity={1.5} />
+      <directionalLight position={[-10, 5, -5]} intensity={0.8} color="#c8d4ee" />
+      <pointLight position={[0, 2, 5]} intensity={0.5} />
       <Suspense fallback={null}>
         <LogoMesh uri={uri} />
       </Suspense>
@@ -107,8 +110,8 @@ export default function FooterLogo3D() {
     <LogoErrorBoundary fallback={<SvgMark />}>
       <View style={styles.wrap}>
         <Canvas
-          camera={{ position: [0, 0.15, 3.9], fov: 32 }}
-          gl={{ alpha: true, antialias: true }}
+          camera={{ position: [0, 0, 4.5], fov: 28 }}
+          gl={{ alpha: true, antialias: true, logarithmicDepthBuffer: true }}
           style={styles.canvas}
           onCreated={({ gl }) => {
             gl.setClearColor(0x000000, 0);
@@ -126,7 +129,7 @@ const styles = StyleSheet.create({
     width: WRAP_W,
     height: WRAP_H,
     alignSelf: 'center',
-    marginBottom: 6,
+    marginBottom: 12, // Exact mb-3 parity
   },
   canvas: {
     flex: 1,
@@ -140,3 +143,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 });
+

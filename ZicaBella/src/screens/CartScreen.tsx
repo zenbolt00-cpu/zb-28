@@ -8,6 +8,7 @@ import { formatPrice } from '../utils/formatPrice';
 import { useCart } from '../hooks/useCart';
 import CartItem from '../components/CartItem';
 import { useUIStore } from '../store/uiStore';
+import { useAuthStore } from '../store/authStore';
 import { Typography } from '../components/Typography';
 import { useRef } from 'react';
 
@@ -39,9 +40,11 @@ export default function CartScreen() {
   const discounts = 0;
   const totalAfterDiscount = useMemo(() => total - discounts, [total, discounts]);
 
+  const isAuthenticated = useAuthStore(s => s.isAuthenticated);
+
   const handleCheckout = useCallback(() => {
-    navigation.navigate('Checkout');
-  }, [navigation]);
+    navigation.navigate('CheckoutFlow');
+  }, [navigation, isAuthenticated]);
 
   const handleGoHome = useCallback(() => {
     navigation.navigate('HomeTab' as never);
@@ -72,20 +75,23 @@ export default function CartScreen() {
         </View>
       ) : (
         <>
-          <FlatList
-            data={items}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <CartItem
-                item={item}
-                onUpdateQuantity={update}
-                onRemove={remove}
-                onPress={() => navigation.navigate('ProductDetail', { handle: item.handle })}
-              />
-            )}
-            style={styles.list}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.listContent}
+            <FlatList
+              data={items}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <CartItem
+                  item={item}
+                  onUpdateQuantity={update}
+                  onRemove={remove}
+                  onPress={() => navigation.navigate('ProductDetail', { handle: item.handle })}
+                />
+              )}
+              getItemLayout={(data, index) => (
+                {length: 102, offset: 102 * index, index}
+              )}
+              style={styles.list}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.listContent}
             onScroll={onScroll}
             scrollEventThrottle={16}
           />
@@ -113,8 +119,19 @@ export default function CartScreen() {
             </View>
 
             <TouchableOpacity style={[styles.checkoutButton, { backgroundColor: colors.foreground }]} onPress={handleCheckout} activeOpacity={0.95}>
-              <Typography size={9} weight="700" color={colors.background} style={styles.checkoutText}>Proceed to Checkout</Typography>
+              <Typography size={9} weight="700" color={colors.background} style={styles.checkoutText}>
+                {isAuthenticated ? 'Proceed to Checkout' : 'Checkout as Guest'}
+              </Typography>
             </TouchableOpacity>
+
+            {!isAuthenticated && (
+              <TouchableOpacity
+                style={[styles.loginCta, { borderColor: colors.borderLight }]}
+                onPress={() => navigation.navigate('Auth')}
+              >
+                <Typography size={8} weight="600" color={colors.textSecondary}>OR SIGN IN FOR A FASTER EXPERIENCE</Typography>
+              </TouchableOpacity>
+            )}
 
             <TouchableOpacity
               onPress={() =>
@@ -264,5 +281,14 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 3,
     paddingVertical: 10,
+  },
+  loginCta: {
+    height: 54,
+    borderRadius: 16,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 12,
+    marginBottom: 20,
   },
 });

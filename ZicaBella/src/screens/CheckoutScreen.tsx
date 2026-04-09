@@ -403,6 +403,8 @@ export default function CheckoutScreen() {
               if (handleValidateShipping()) setStep(2);
             }}
             activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel="Review Order"
           >
             <Typography size={10} weight="700" color={colors.background} style={styles.ctaText}>Review Order</Typography>
           </TouchableOpacity>
@@ -466,6 +468,8 @@ export default function CheckoutScreen() {
               setStep(3);
             }}
             activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel="Continue to Payment"
           >
             <Typography size={10} weight="700" color={colors.background} style={styles.ctaText}>Continue to Payment</Typography>
           </TouchableOpacity>
@@ -522,6 +526,8 @@ export default function CheckoutScreen() {
             onPress={handlePay}
             disabled={loading}
             activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel={paymentMethod === 'COD' ? 'Place Order via Cash on Delivery' : 'Pay Online'}
           >
             {loading ? (
               <ActivityIndicator color={colors.background} />

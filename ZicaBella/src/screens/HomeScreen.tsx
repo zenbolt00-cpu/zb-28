@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, ScrollView, Dimensions,
   RefreshControl, TouchableOpacity, ActivityIndicator,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -21,10 +22,10 @@ import MenuDrawer from '../components/MenuDrawer';
 import SpotlightSection from '../components/SpotlightSection';
 import FlipbookSection from '../components/FlipbookSection';
 import CommunitySection from '../components/CommunitySection';
-import FooterLogo3D from '../components/FooterLogo3D';
 import { useAdminSettings } from '../hooks/useAdminFeatures';
 import { useUIStore } from '../store/uiStore';
 import { Typography } from '../components/Typography';
+import StorefrontFooter from '../components/StorefrontFooter';
 
 const { width } = Dimensions.get('window');
 
@@ -142,24 +143,44 @@ export default function HomeScreen() {
               </TouchableOpacity>
             </View>
           )}
+
+          {/* ═══ SECTION LABEL: Latest ═══ */}
           <View style={styles.sectionHeader}>
             <View style={styles.headerLeft}>
               <Typography size={6} color={colors.textExtraLight} weight="300" style={styles.sectionTag}>{latestCurationSubtitle}</Typography>
+              <Typography size={8} color={colors.text} weight="600" style={styles.sectionTitle}>{latestCurationTitle}</Typography>
             </View>
-            <View style={styles.headerCenter}>
-              <Typography size={7} color={colors.text} weight="600" style={styles.sectionTitle}>{latestCurationTitle}</Typography>
-            </View>
-            <TouchableOpacity style={styles.headerRight} onPress={() => navigation.navigate('SearchTab')}>
-              <Typography size={6} color={colors.textExtraLight} weight="400">VIEW ALL</Typography>
+            <TouchableOpacity onPress={() => navigation.navigate('ShopTab')} style={styles.headerRight}>
+              <Typography size={7} color={colors.textExtraLight} weight="400">VIEW ALL</Typography>
             </TouchableOpacity>
           </View>
           
+          {/* ═══ PRODUCT GRID 1 ═══ */}
           <View style={styles.gridContainer}>
             {products.slice(0, 4).map((product) => (
               <View key={product.id} style={styles.gridItem}>
                 <ProductCard product={product} onQuickAdd={handleQuickAdd} />
               </View>
             ))}
+          </View>
+
+          {/* ═══ ABOVE-COLLECTION MEDIA ═══ */}
+          {settings?.collectionsMedia && (
+            <View style={styles.mediaSection}>
+               <HeroVideo source={settings.collectionsMedia} height={200} borderRadius={12} />
+            </View>
+          )}
+
+          <View style={styles.collectionsSection}>
+            <View style={styles.archiveLabel}>
+              <Typography size={7.5} color={colors.textExtraLight} weight="300" style={styles.archiveLabelText}>— {settings?.archive?.title || 'THE WARDROBE'} —</Typography>
+            </View>
+
+            <CollectionCarousel collections={collections} />
+
+            <View style={styles.archiveLabel}>
+              <Typography size={7} color={colors.textExtraLight} weight="300" style={styles.archiveSubtext}>{settings?.archive?.subtitle || 'SUSTAINABLE EVOLUTION'}</Typography>
+            </View>
           </View>
 
           {/* ═══ RING COLLECTION CAROUSEL ═══ */}
@@ -171,25 +192,25 @@ export default function HomeScreen() {
           {/* ═══ FLIPBOOK SECTION ═══ */}
           <FlipbookSection />
 
-          <View style={styles.collectionsSection}>
-            <View style={styles.archiveLabel}>
-              <Typography size={7} color={colors.textExtraLight} weight="300" style={styles.archiveLabelText}>— THE WARDROBE —</Typography>
-            </View>
-
-            <CollectionCarousel collections={collections} />
-
-            <View style={styles.archiveLabel}>
-              <Typography size={6.5} color={colors.textExtraLight} weight="300" style={styles.archiveSubtext}>SUSTAINABLE EVOLUTION</Typography>
-            </View>
-          </View>
-
           {/* ═══ PRODUCT GRID 2 ═══ */}
           {renderProductGrid(products.slice(4, 8))}
 
+          {/* ═══ FEATURED MEDIA / BLUEPRINT ═══ */}
+          {settings?.blueprint?.video ? (
+            <View style={styles.blueprintSection}>
+               <HeroVideo source={settings.blueprint.video} height={460} borderRadius={16} />
+            </View>
+          ) : (
+            <View style={styles.blueprintSection}>
+               <Image source={{ uri: settings?.blueprint?.image || "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1000" }} style={styles.blueprintImage} contentFit="cover" />
+            </View>
+          )}
+
           {/* ═══ SPOTLIGHT SECTION ═══ */}
           <SpotlightSection 
-            collectionHandle="dystra-summer26" 
-            title="AUTHENTIC STREETWEAR" 
+            collectionHandle={settings?.spotlight?.collection || "tshirts"} 
+            title={settings?.spotlight?.title || "AUTHENTIC STREETWEAR"} 
+            subtitle={settings?.spotlight?.subtitle}
           />
 
           {/* ═══ PRODUCT GRID 3 ═══ */}
@@ -198,52 +219,12 @@ export default function HomeScreen() {
           {/* ═══ COMMUNITY SECTION ═══ */}
           <CommunitySection />
 
-          {/* ═══ PRODUCT GRID 4 ═══ */}
-          {products.length > 16 && renderProductGrid(products.slice(16, 20))}
-
-          {/* ═══ FOOTER (aligned with app.zicabella.com) ═══ */}
-          <View style={styles.footer}>
-            <FooterLogo3D />
-            <Typography heading size={14} color={colors.textMuted} style={styles.footerBrand}>
-              ZICA BELLA
-            </Typography>
-            <Typography size={8} color={colors.textExtraLight} weight="300" style={styles.footerEst}>
-              Est. 2024
-            </Typography>
-
-            <View style={styles.policyLinks}>
-              {[
-                { label: 'Contact', url: config.contactPage },
-                { label: 'Privacy policy', url: config.policies.privacy },
-                { label: 'Refund policy', url: config.policies.refund },
-                { label: 'Shipping', url: config.policies.shipping },
-                { label: 'Terms of service', url: config.policies.terms },
-              ].map((policy, index) => (
-                <React.Fragment key={policy.label}>
-                  {index > 0 ? (
-                    <Typography size={8} color={colors.textExtraLight} weight="300" style={styles.footerDot}>
-                      ·
-                    </Typography>
-                  ) : null}
-                  <TouchableOpacity
-                    onPress={() => navigation.navigate('Policy', { url: policy.url, title: policy.label })}
-                  >
-                    <Typography size={8} color={colors.textMuted} weight="300" style={styles.policyLink}>
-                      {policy.label}
-                    </Typography>
-                  </TouchableOpacity>
-                </React.Fragment>
-              ))}
-            </View>
-
-            <Typography size={7} color={colors.textExtraLight} weight="300" style={styles.copyright}>
-              © {new Date().getFullYear()} ZICA BELLA · LUXURY STREETWEAR
-            </Typography>
-          </View>
+          {/* ═══ GLOBAL STOREFRONT FOOTER ═══ */}
+          <StorefrontFooter />
         </View>
 
         {/* Bottom padding for tab bar */}
-        <View style={{ height: 120 + insets.bottom }} />
+        <View style={{ height: 100 + insets.bottom }} />
       </ScrollView>
 
       {/* Drawers */}
@@ -264,154 +245,6 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  content: {
-    paddingHorizontal: 0,
-    paddingTop: 28,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    marginTop: -14,
-    width: '100%',
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    marginBottom: 8, // Reduced for minimalism
-    marginTop: 8, // Reduced for minimalism
-    height: 32, // More compact
-    position: 'relative',
-  },
-  headerLeft: {
-    flex: 1,
-    alignItems: 'flex-start',
-  },
-  headerCenter: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1, // Ensure it's on top
-  },
-  headerRight: {
-    flex: 1,
-    alignItems: 'flex-end',
-    zIndex: 2,
-  },
-  sectionTag: {
-    fontSize: 6, // Smaller tag
-    fontWeight: '300',
-    textTransform: 'uppercase',
-    letterSpacing: 3,
-  },
-  sectionTitle: {
-    letterSpacing: 3,
-    textTransform: 'uppercase',
-  },
-  viewAllButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
-    paddingBottom: 2,
-  },
-  viewAllText: {
-    fontSize: 7,
-    textTransform: 'uppercase',
-    letterSpacing: 2,
-    fontWeight: '300',
-  },
-  productGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: 2,
-    gap: 2,
-    justifyContent: 'space-between',
-  },
-  cardWrapper: {
-    width: '49.6%', // Beautiful minimal sliver of gap in center
-    marginBottom: 6,
-  },
-  gridContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: 4,
-    gap: 4,
-  },
-  gridItem: {
-    width: (width - 12) / 2, // 4px padding each side + 4px gap = 12px
-    marginBottom: 8,
-  },
-  collectionsSection: {
-    paddingVertical: 32,
-    marginHorizontal: 0,
-  },
-  archiveLabel: {
-    alignItems: 'center',
-    paddingVertical: 24,
-  },
-  archiveLabelText: {
-    fontSize: 8.5,
-    fontWeight: '300',
-    textTransform: 'uppercase',
-    letterSpacing: 8,
-  },
-  archiveSubtext: {
-    fontSize: 7.5,
-    fontWeight: '300',
-    textTransform: 'uppercase',
-    letterSpacing: 5,
-  },
-  footer: {
-    alignItems: 'center',
-    paddingVertical: 48,
-    paddingHorizontal: 20,
-    marginTop: 32,
-  },
-  footerBrand: {
-    fontSize: 15,
-    fontWeight: '300',
-    letterSpacing: 6,
-    textTransform: 'uppercase',
-    marginBottom: 8,
-  },
-  footerEst: {
-    fontSize: 8,
-    fontWeight: '300',
-    letterSpacing: 3,
-    marginBottom: 28,
-    opacity: 0.75,
-  },
-  policyLinks: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    alignItems: 'center',
-    rowGap: 10,
-    columnGap: 4,
-    marginBottom: 28,
-    paddingHorizontal: 8,
-  },
-  footerDot: {
-    fontSize: 8,
-    marginHorizontal: 4,
-    opacity: 0.45,
-  },
-  policyLink: {
-    fontSize: 8,
-    fontWeight: '300',
-    letterSpacing: 0.8,
-    textTransform: 'none',
-  },
-  copyright: {
-    fontSize: 7,
-    fontWeight: '300',
-    letterSpacing: 1.6,
-    textTransform: 'uppercase',
-    opacity: 0.55,
-    textAlign: 'center',
   },
   loadingContainer: {
     paddingVertical: 100,
@@ -441,4 +274,81 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     letterSpacing: 2,
   },
+  content: {
+    paddingHorizontal: 0,
+    backgroundColor: 'transparent',
+    marginTop: 0,
+    width: '100%',
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    paddingHorizontal: 20,
+    paddingTop: 32,
+    paddingBottom: 12,
+  },
+  headerLeft: {
+    gap: 2,
+  },
+  sectionTag: {
+    letterSpacing: 4,
+    opacity: 0.35,
+    textTransform: 'uppercase',
+  },
+  sectionTitle: {
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+    opacity: 0.75,
+  },
+  headerRight: {
+    paddingBottom: 2,
+  },
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    paddingHorizontal: 1,
+    marginBottom: 24,
+  },
+  gridItem: {
+    width: (width - 2) / 2,
+    marginBottom: 16,
+  },
+  collectionsSection: {
+    paddingVertical: 24,
+  },
+  archiveLabel: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  archiveLabelText: {
+    letterSpacing: 8,
+    opacity: 0.22,
+  },
+  archiveSubtext: {
+    fontSize: 7.5,
+    fontWeight: '300',
+    textTransform: 'uppercase',
+    letterSpacing: 5,
+    opacity: 0.6,
+  },
+  mediaSection: {
+    marginVertical: 4,
+    paddingHorizontal: 16,
+  },
+  blueprintSection: {
+    marginVertical: 32,
+    paddingHorizontal: 16,
+  },
+  blueprintImage: {
+    width: '100%',
+    height: 460,
+    borderRadius: 16,
+  },
+  footerVideoSection: {
+    marginTop: 48,
+    paddingHorizontal: 16,
+  },
 });
+

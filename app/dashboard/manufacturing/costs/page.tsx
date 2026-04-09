@@ -326,10 +326,10 @@ export default function CostLedgerPage() {
               <Activity className="w-7 h-7" />
             </div>
             <div>
-              <h1 className="text-4xl md:text-5xl font-bold text-foreground uppercase tracking-tighter leading-none">
+              <h1 className="text-2xl lg:text-5xl font-bold text-foreground uppercase tracking-tighter leading-none">
                 Cost Ledger
               </h1>
-              <p className="text-[11px] text-foreground/50 dark:text-foreground/30 font-bold uppercase tracking-[0.4em] mt-2">
+              <p className="text-[9px] lg:text-[11px] text-foreground/40 font-bold uppercase tracking-[0.4em] mt-2">
                 Spectrum Financial Audit
               </p>
             </div>
@@ -481,9 +481,9 @@ export default function CostLedgerPage() {
 
         <div className="border-t border-foreground/5" />
 
-        {/* Ledger Table */}
-        <div className="flex-1 overflow-x-auto custom-scrollbar">
-          <div className="min-w-[1000px] lg:min-w-0">
+      {/* Table Section */}
+      <div className="flex-1 overflow-x-auto custom-scrollbar">
+        <div className="min-w-[900px] w-full">
              <table className="w-full text-left whitespace-nowrap">
               <thead>
                 <tr className="border-b border-foreground/5 text-[10px] uppercase font-bold text-foreground/40 tracking-[0.2em]">

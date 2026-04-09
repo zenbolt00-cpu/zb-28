@@ -444,11 +444,11 @@ export default function ProductionTrackerPage() {
                <ClipboardList className="w-6 h-6 lg:w-8 lg:h-8 text-foreground/40" />
             </div>
             <div className="min-w-0">
-              <h1 className="text-2xl lg:text-4xl font-bold text-foreground tracking-tighter leading-none truncate">
+              <h1 className="text-xl lg:text-4xl font-bold text-foreground tracking-tighter leading-none truncate uppercase">
                 Production Tracker
               </h1>
-              <p className="text-[10px] lg:text-[11px] text-foreground/50 dark:text-foreground/30 font-bold uppercase tracking-[0.2em] lg:tracking-[0.4em] mt-1.5 lg:mt-2">
-                Tracker & Lifecycle
+              <p className="text-[9px] lg:text-[11px] text-foreground/40 font-bold uppercase tracking-[0.2em] lg:tracking-[0.4em] mt-1.5 lg:mt-2">
+                Operations & Lifecycle
               </p>
             </div>
           </div>
@@ -502,7 +502,7 @@ export default function ProductionTrackerPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1, duration: 0.8 }}
-        className="glass-card rounded-[1.5rem] lg:rounded-[3rem] p-4 lg:p-8 flex flex-col gap-5 lg:gap-6"
+        className="glass-card rounded-[1.5rem] lg:rounded-[3rem] p-3 sm:p-4 lg:p-8 flex flex-col gap-5 lg:gap-6"
       >
         {/* Stage Pipeline */}
         <div className="bg-foreground/[0.03] backdrop-blur-xl rounded-2xl p-1.5 border border-foreground/5 overflow-hidden shadow-inner">
@@ -549,8 +549,8 @@ export default function ProductionTrackerPage() {
             <p className="text-[11px] text-foreground/40 mt-1 max-w-sm">Create a new batch with style, quantity, optional fabric consumption to log automatically.</p>
           </div>
         ) : view === "table" ? (
-          <div className="w-full rounded-2xl border border-foreground/10 overflow-hidden bg-background shadow-sm">
-            <div className="overflow-x-auto w-full custom-scrollbar">
+          <div className="w-full rounded-2xl border border-foreground/10 overflow-hidden bg-background shadow-sm overflow-x-auto">
+            <div className="min-w-[800px] w-full custom-scrollbar">
               <table className="w-full text-left whitespace-nowrap">
                 <thead className="bg-foreground/[0.02] border-b border-foreground/10 text-[10px] uppercase font-bold text-foreground/50 tracking-widest">
                 <tr>
@@ -615,7 +615,7 @@ export default function ProductionTrackerPage() {
                   initial={{ opacity: 0, scale: 0.98 }}
                   animate={{ opacity: 1, scale: 1 }}
                   whileHover={{ y: -4, scale: 1.01 }}
-                  className="bg-background/40 backdrop-blur-3xl border border-foreground/[0.06] hover:border-foreground/15 rounded-[2rem] shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden flex flex-col relative group/card"
+                  className="bg-background/40 backdrop-blur-3xl border border-foreground/[0.06] hover:border-foreground/15 rounded-[1.5rem] lg:rounded-[2rem] shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden flex flex-col relative group/card"
                 >
                   {/* Progress bar background at top */}
                   <div className="absolute top-0 left-0 right-0 h-1.5 bg-foreground/[0.03]">

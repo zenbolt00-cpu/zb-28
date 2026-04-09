@@ -5,7 +5,7 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { WebView } from 'react-native-webview';
 import { useColors } from '../constants/colors';
-import { RootStackParamList } from '../navigation/RootNavigator';
+import { RootStackParamList } from '../navigation/types';
 
 export default function PolicyScreen() {
   const insets = useSafeAreaInsets();

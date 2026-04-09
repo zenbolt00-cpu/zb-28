@@ -1,44 +1,28 @@
-import React, { useMemo, useRef, useState, useEffect, useCallback } from 'react';
+import React, { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  ActivityIndicator,
-  Dimensions,
-  Alert,
-  Modal,
-  FlatList,
-  Animated,
+  View, StyleSheet, ScrollView, TouchableOpacity, Dimensions, ActivityIndicator, Animated,
 } from 'react-native';
+import { useVideoPlayer, VideoView } from 'expo-video';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
-import FastImage, { FastImagePriority } from '../components/FastImage';
+import { Image } from 'expo-image';
 import { useColors } from '../constants/colors';
 import { useThemeStore } from '../store/themeStore';
 import { haptics } from '../utils/haptics';
 import { useProductByHandle, useProducts } from '../hooks/useProducts';
 import { useCartStore } from '../store/cartStore';
-import { RootStackParamList } from '../navigation/RootNavigator';
-import ProductCard from '../components/ProductCard';
-import QuickAddModal from '../components/QuickAddModal';
-import { FlatProduct, Media } from '../api/types';
-import { useRecentStore } from '../store/recentStore';
-import { useBookmarkStore } from '../store/bookmarkStore';
-import { useUIStore } from '../store/uiStore';
+import { RootStackParamList } from '../navigation/types';
 import { Typography } from '../components/Typography';
-import ImageGalleryModal from '../components/ImageGalleryModal';
-import { WebView } from 'react-native-webview';
+import { formatPrice } from '../utils/formatPrice';
+import { useUIStore } from '../store/uiStore';
+import ProductCard from '../components/ProductCard';
+import { useRecentStore } from '../store/recentStore';
+import StorefrontFooter from '../components/StorefrontFooter';
+import { SizeChartModal } from '../components/SizeChartModal';
 
-const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
-const HERO_HEIGHT = SCREEN_H * 0.72;
-const THUMB_SIZE = 100;
-const THUMB_RADIUS = 20;
-const NAV_PILL_H = 48;
-const SIZE_GAP = 8;
+const { width: SCREEN_W } = Dimensions.get('window');
 
 export default function ProductDetailScreen() {
   const insets = useSafeAreaInsets();
@@ -46,148 +30,74 @@ export default function ProductDetailScreen() {
   const route = useRoute<RouteProp<RootStackParamList, 'ProductDetail'>>();
   const { handle } = route.params;
   const colors = useColors();
-  const { theme, toggleTheme } = useThemeStore();
+  const theme = useThemeStore((state) => state.theme);
   const isDark = theme === 'dark';
 
-  const { product, loading, error } = useProductByHandle(handle);
-  const { products: allProducts } = useProducts(10);
+  const { product, loading } = useProductByHandle(handle);
+  const { products: recommended } = useProducts(8);
   const { addItem } = useCartStore();
   const cartCount = useCartStore(s => s.itemCount());
 
-  const [selectedProduct, setSelectedProduct] = useState<FlatProduct | null>(null);
-  const [modalVisible, setModalVisible] = useState(false);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [activeTab, setActiveTab] = useState<'DESCRIPTION' | 'DETAILS' | 'CARE' | 'BRAND'>('DESCRIPTION');
-  const { addBookmark, removeBookmark, isBookmarked } = useBookmarkStore();
-  const bookmarked = isBookmarked(product?.id || '');
-  const { addProduct, recentProducts } = useRecentStore();
-  const [showFullDescription, setShowFullDescription] = useState(false);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isGalleryVisible, setIsGalleryVisible] = useState(false);
-  const [isSizeGuideVisible, setIsSizeGuideVisible] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [sizeChartVisible, setSizeChartVisible] = useState(false);
 
-  const setTabBarVisible = useUIStore(s => s.setTabBarVisible);
-  const lastScrollY = useRef(0);
-  const heroRef = useRef<FlatList<any> | null>(null);
-  const pulse = useRef(new Animated.Value(0)).current;
-
-  // ---- Stable derived values (must be above early returns) ----
-  const sizes = useMemo(() => ['XS', 'S', 'M', 'L', 'XL', 'XXL'], []);
-
-  const variantBySize = useMemo(() => {
-    const map = new Map<string, any>();
-    for (const v of (product?.variants || []) as any[]) {
-      if (!v?.size) continue;
-      map.set(String(v.size).toUpperCase(), v);
-    }
-    return map;
-  }, [product?.variants]);
-
-  const productMedia: Media[] = useMemo(() => {
-    if (!product) return [];
-    if ((product as any).allMedia && (product as any).allMedia.length > 0) return (product as any).allMedia as Media[];
-    return (product.images || []).map((img: string) => ({
-      mediaContentType: 'IMAGE' as const,
-      image: { url: img, altText: null },
-      alt: null,
-    }));
-  }, [product]);
-
-  const heroImages = useMemo(
-    () =>
-      productMedia
-        .filter(m => m.mediaContentType !== 'VIDEO')
-        .map(m => m.image?.url || (m as any).url || (m as any).src)
-        .filter(Boolean),
-    [productMedia],
-  );
-
-  const imageOnlyMedia = useMemo(() => productMedia.filter(m => m.mediaContentType !== 'VIDEO'), [productMedia]);
-
-  const priceNumber = useMemo(() => {
-    const raw = (product as any)?.price;
-    const n = Number(String(raw || '0').replace(/[^0-9.]/g, '')) || 0;
-    return n;
-  }, [product]);
-
-  const formattedPrice = useMemo(() => {
-    try {
-      return new Intl.NumberFormat('en-IN', {
-        style: 'currency',
-        currency: 'INR',
-        maximumFractionDigits: 0,
-      }).format(priceNumber);
-    } catch {
-      return `₹${Math.round(priceNumber).toLocaleString('en-IN')}`;
-    }
-  }, [priceNumber]);
-
-  const recommended = useMemo(
-    () => allProducts.filter((p: FlatProduct) => p.id !== (product?.id || '')).slice(0, 6),
-    [allProducts, product?.id],
-  );
-
-  const recentFiltered = useMemo(
-    () => recentProducts.filter((p: FlatProduct) => p.id !== (product?.id || '')).slice(0, 4),
-    [recentProducts, product?.id],
-  );
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const [showMinimalSticky, setShowMinimalSticky] = useState(false);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
   useEffect(() => {
-    if (product) addProduct(product);
-  }, [product, addProduct]);
+    const id = scrollY.addListener(({ value }) => {
+      // Threshold where large buttons are roughly scrolled past
+      if (value > 480 && !showMinimalSticky) setShowMinimalSticky(true);
+      if (value <= 480 && showMinimalSticky) setShowMinimalSticky(false);
+    });
+    return () => scrollY.removeListener(id);
+  }, [showMinimalSticky]);
+
+  const stickyOpacity = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(stickyOpacity, {
+      toValue: showMinimalSticky ? 1 : 0,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
+  }, [showMinimalSticky]);
+  const toggleTheme = useThemeStore(s => s.toggleTheme);
+  const setCartOpen = useUIStore(s => s.setCartOpen);
+  const setBookmarkOpen = useUIStore(s => s.setBookmarkOpen);
+  const { addProduct: recordVisit, recentProducts } = useRecentStore();
+
+  const player = useVideoPlayer(product?.productVideo ?? null, (player) => {
+    player.loop = true;
+    player.muted = true;
+    player.play();
+  });
+
+  const options = useMemo(() => {
+    if (!product) return { sizes: [], colors: [] };
+    const sizes = new Set<string>();
+    product.variants.forEach(v => {
+      if (v.size) sizes.add(v.size);
+    });
+    return { 
+      sizes: Array.from(sizes), 
+      colors: ['BLACK', 'CREAM', 'SLATE'] 
+    };
+  }, [product]);
 
   useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulse, { toValue: 1, duration: 650, useNativeDriver: true }),
-        Animated.timing(pulse, { toValue: 0, duration: 650, useNativeDriver: true }),
-      ]),
-    ).start();
-  }, [pulse]);
-
-  const handleScroll = (event: any) => {
-    const currentY = event.nativeEvent.contentOffset.y;
-    const diff = currentY - lastScrollY.current;
-    if (Math.abs(diff) > 5) {
-      const isVisible = useUIStore.getState().isTabBarVisible;
-      if (diff > 0 && currentY > 100) {
-        if (isVisible) setTabBarVisible(false);
-      } else {
-        if (!isVisible) setTabBarVisible(true);
-      }
-    }
-    lastScrollY.current = currentY;
-  };
-
-  const handleSizeSelect = useCallback((size: string) => {
-    setSelectedSize(size);
-    haptics.buttonTap(); // impactLight
-  }, []);
-
-  const handleQuickAdd = (p: FlatProduct) => {
-    setSelectedProduct(p);
-    setModalVisible(true);
-  };
-
-  const resolveVariant = () => {
-    if (!product) return null;
-    if (product.variants.length > 1 && !selectedSize) return null;
-    return selectedSize
-      ? product.variants.find(v => v.size === selectedSize)
-      : product.variants[0];
-  };
+    if (options.sizes.length === 1) setSelectedSize(options.sizes[0]);
+    if (options.colors.length > 0) setSelectedColor(options.colors[0]);
+    if (product) recordVisit(product);
+  }, [options, product, recordVisit]);
 
   const handleAddToCart = () => {
     if (!product) return;
-    const variant = resolveVariant();
-    if (!variant) {
-      Alert.alert('Select Size', 'Please select a size first');
-      return;
-    }
-    if (!variant.availableForSale) {
-      Alert.alert('Sold Out', 'Selected size is currently sold out.');
-      return;
-    }
+    const variant = product.variants.find(v => v.size === selectedSize) || product.variants[0];
     addItem({
       productId: product.id,
       variantId: variant.id,
@@ -195,1022 +105,590 @@ export default function ProductDetailScreen() {
       size: selectedSize,
       handle: product.handle,
       price: variant.price,
-      image: product.images[0] || product.featuredImage || '',
+      image: product.featuredImage,
     });
     haptics.addToCart();
   };
 
   const handleBuyNow = () => {
-    if (!product) return;
-    const variant = resolveVariant();
-    if (!variant) {
-      Alert.alert('Select Size', 'Please select a size first');
-      return;
-    }
-    if (!variant.availableForSale) {
-      Alert.alert('Sold Out', 'Selected size is currently sold out.');
-      return;
-    }
-    addItem({
-      productId: product.id,
-      variantId: variant.id,
-      title: product.title,
-      size: selectedSize,
-      handle: product.handle,
-      price: variant.price,
-      image: product.images[0] || product.featuredImage || '',
-    });
-    haptics.success();
-    navigation.navigate('Checkout');
+    handleAddToCart();
+    setTimeout(() => {
+      navigation.navigate('CheckoutFlow');
+    }, 400);
   };
 
-  if (loading) {
+  if (loading || !product) {
     return (
-      <View style={[styles.center, { backgroundColor: colors.background }]}>
-        <ActivityIndicator size="small" color={colors.textExtraLight} />
+      <View style={[styles.loading, { backgroundColor: colors.background }]}>
+        <ActivityIndicator color={colors.textExtraLight} />
       </View>
     );
   }
 
-  if (error || !product) {
-    return (
-      <View style={[styles.center, { backgroundColor: colors.background }]}>
-        <Text style={[styles.errorText, { color: colors.text }]}>Product not found</Text>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={[styles.goBackBtn, { backgroundColor: colors.text }]}
-        >
-          <Text style={[styles.goBackBtnText, { color: colors.background }]}>GO BACK</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
-  // NOTE: derived values are computed above (before early returns) to keep hook order stable.
-
-  const selectedSizeVariant = selectedSize
-    ? product.variants.find(v => v.size === selectedSize)
-    : product.variants[0];
-  const selectedVariantSoldOut = selectedSizeVariant
-    ? !selectedSizeVariant.availableForSale
-    : product.isSoldOut;
-
-  const sizeChartValue = product.sizeChart?.trim();
-  const sizeChartIsUrl = Boolean(sizeChartValue && /^https?:\/\//i.test(sizeChartValue));
-  const sizeChartIsImageUrl = Boolean(
-    sizeChartValue && /\.(png|jpe?g|webp|gif|svg)(\?.*)?$/i.test(sizeChartValue),
-  );
-  const showGuideButton = Boolean(sizeChartValue);
-
-  const borderLight = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.1)';
-  const borderUltra = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)';
-  const glassBg = 'rgba(255,255,255,0.18)'; // spec
-  const glassInner = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)';
-  const sizeBoxW = Math.floor((SCREEN_W - 40 - SIZE_GAP * 5) / 6);
-
-  // formattedPrice comes from the stable memo above.
-
-  const goCart = () => {
-    haptics.buttonTap();
-    useUIStore.getState().setCartOpen(true);
-  };
-
-  const onThumbPress = (idx: number) => {
-    setCurrentImageIndex(idx);
-    heroRef.current?.scrollToIndex({ index: idx, animated: true });
-    haptics.buttonTap();
-  };
-
-  // heroImages comes from the stable memo above.
+  const images = product.images.length > 0 ? product.images : [product.featuredImage];
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.background }]}>
-      {/* Full-bleed hero (behind nav) */}
-      <View style={styles.heroWrap}>
-        <FlatList
-          ref={(r) => {
-            heroRef.current = r;
-          }}
-          data={heroImages}
-          keyExtractor={(uri, idx) => `${idx}_${uri}`}
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          onMomentumScrollEnd={(e) => {
-            const idx = Math.round(e.nativeEvent.contentOffset.x / SCREEN_W);
-            setCurrentImageIndex(idx);
-          }}
-          renderItem={({ item, index }) => (
-            <TouchableOpacity
-              activeOpacity={0.95}
-              onPress={() => {
-                setCurrentImageIndex(index);
-                setIsGalleryVisible(true);
-              }}
-              style={{ width: SCREEN_W, height: HERO_HEIGHT }}
-            >
-              <FastImage
-                source={{ uri: item || undefined }}
-                style={StyleSheet.absoluteFill}
-                contentFit="cover"
-                transition={250}
-                priority={FastImagePriority.high}
-              />
-            </TouchableOpacity>
-          )}
-        />
-      </View>
-
-      {/* Floating frosted nav pill */}
-      <View style={[styles.navWrap, { top: insets.top + 8 }]}>
-        <View style={styles.navPill}>
-          <BlurView intensity={16} tint="light" style={StyleSheet.absoluteFill} />
-          <View style={[StyleSheet.absoluteFill, { backgroundColor: glassBg }]} />
-
-          <TouchableOpacity
-            onPress={() => {
-              haptics.buttonTap();
-              navigation.goBack();
-            }}
-            style={styles.navCircleBtn}
-            activeOpacity={0.75}
-          >
-            <BlurView intensity={16} tint="light" style={StyleSheet.absoluteFill} />
-            <View style={[StyleSheet.absoluteFill, { backgroundColor: glassBg }]} />
-            <Ionicons name="chevron-back" size={20} color="#fff" />
-          </TouchableOpacity>
-
-          <Text numberOfLines={1} style={styles.navTitle}>
-            {product.title.toUpperCase()}
-          </Text>
-
-          <View style={styles.navIcons}>
-            <TouchableOpacity
-              onPress={() => {
-                haptics.buttonTap();
-                toggleTheme();
-              }}
-              activeOpacity={0.75}
-            >
-              <Ionicons name={isDark ? 'moon' : 'moon-outline'} size={22} color="#fff" />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => {
-                if (bookmarked) removeBookmark(product.id);
-                else addBookmark(product);
-                haptics.buttonTap();
-              }}
-              activeOpacity={0.75}
-            >
-              <Ionicons name={bookmarked ? 'bookmark' : 'bookmark-outline'} size={22} color="#fff" />
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={goCart} activeOpacity={0.75} style={{ paddingRight: 2 }}>
-              <View>
-                <Ionicons name="cart-outline" size={22} color="#fff" />
-                {cartCount > 0 && (
-                  <View style={styles.cartBadge}>
-                    <Text style={styles.cartBadgeText}>{cartCount > 9 ? '9+' : String(cartCount)}</Text>
-                  </View>
-                )}
-              </View>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-
-      <ScrollView
-        style={styles.scroll}
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 120 + insets.bottom, paddingTop: HERO_HEIGHT }}
-      >
-        {/* Thumbnail strip */}
-        {heroImages.length > 1 && (
-          <View
-            style={[
-              styles.thumbStrip,
-              { backgroundColor: isDark ? '#0a0a0a' : '#ffffff' },
-            ]}
-          >
-            <BlurView intensity={isDark ? 28 : 18} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
-            <View
-              style={[
-                StyleSheet.absoluteFill,
-                { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.72)' },
-              ]}
-            />
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.thumbStripContent}
-            >
-              {heroImages.map((uri, idx) => {
-                const active = idx === currentImageIndex;
-                return (
-                  <TouchableOpacity
-                    key={`${idx}_${uri}`}
-                    activeOpacity={0.8}
-                    onPress={() => onThumbPress(idx)}
-                    style={[
-                      styles.thumbItem,
-                      {
-                        borderColor: active ? '#ffffff' : 'transparent',
-                        borderWidth: active ? 1.5 : 0,
-                      },
-                    ]}
-                  >
-                    <FastImage
-                      source={{ uri: uri || undefined }}
-                      style={StyleSheet.absoluteFill}
-                      contentFit="cover"
-                      transition={200}
-                      priority={FastImagePriority.normal}
-                    />
-                    {!active && (
-                      <View
-                        style={[
-                          StyleSheet.absoluteFill,
-                          { backgroundColor: isDark ? 'rgba(0,0,0,0.18)' : 'rgba(255,255,255,0.08)' },
-                        ]}
-                      />
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-          </View>
-        )}
-
-        {/* Gap between thumbnails and details */}
-        <View style={{ height: 14 }} />
-
-        {/* Info card */}
-        <View
-          style={[
-            styles.infoCard,
-            {
-              backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.88)',
-              marginTop: 0,
-              borderColor: borderLight,
-            },
-          ]}
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      {/* ── TOP NAV ACTIONS: Header Parity ── */}
+      <View style={[styles.topActions, { top: insets.top + 10 }]}>
+        <TouchableOpacity 
+          onPress={() => navigation.goBack()} 
+          style={[styles.actionBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' }]}
         >
-          <BlurView intensity={isDark ? 52 : 24} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
-          <View style={styles.infoRow1}>
-            <Text style={[styles.pdpTitle, { color: colors.text }]} numberOfLines={2}>
-              {product.title.toUpperCase()}
-            </Text>
-            <TouchableOpacity
-              onPress={() => {
-                if (bookmarked) removeBookmark(product.id);
-                else addBookmark(product);
-                haptics.buttonTap();
-              }}
-              activeOpacity={0.75}
-              style={[
-                styles.bookmarkBtn,
-                { borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)' },
-              ]}
-            >
-              <Ionicons name={bookmarked ? 'bookmark' : 'bookmark-outline'} size={18} color={colors.text} />
-            </TouchableOpacity>
-          </View>
-          <Text style={[styles.pdpPrice, { color: colors.textSecondary }]}>{formattedPrice}</Text>
+          <BlurView intensity={20} tint={isDark ? "dark" : "light"} style={StyleSheet.absoluteFill} />
+          <Ionicons name="chevron-back" size={18} color={colors.textSecondary} />
+        </TouchableOpacity>
 
-          {/* Size selector */}
-          <View style={styles.sizeHeader}>
-            <Text style={[styles.mutedLabel, { color: colors.textLight }]}>SELECT SIZE</Text>
-            {showGuideButton && (
-              <TouchableOpacity onPress={() => setIsSizeGuideVisible(true)} activeOpacity={0.8}>
-                <Text style={[styles.mutedLabel, { color: colors.textLight, textDecorationLine: 'underline' }]}>
-                  GUIDE
-                </Text>
-              </TouchableOpacity>
-            )}
-          </View>
+        <View style={styles.topRightActions}>
+          <TouchableOpacity 
+            onPress={() => { haptics.buttonTap(); setBookmarkOpen(true); }} 
+            style={[styles.actionBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' }]}
+          >
+            <BlurView intensity={20} tint={isDark ? "dark" : "light"} style={StyleSheet.absoluteFill} />
+            <Ionicons name="bookmark-outline" size={16} color={colors.textSecondary} />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            onPress={() => { haptics.buttonTap(); setCartOpen(true); }} 
+            style={[styles.actionBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' }]}
+          >
+            <BlurView intensity={20} tint={isDark ? "dark" : "light"} style={StyleSheet.absoluteFill} />
+            <Ionicons name="bag-outline" size={16} color={colors.textSecondary} />
+            {cartCount > 0 && <View style={[styles.cartBadge, { backgroundColor: colors.text }]} />}
+          </TouchableOpacity>
+        </View>
+      </View>
 
-          <View style={styles.sizePillsRow}>
-            {sizes.map((s) => {
-              const v = variantBySize.get(s);
-              const out = !v || !v.availableForSale;
-              const selected = selectedSize === s;
-              const pillBorder = isDark ? 'rgba(255,255,255,0.14)' : 'rgba(0,0,0,0.12)';
-
-              return (
-                <TouchableOpacity
-                  key={s}
-                  onPress={() => (!out ? handleSizeSelect(s) : undefined)}
-                  activeOpacity={out ? 1 : 0.8}
-                  style={[
-                    styles.sizePill2,
-                    selected && styles.sizePillSelected,
-                    {
-                      width: sizeBoxW,
-                      borderColor: selected ? (isDark ? 'rgba(255,255,255,0.22)' : 'rgba(0,0,0,0.22)') : pillBorder,
-                      backgroundColor: selected
-                        ? (isDark ? '#ffffff' : '#000000')
-                        : (isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)'),
-                      opacity: out ? 0.45 : 1,
-                    },
-                  ]}
-                >
-                  <Text style={[styles.sizeText, { color: selected ? (isDark ? '#000' : '#fff') : colors.text }]}>
-                    {s}
-                  </Text>
-                  {out && (
-                    <View
-                      pointerEvents="none"
-                      style={[
-                        styles.diagonalStrike,
-                        { backgroundColor: isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.28)' },
-                      ]}
-                    />
-                  )}
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-
-          {/* Action buttons */}
-          <View style={styles.actions2}>
-            <TouchableOpacity
-              onPress={() => {
-                haptics.buttonTap();
-                handleAddToCart();
-              }}
-              activeOpacity={0.85}
-              style={[
-                styles.actionBtnOutline,
-                {
-                  borderColor: isDark ? 'rgba(255,255,255,0.16)' : 'rgba(0,0,0,0.14)',
-                  backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.6)',
-                },
-              ]}
-            >
-              <BlurView intensity={isDark ? 20 : 14} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
-              <Text style={[styles.actionBtnText, { color: isDark ? '#fff' : '#0a0a0a' }]}>
-                ADD TO BAG
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => {
-                haptics.buttonTap();
-                handleBuyNow();
-              }}
-              activeOpacity={0.85}
-              style={[
-                styles.actionBtnSolid,
-                {
-                  backgroundColor: isDark ? '#ffffff' : '#000000',
-                },
-              ]}
-            >
-              <Text style={[styles.actionBtnText, { color: isDark ? '#000' : '#fff' }]}>
-                BUY NOW
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Tabs */}
-          <View style={styles.tabsRow}>
-            {(['DESCRIPTION', 'DETAILS', 'CARE', 'BRAND'] as const).map((t) => {
-              const active = activeTab === t;
-              return (
-                <TouchableOpacity
-                  key={t}
-                  onPress={() => setActiveTab(t)}
-                  activeOpacity={0.85}
-                  style={[
-                    styles.tabItem,
-                    active && {
-                      backgroundColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.06)',
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.tabText2,
-                      { color: active ? colors.text : colors.textLight },
-                    ]}
-                  >
-                    {t}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-
-          {/* Description body */}
-          <View style={styles.descBody}>
-            <Text
-              style={[
-                styles.descText,
-                { color: isDark ? 'rgba(255,255,255,0.72)' : 'rgba(0,0,0,0.72)' },
-              ]}
-              numberOfLines={showFullDescription ? undefined : 3}
-            >
-              {(activeTab === 'DESCRIPTION'
-                ? product.description
-                : activeTab === 'DETAILS'
-                  ? product.details || product.description
-                  : activeTab === 'CARE'
-                    ? product.care || product.description
-                    : 'ZICA BELLA')?.toUpperCase()}
-            </Text>
-
-            {activeTab === 'DESCRIPTION' && (
-              <TouchableOpacity
-                onPress={() => setShowFullDescription(!showFullDescription)}
-                activeOpacity={0.85}
-                style={[
-                  styles.viewMoreBtn,
-                  { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' },
-                ]}
-              >
-                <Text style={[styles.viewMoreText, { color: colors.textSecondary }]}>
-                  {showFullDescription ? 'VIEW LESS' : 'VIEW MORE'}
-                </Text>
-              </TouchableOpacity>
-            )}
+      <ScrollView 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 220 + insets.bottom }}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: false }
+        )}
+        scrollEventThrottle={16}
+      >
+        {/* ── HERO GALLERY: Rounded "Apple" Card ── */}
+        <View style={[styles.heroWrapper, { paddingTop: insets.top + 70 }]}>
+          <View style={styles.heroContainer}>
+            <Image 
+              source={images[activeImageIndex]} 
+              style={styles.heroImage} 
+              contentFit="cover"
+              transition={800}
+            />
           </View>
         </View>
 
-        {/* Curated pairs */}
-        {recommended.length > 0 && (
-          <View style={styles.curatedWrap}>
-            <View style={styles.curatedHeader}>
-              <Text style={[styles.curatedTitle, { color: colors.text }]}>CURATED PAIRS</Text>
-              <View style={{ flexDirection: 'row', gap: 14 }}>
-                <TouchableOpacity activeOpacity={0.8} onPress={() => onThumbPress(Math.max(0, currentImageIndex - 1))}>
-                  <Ionicons name="arrow-back-outline" size={18} color={colors.textLight} />
-                </TouchableOpacity>
-                <TouchableOpacity activeOpacity={0.8} onPress={() => onThumbPress(Math.min(heroImages.length - 1, currentImageIndex + 1))}>
-                  <Ionicons name="arrow-forward-outline" size={18} color={colors.textLight} />
-                </TouchableOpacity>
-              </View>
-            </View>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.curatedList2}
-              snapToInterval={SCREEN_W * 0.85 + 14}
-              decelerationRate="fast"
-            >
-              {recommended.map((p) => (
-                <TouchableOpacity
-                  key={p.id}
-                  activeOpacity={0.9}
-                  onPress={() => navigation.push('ProductDetail', { handle: p.handle })}
-                  style={styles.curatedCard}
-                >
-                  <View style={styles.curatedImg}>
-                    <FastImage source={{ uri: p.featuredImage || undefined }} style={StyleSheet.absoluteFill} contentFit="cover" priority={FastImagePriority.normal} />
-                  </View>
-                  <View style={[styles.curatedMetaBar, { borderTopColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }]}>
-                    <BlurView intensity={isDark ? 30 : 20} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
-                    <View style={[StyleSheet.absoluteFill, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.7)' }]} />
-                    <View style={{ flex: 1 }}>
-                      <Text style={[styles.curatedName, { color: colors.text }]} numberOfLines={1}>
-                        {p.title.toUpperCase()}
-                      </Text>
-                      <Text style={[styles.curatedPrice, { color: colors.textSecondary }]}>
-                        {(() => {
-                          const n = Number(String(p.price || '0').replace(/[^0-9.]/g, '')) || 0;
-                          try {
-                            return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
-                          } catch {
-                            return `₹${Math.round(n).toLocaleString('en-IN')}`;
-                          }
-                        })()}
-                      </Text>
-                    </View>
-                    <TouchableOpacity
-                      activeOpacity={0.8}
-                      onPress={(e) => {
-                        e.stopPropagation();
-                        handleQuickAdd(p);
-                      }}
-                      style={styles.curatedQuickAdd}
-                    >
-                      <Ionicons name="add" size={18} color={colors.text} />
-                    </TouchableOpacity>
-                  </View>
-                </TouchableOpacity>
-              ))}
-              <View style={{ width: SCREEN_W * 0.15 }} />
-            </ScrollView>
-          </View>
-        )}
-
-        {/* Recently viewed (keep existing) */}
-        {recentFiltered.length > 0 && (
-          <View style={[styles.recentSection, { backgroundColor: colors.background }]}>
-            <View
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false} 
+          contentContainerStyle={styles.thumbnailScroll}
+          style={{ marginTop: 24 }}
+        >
+          {images.map((img, idx) => (
+            <TouchableOpacity 
+              key={idx} 
+              onPress={() => { haptics.buttonTap(); setActiveImageIndex(idx); }}
               style={[
-                styles.sectionHeaderRow,
-                {
-                  paddingHorizontal: 16,
-                  borderBottomWidth: StyleSheet.hairlineWidth,
-                  borderBottomColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
-                  paddingBottom: 12,
-                },
+                styles.thumbnail, 
+                { 
+                  borderColor: activeImageIndex === idx ? colors.text : 'rgba(0,0,0,0.05)',
+                  borderWidth: activeImageIndex === idx ? 1.5 : 1,
+                  opacity: activeImageIndex === idx ? 1 : 0.6
+                }
               ]}
             >
-              <Typography
-                heading
-                size={7.5}
-                color={colors.textLight}
-                style={[styles.sectionLabel, { opacity: 0.8 }]}
-              >
-                RECENTLY VIEWED
-              </Typography>
-            </View>
-            <View style={styles.recentGrid}>
-              {recentFiltered.map((p: FlatProduct) => (
-                <View key={p.id} style={styles.recentCard}>
-                  <ProductCard product={p} onQuickAdd={handleQuickAdd} />
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
-      </ScrollView>
+              <Image source={img} style={StyleSheet.absoluteFill} contentFit="cover" />
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
 
-      {/* ───── Modals ───── */}
-      <QuickAddModal
-        visible={modalVisible}
-        product={selectedProduct}
-        onClose={() => setModalVisible(false)}
-      />
-
-      <ImageGalleryModal
-        visible={isGalleryVisible}
-        media={imageOnlyMedia}
-        initialIndex={Math.max(
-          0,
-          imageOnlyMedia.findIndex((media: any) => {
-            const mediaUrl = media?.image?.url || media?.url || media?.src;
-            const currentUrl =
-              productMedia[currentImageIndex]?.image?.url ||
-              (productMedia[currentImageIndex] as any)?.url ||
-              (productMedia[currentImageIndex] as any)?.src;
-            return mediaUrl && mediaUrl === currentUrl;
-          }),
-        )}
-        onClose={() => setIsGalleryVisible(false)}
-      />
-
-      {/* Size Guide Modal */}
-      <Modal
-        visible={isSizeGuideVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setIsSizeGuideVisible(false)}
-      >
-        <View style={styles.guideBackdrop}>
-          <BlurView intensity={95} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
-          <View
-            style={[
-              styles.guideCard,
-              {
-                backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.85)',
-                borderColor: borderLight,
-              },
-            ]}
-          >
-            <View style={styles.guideHeader}>
-              <Typography size={7} weight="600" color={colors.text} letterSpacing={1.2}>
-                SIZE GUIDE
-              </Typography>
-              <TouchableOpacity
-                style={[
-                  styles.guideClose,
-                  { backgroundColor: glassInner, borderColor: borderLight },
-                ]}
-                onPress={() => setIsSizeGuideVisible(false)}
-              >
-                <Ionicons name="close" size={16} color={colors.text} />
-              </TouchableOpacity>
-            </View>
-
-            {sizeChartIsImageUrl && sizeChartValue ? (
-              <FastImage
-                source={{ uri: sizeChartValue }}
-                style={styles.guideImage}
-                contentFit="contain"
-                priority={FastImagePriority.high}
-              />
-            ) : sizeChartIsUrl && sizeChartValue ? (
-              <WebView source={{ uri: sizeChartValue }} style={styles.guideWebView} />
-            ) : sizeChartValue ? (
-              <WebView source={{ html: sizeChartValue }} style={styles.guideWebView} />
-            ) : (
-              <View style={styles.guideEmpty}>
-                <Typography size={8} color={colors.textSecondary}>
-                  Size chart is unavailable for this product.
+        {/* ── PRODUCT INFO ── */}
+        <View style={styles.infoSection}>
+           <View style={styles.titleRow}>
+              <View style={{ flex: 1 }}>
+                <Typography rocaston size={24} color={colors.textSecondary} style={styles.title}>
+                  {product.title.toUpperCase()}
+                </Typography>
+                <Typography size={12} weight="300" color={colors.textExtraLight} style={styles.price}>
+                  {formatPrice(product.price)}
                 </Typography>
               </View>
+              <TouchableOpacity 
+                style={[styles.bookmarkToggle, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)' }]}
+                onPress={() => { haptics.buttonTap(); setIsBookmarked(!isBookmarked); }}
+              >
+                <Ionicons name={isBookmarked ? "bookmark" : "bookmark-outline"} size={20} color={colors.textSecondary} />
+              </TouchableOpacity>
+           </View>
+
+           {/* SIZE SELECTOR: Modern Pill Grid */}
+           <View style={styles.selectorSection}>
+              <View style={styles.selectorHeader}>
+                <Typography size={7} weight="400" color={colors.textExtraLight} style={styles.selectorLabel}>SELECT SIZE</Typography>
+                <TouchableOpacity onPress={() => { haptics.buttonTap(); setSizeChartVisible(true); }}>
+                   <Typography size={7} weight="600" color={colors.textExtraLight} style={{ textDecorationLine: 'underline', opacity: 0.4 }}>SIZE GUIDE</Typography>
+                </TouchableOpacity>
+              </View>
+               <View style={styles.sizeGrid}>
+                {options.sizes.map(s => {
+                  const variant = product.variants.find(v => v.size === s);
+                  const isOutOfStock = variant?.quantityAvailable === 0;
+                  return (
+                    <TouchableOpacity 
+                      key={s} 
+                      onPress={() => { haptics.buttonTap(); setSelectedSize(s); }}
+                      disabled={isOutOfStock}
+                      style={[
+                        styles.sizeOption, 
+                        { 
+                          borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)', 
+                          backgroundColor: selectedSize === s ? colors.text : 'transparent'
+                        },
+                        isOutOfStock && { opacity: 0.25 }
+                      ]}
+                    >
+                      <Typography 
+                        size={8.5} 
+                        weight="500" 
+                        color={selectedSize === s ? colors.background : colors.textSecondary}
+                      >
+                        {s.toUpperCase()}
+                      </Typography>
+                      {isOutOfStock && (
+                        <View style={[styles.diagonalLine, { backgroundColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)' }]} />
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+           </View>
+
+           {/* PRIMARY ACTIONS: Inline as per iPhone reference */}
+           <View style={styles.inlineActions}>
+              <TouchableOpacity 
+                style={[styles.ghostBtn, { borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)', marginBottom: 12 }]}
+                onPress={handleAddToCart}
+                activeOpacity={0.8}
+              >
+                <Typography size={9} weight="700" color={colors.textSecondary} style={{ letterSpacing: 4 }}>ADD TO BAG</Typography>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.primaryBtn, { backgroundColor: colors.foreground }]}
+                onPress={handleBuyNow}
+                activeOpacity={0.8}
+              >
+                <Typography size={9} weight="800" color={colors.background} style={{ letterSpacing: 5 }}>BUY NOW</Typography>
+              </TouchableOpacity>
+           </View>
+
+            {/* INFO ACCORDION: Liquid Glass Style */}
+           <View style={[styles.tabsBox, { backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)', borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }]}>
+              <View style={[styles.tabsPillContainer, { backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)' }]}>
+                {(['DESCRIPTION', 'DETAILS', 'CARE', 'BRAND'] as const).map(tab => (
+                  <TouchableOpacity 
+                    key={tab} 
+                    onPress={() => { haptics.buttonTap(); setActiveTab(tab); }}
+                    style={[styles.tabBtn, activeTab === tab && { backgroundColor: isDark ? 'white' : 'white' }]}
+                  >
+                    <Typography size={6.5} weight="700" color={activeTab === tab ? '#000' : colors.textExtraLight} style={{ opacity: activeTab === tab ? 1 : 0.4 }}>
+                      {tab}
+                    </Typography>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              <View style={styles.tabContentArea}>
+                <Typography 
+                  size={9} 
+                  color={colors.textSecondary} 
+                  numberOfLines={activeTab === 'DESCRIPTION' && !isDescriptionExpanded ? 3 : undefined}
+                  style={{ lineHeight: 18, fontWeight: '300', opacity: 0.8 }}
+                >
+                  {activeTab === 'DESCRIPTION' ? product.description : 
+                   activeTab === 'DETAILS' ? (product.details || "High-density weight. Signature Zica Bella custom cut. Reinforced seams for architectural durability.") :
+                   activeTab === 'CARE' ? (product.care || "Dry clean only recommended. Hand wash cold if necessary. Lay flat to dry away from direct sunlight.") :
+                   "Founded on the principle of 'Liquid Architecture'. Each piece is a curated artifact of modern luxury."}
+                </Typography>
+                {activeTab === 'DESCRIPTION' && !isDescriptionExpanded && (
+                  <TouchableOpacity 
+                    onPress={() => { haptics.buttonTap(); setIsDescriptionExpanded(true); }}
+                    style={[styles.viewMorePill, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }]}
+                  >
+                     <Typography size={6.5} weight="700" color={colors.textSecondary}>VIEW MORE</Typography>
+                  </TouchableOpacity>
+                )}
+              </View>
+           </View>
+
+           {/* PRODUCT VIDEO: Emotive Section */}
+           {product.productVideo && (
+             <View style={styles.videoSection}>
+                <Typography size={7.5} color={colors.textExtraLight} weight="700" style={styles.sectionTag}>EXPERIMENTAL REFERENCE</Typography>
+                <View style={styles.videoWrapper}>
+                  <VideoView
+                    player={player}
+                    style={StyleSheet.absoluteFill}
+                    nativeControls={false}
+                    contentFit="cover"
+                  />
+                  <View style={styles.videoOverlay} />
+                </View>
+             </View>
+           )}
+
+            {/* CURATED PAIRS: Minimal UI Grid */}
+            {recommended.length > 0 && (
+             <View style={styles.curatedSection}>
+                <View style={[styles.curatedHeaderFixed, { paddingBottom: 16 }]}>
+                  <Typography rocaston size={13} color={colors.textSecondary} style={{ letterSpacing: 4 }}>CURATED PAIRS</Typography>
+                  <View style={styles.headerArrows}>
+                    <TouchableOpacity onPress={() => haptics.buttonTap()} style={{ opacity: 0.4 }}><Ionicons name="arrow-back" size={16} color={colors.textSecondary} /></TouchableOpacity>
+                    <TouchableOpacity onPress={() => haptics.buttonTap()} style={{ opacity: 0.4, marginLeft: 20 }}><Ionicons name="arrow-forward" size={16} color={colors.textSecondary} /></TouchableOpacity>
+                  </View>
+                </View>
+                <ScrollView 
+                  horizontal 
+                  showsHorizontalScrollIndicator={false} 
+                  contentContainerStyle={styles.curatedScroll}
+                  snapToInterval={SCREEN_W * 0.85}
+                  decelerationRate="fast"
+                >
+                  {recommended.slice(0, 6).map((p, idx) => (
+                    <TouchableOpacity 
+                      key={p.id} 
+                      style={[
+                        styles.curatedItem,
+                        { borderRightWidth: 1, borderRightColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }
+                      ]}
+                      onPress={() => navigation.push('ProductDetail', { handle: p.handle })}
+                    >
+                      <View style={styles.curatedCard}>
+                        <Image source={{ uri: p.featuredImage }} style={StyleSheet.absoluteFill} contentFit="cover" />
+                      </View>
+                      <View style={styles.curatedMeta}>
+                         <View style={{ flex: 1 }}>
+                           <Typography size={8} weight="400" color={colors.textSecondary} numberOfLines={1} style={{ letterSpacing: 1.5, marginBottom: 2 }}>{p.title.toUpperCase()}</Typography>
+                           <Typography size={8} weight="300" color={colors.textExtraLight}>{formatPrice(p.price)}</Typography>
+                         </View>
+                         <TouchableOpacity 
+                           onPress={(e) => { e.stopPropagation(); haptics.addToCart(); }}
+                           style={styles.plusBtn}
+                         >
+                            <Ionicons name="add" size={18} color={colors.textSecondary} style={{ opacity: 0.6 }} />
+                         </TouchableOpacity>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+             </View>
             )}
-          </View>
+
+           {/* RECENTLY VIEWED */}
+           {recentProducts.length > 1 && (
+              <View style={styles.recentSection}>
+                <Typography size={7} color={colors.textExtraLight} weight="400" style={styles.sectionTag}>RECENTLY VIEWED</Typography>
+                <View style={styles.recentGrid}>
+                  {recentProducts.filter(p => p.id !== product.id).slice(0, 4).map(p => (
+                    <View key={p.id} style={styles.recentCardWrapper}>
+                      <ProductCard product={p} />
+                    </View>
+                  ))}
+                </View>
+              </View>
+           )}
+
+           <StorefrontFooter />
         </View>
-      </Modal>
+      </ScrollView>
+
+      {/* ── MINIMAL STICKY ACTION: iPhone Scroll Sync Parity ── */}
+      <Animated.View style={[styles.minimalStickyFooter, { paddingBottom: insets.bottom + 12, opacity: stickyOpacity, transform: [{ translateY: stickyOpacity.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }] }]}>
+         <BlurView intensity={isDark ? 60 : 80} tint={isDark ? "dark" : "light"} style={StyleSheet.absoluteFill} />
+         <View style={[styles.footerDivider, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.1)' }]} />
+         
+         <TouchableOpacity 
+           style={[styles.minimalAddBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)', borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }]}
+           onPress={handleAddToCart}
+           activeOpacity={0.9}
+         >
+           <Typography size={8} weight="800" color={colors.text} style={{ letterSpacing: 3 }}>ADD TO BAG</Typography>
+           <View style={{ width: 1, height: 12, backgroundColor: colors.text, opacity: 0.2, marginHorizontal: 16 }} />
+           <Typography size={8} weight="300" color={colors.text}>{formatPrice(product.price)}</Typography>
+         </TouchableOpacity>
+      </Animated.View>
+
+      <SizeChartModal 
+        visible={sizeChartVisible} 
+        onClose={() => setSizeChartVisible(false)}
+        imageUrl={product.sizeChart}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
-  scroll: {
-    flex: 1,
-  },
-  heroWrap: {
+  container: { flex: 1 },
+  loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  topActions: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: HERO_HEIGHT,
-    backgroundColor: '#000',
-  },
-  navWrap: {
-    position: 'absolute',
-    left: 16,
-    right: 16,
-    zIndex: 10,
-  },
-  navPill: {
-    height: NAV_PILL_H,
-    borderRadius: 999,
-    overflow: 'hidden',
-    paddingLeft: 6,
-    paddingRight: 10,
-    alignItems: 'center',
+    left: 20,
+    right: 20,
+    zIndex: 1000,
     flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  navCircleBtn: {
+  actionBtn: {
     width: 40,
     height: 40,
     borderRadius: 20,
     overflow: 'hidden',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
-  navTitle: {
-    flex: 1,
-    color: '#fff',
-    fontSize: 13,
-    fontWeight: '500',
-    letterSpacing: 2,
-    textTransform: 'uppercase',
-  },
-  navIcons: {
+  topRightActions: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
+    gap: 8,
   },
   cartBadge: {
     position: 'absolute',
-    top: -6,
-    right: -10,
-    minWidth: 16,
-    height: 16,
-    paddingHorizontal: 4,
-    borderRadius: 8,
-    backgroundColor: '#FF3B30',
-    justifyContent: 'center',
-    alignItems: 'center',
+    top: 10,
+    right: 10,
+    width: 6,
+    height: 6,
   },
-  cartBadgeText: {
-    color: '#fff',
-    fontSize: 9,
-    fontWeight: '700',
-    letterSpacing: 0.2,
+  videoSection: {
+    marginBottom: 48,
   },
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+  sectionTag: {
+    letterSpacing: 4,
+    marginBottom: 16,
+    opacity: 0.35,
+    paddingHorizontal: 24,
   },
-
-  thumbStrip: {
-    paddingVertical: 14,
-    paddingHorizontal: 12,
-    borderBottomWidth: 0.5,
-    borderBottomColor: 'rgba(0,0,0,0.06)',
-  },
-  thumbStripContent: {
-    paddingHorizontal: 6,
-  },
-  thumbItem: {
-    width: THUMB_SIZE,
-    height: THUMB_SIZE,
-    borderRadius: THUMB_RADIUS,
+  videoWrapper: {
+    width: SCREEN_W - 40,
+    alignSelf: 'center',
+    aspectRatio: 9 / 16,
+    borderRadius: 36,
     overflow: 'hidden',
-    marginHorizontal: 6,
+    backgroundColor: 'rgba(0,0,0,0.02)',
   },
-
-  infoCard: {
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+  heroWrapper: {
     paddingHorizontal: 20,
-    paddingTop: 18,
-    paddingBottom: 16,
-    borderWidth: 0.5,
   },
-  infoRow1: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+  heroContainer: {
+    width: '100%',
+    aspectRatio: 3 / 4.2, // Closer to 85dvh feel on mobile
+    borderRadius: 44,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(0,0,0,0.02)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 20 },
+    shadowOpacity: 0.15,
+    shadowRadius: 40,
+    elevation: 10,
+  },
+  heroImage: { flex: 1 },
+  thumbnailScroll: {
+    paddingHorizontal: 20,
     gap: 12,
   },
-  pdpTitle: {
-    flex: 1,
-    fontSize: 18,
-    fontWeight: '700',
-    letterSpacing: 1.1,
-    textTransform: 'uppercase',
+  thumbnail: {
+    width: 112, // Exact w-28 parity
+    height: 112,
+    borderRadius: 40,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(0,0,0,0.02)',
   },
-  bookmarkBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  infoSection: {
+    paddingHorizontal: 24,
+    paddingTop: 36,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 28,
+  },
+  title: { letterSpacing: 1, marginBottom: 6, lineHeight: 32 },
+  price: { letterSpacing: 2, opacity: 0.6 },
+  bookmarkToggle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  selectorSection: {
+    marginBottom: 24,
+  },
+  selectorHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  selectorLabel: { letterSpacing: 3, opacity: 0.35, fontWeight: '500' },
+  sizeGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  sizeOption: {
+    width: (SCREEN_W - 48 - 40) / 6, 
+    height: 48,
+    borderRadius: 16,
     borderWidth: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  pdpPrice: {
-    fontSize: 15,
-    fontWeight: '500',
-    marginTop: 6,
-  },
-  sizeHeader: {
-    marginTop: 14,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  mutedLabel: {
-    fontSize: 8,
-    fontWeight: '500',
-    letterSpacing: 1.5,
-    textTransform: 'uppercase',
-  },
-  sizePillsRow: {
-    flexDirection: 'row',
-    flexWrap: 'nowrap',
-    gap: SIZE_GAP,
-    marginTop: 10,
-    justifyContent: 'space-between',
-  },
-  sizePill2: {
-    height: 44,
-    borderRadius: 12,
-    borderWidth: 0.5,
-    justifyContent: 'center',
-    alignItems: 'center',
     overflow: 'hidden',
   },
-  sizePillSelected: {
-    backgroundColor: '#000000',
-  },
-  sizeText: {
-    fontSize: 10,
-    fontWeight: '600',
-    letterSpacing: 1,
-  },
-  diagonalStrike: {
+  diagonalLine: {
     position: 'absolute',
-    width: '160%',
+    width: '140%',
     height: 1,
-    backgroundColor: 'rgba(255,255,255,0.55)',
-    transform: [{ rotate: '-25deg' }],
+    transform: [{ rotate: '150deg' }],
   },
-  actions2: {
-    paddingTop: 14,
-    gap: 10,
+  tabsBox: {
+    borderRadius: 24,
+    borderWidth: 1,
+    padding: 16,
+    marginBottom: 32,
   },
-  actionBtnOutline: {
-    width: '100%',
-    height: 50,
-    borderRadius: 12,
-    borderWidth: 0.5,
-    justifyContent: 'center',
-    alignItems: 'center',
-    overflow: 'hidden',
-  },
-  actionBtnSolid: {
-    width: '100%',
-    height: 50,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  actionBtnText: {
-    fontSize: 11,
-    fontWeight: '600',
-    letterSpacing: 1.7,
-    textTransform: 'uppercase',
-  },
-  tabsRow: {
+  tabsPillContainer: {
     flexDirection: 'row',
-    gap: 8,
-    paddingVertical: 10,
-    paddingTop: 14,
-  },
-  tabItem: {
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    borderRadius: 999,
-  },
-  tabText2: {
-    fontSize: 9,
-    fontWeight: '500',
-    letterSpacing: 1.3,
-    textTransform: 'uppercase',
-  },
-  descBody: {
-    paddingBottom: 6,
-  },
-  descText: {
-    fontSize: 8,
-    lineHeight: 13,
-    letterSpacing: 0.2,
-    textTransform: 'uppercase',
-  },
-  viewMoreBtn: {
-    alignSelf: 'flex-start',
+    alignItems: 'center',
+    padding: 4,
     borderRadius: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    marginTop: 10,
+    marginBottom: 16,
+    gap: 4,
   },
-  viewMoreText: {
-    fontSize: 8,
-    fontWeight: '600',
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
+  tabBtn: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 16,
+    alignItems: 'center',
   },
-
-  curatedWrap: {
+  tabContentArea: {
+    paddingHorizontal: 4,
+  },
+  viewMorePill: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 14,
+    marginTop: 16,
+  },
+  curatedSection: {
+    marginBottom: 48,
+    marginHorizontal: -24,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.05)',
+    borderBottomColor: 'rgba(0,0,0,0.05)',
+  },
+  curatedHeaderFixed: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 24,
     paddingTop: 16,
-    paddingBottom: 12,
+    marginBottom: 8,
   },
-  curatedHeader: {
-    paddingHorizontal: 20,
+  headerArrows: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 10,
   },
-  curatedTitle: {
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 1.7,
-    textTransform: 'uppercase',
+  curatedScroll: {
+    paddingLeft: 0,
   },
-  curatedList2: {
-    paddingLeft: 20,
-    paddingRight: 4,
-    gap: 14,
-  },
-  curatedCard: {
+  curatedItem: {
     width: SCREEN_W * 0.85,
   },
-  curatedImg: {
-    width: '100%',
-    height: SCREEN_H * 0.64,
+  curatedCard: {
+    aspectRatio: 3 / 4.8, 
     overflow: 'hidden',
-    backgroundColor: '#000',
+    backgroundColor: 'rgba(0,0,0,0.02)',
   },
-  curatedMetaBar: {
+  curatedMeta: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderTopWidth: 0.5,
-    overflow: 'hidden',
+    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.05)',
   },
-  curatedQuickAdd: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+  plusBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 0.5,
-    borderColor: 'rgba(255,255,255,0.18)',
-    backgroundColor: 'rgba(255,255,255,0.04)',
   },
-  curatedName: {
-    fontSize: 9,
-    fontWeight: '600',
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-  },
-  curatedPrice: {
-    fontSize: 8,
-    fontWeight: '500',
-    marginTop: 3,
-  },
-
-  /* ── Recently Viewed ── */
   recentSection: {
-    marginTop: 12,
-    marginBottom: 24,
+    marginBottom: 64,
+    paddingHorizontal: 20,
   },
   recentGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    paddingHorizontal: 2,
-    gap: 2,
+    columnGap: 12,
+    rowGap: 16,
+    marginTop: 12,
   },
-  recentCard: {
-    width: '49.6%',
-    marginBottom: 2,
+  recentCardWrapper: {
+    width: (SCREEN_W - 40 - 12) / 2,
+    marginBottom: 16,
   },
-
-  /* ── Size Guide Modal ── */
-  guideBackdrop: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 16,
+  inlineActions: {
+    marginBottom: 32,
+    marginTop: 8,
   },
-  guideCard: {
-    width: '100%',
-    maxHeight: '82%',
-    borderRadius: 24,
-    borderWidth: 1,
+  minimalStickyFooter: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    zIndex: 2000,
+    paddingHorizontal: 24,
+    paddingTop: 16,
     overflow: 'hidden',
   },
-  guideHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(255,255,255,0.15)',
+  footerDivider: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 1,
   },
-  guideClose: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+  ghostBtn: {
+    width: '100%',
+    height: 58,
+    borderRadius: 20,
     borderWidth: 1,
-    alignItems: 'center',
     justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'white',
   },
-  guideImage: {
+  primaryBtn: {
     width: '100%',
-    height: 480,
-    backgroundColor: 'transparent',
-  },
-  guideWebView: {
-    width: '100%',
-    height: 480,
-    backgroundColor: 'transparent',
-  },
-  guideEmpty: {
-    paddingHorizontal: 16,
-    paddingVertical: 32,
+    height: 58,
+    borderRadius: 20,
+    justifyContent: 'center',
     alignItems: 'center',
   },
-
-  /* ── Error State ── */
-  errorText: {
-    fontSize: 14,
-    marginBottom: 20,
-    fontWeight: '300',
-    letterSpacing: 2,
-  },
-  goBackBtn: {
-    paddingHorizontal: 32,
-    paddingVertical: 14,
-    borderRadius: 99,
-  },
-  goBackBtnText: {
-    fontSize: 10,
-    fontWeight: '600',
-    letterSpacing: 4,
-  },
-
-  /* shared */
-  sectionHeaderRow: {
+  minimalAddBtn: {
+    height: 52,
+    borderRadius: 26,
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
-  },
-  sectionLabel: {
-    fontSize: 7,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 1.5,
-    opacity: 0.4,
+    paddingHorizontal: 24,
+    borderWidth: 1,
   },
 });
+

@@ -26,29 +26,22 @@ export default function SpotlightSection({
 }: Props) {
   const navigation = useNavigation<any>();
   const colors = useColors();
+  const theme = useThemeStore(state => state.theme);
+  const isDark = theme === 'dark';
   const { settings } = useAdminSettings();
-  const shopData = settings?.shop || settings || {};
 
   const resolvedTitle = title || settings?.spotlight?.title || "AUTHENTIC STREETWEAR";
-  const rawSubtitle =
-    subtitle ||
-    settings?.spotlight?.subtitle ||
-    "Luxury Indian streetwear for modern men.|Redefining bold everyday style.";
-  const subtitleParts = rawSubtitle.split("|").map((s: string) => s.trim()).filter(Boolean);
-  const subtitleLine1 = subtitleParts[0] || "";
-  const subtitleLine2 = subtitleParts[1] || "";
+  const resolvedSubtitle = subtitle || settings?.spotlight?.subtitle || "Luxury Indian streetwear for modern men. Redefining bold everyday style.";
   const resolvedCollectionHandle = collectionHandle || settings?.spotlight?.collection || "tshirts";
 
   const { products, loading } = useCollectionByHandle(resolvedCollectionHandle);
-  const theme = useThemeStore(s => s.theme);
-  const isDark = theme === 'dark';
 
   if (loading && products.length === 0) {
     return (
       <View style={styles.container}>
         <View style={styles.skeletonHeader} />
         <View style={styles.grid}>
-          {[1, 2, 3, 4, 5, 6].map((i) => (
+          {[1, 2, 3].map((i) => (
             <View key={i} style={styles.skeletonItem} />
           ))}
         </View>
@@ -58,61 +51,48 @@ export default function SpotlightSection({
 
   const displayProducts = products.slice(0, 6);
 
-  // Split title for stacked typographic effect
-  const words = resolvedTitle.split(' ');
-  const firstWord = words[0];
-  const remainingWords = words.slice(1).join(' ');
-
   return (
     <View style={styles.container}>
-      <TouchableOpacity 
-        style={styles.header}
-        onPress={() => navigation.navigate('Collection', { handle: resolvedCollectionHandle, title: resolvedTitle })}
-        activeOpacity={0.7}
-      >
-        <Typography rocaston size={48} color={colors.text} style={styles.titleTop}>{firstWord}</Typography>
-        {remainingWords ? <Typography rocaston size={44} color={colors.text} style={styles.titleBottom}>{remainingWords}</Typography> : null}
-        <Typography size={8} color="rgba(160,160,160,0.55)" weight="300" style={styles.subtitleLine}>
-          {subtitleLine1}
+      {/* Centered Header - Parity with web */}
+      <View style={styles.header}>
+        <Typography size={18} weight="600" color={colors.text} style={styles.title} numberOfLines={1}>
+          {resolvedTitle.toUpperCase()}
         </Typography>
-        {subtitleLine2 ? (
-          <Typography size={8} color="rgba(160,160,160,0.45)" weight="300" style={styles.subtitleLine2}>
-            {subtitleLine2}
-          </Typography>
-        ) : null}
-      </TouchableOpacity>
+        <Typography size={7.5} color={colors.textExtraLight} weight="300" style={styles.subtitle} numberOfLines={2}>
+          {resolvedSubtitle.toUpperCase()}
+        </Typography>
+      </View>
 
+      {/* Grid - 3 columns, 3/4 aspect ratio */}
       <View style={styles.grid}>
-        {displayProducts.map((product) => (
+        {(displayProducts.length > 0 ? displayProducts : Array(3).fill(null)).map((product, idx) => (
           <TouchableOpacity 
-            key={product.id}
+            key={product?.id || idx}
             style={styles.item}
-            onPress={() => navigation.navigate('ProductDetail', { handle: product.handle })}
+            onPress={() => product && navigation.navigate('ProductDetail', { handle: product.handle })}
             activeOpacity={0.8}
           >
-            <View style={styles.imageShadowContainer}>
-              <View style={[styles.imageContainer, { backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)' }]}>
+            <View style={[styles.imageContainer, { borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }]}>
+              {product ? (
                 <Image 
-                  source={{ uri: product.featuredImage || undefined }} 
+                  source={{ uri: product.featuredImage }} 
                   style={styles.image}
                   contentFit="cover"
-                  transition={400}
+                  transition={500}
                 />
-              </View>
+              ) : (
+                <View style={styles.emptyImage}>
+                  <Typography size={6} color={colors.textExtraLight} style={{ letterSpacing: 2 }}>ZB STUDIO</Typography>
+                </View>
+              )}
             </View>
-            <Typography heading size={8} color={colors.textSecondary} style={styles.itemTitle} numberOfLines={1}>{product.title}</Typography>
+            <View style={styles.itemInfo}>
+              <Typography size={7} weight="700" color={colors.textLight} numberOfLines={1} style={styles.itemTitle}>
+                {(product?.title || "ZICA BELLA").toUpperCase()}
+              </Typography>
+              <View style={[styles.titleLine, { backgroundColor: colors.borderLight }]} />
+            </View>
           </TouchableOpacity>
-        ))}
-        {/* Fill empty slots if less than 6 products */}
-        {displayProducts.length < 6 && [...Array(6 - displayProducts.length)].map((_, i) => (
-          <View key={`empty-${i}`} style={styles.item}>
-             <View style={styles.imageShadowContainer}>
-               <View style={[styles.imageContainer, styles.emptyImage, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)' }]}>
-                  <Typography size={6} color={colors.textLight} style={styles.emptyText}>ZB Studio</Typography>
-               </View>
-             </View>
-             <Typography size={8} color={colors.textSecondary} style={styles.itemTitle}>ZICA BELLA</Typography>
-          </View>
         ))}
       </View>
     </View>
@@ -123,113 +103,79 @@ const styles = StyleSheet.create({
   container: {
     marginTop: 64,
     marginBottom: 60,
-    paddingHorizontal: GRID_PADDING,
+    paddingHorizontal: 12,
   },
   header: {
     alignItems: 'center',
     marginBottom: 40,
+    paddingHorizontal: 20,
   },
-  titleTop: {
-    fontFamily: 'Rocaston',
-    fontSize: 48,
-    fontWeight: '400', // Rocaston is typically used at its base weight
-    letterSpacing: -1,
-    textTransform: 'uppercase',
+  title: {
+    letterSpacing: 4,
+    marginBottom: 10,
     textAlign: 'center',
-    lineHeight: 46,
-    zIndex: 2,
   },
-  titleBottom: {
-    fontFamily: 'Rocaston',
-    fontSize: 44,
-    fontWeight: '400',
-    letterSpacing: -0.5,
-    textTransform: 'uppercase',
-    textAlign: 'center',
-    lineHeight: 42,
-    marginTop: 0,
-    marginBottom: 24,
-  },
-  subtitleLine: {
-    fontSize: 8,
-    fontWeight: '300',
+  subtitle: {
     letterSpacing: 2.2,
-    textTransform: 'uppercase',
     textAlign: 'center',
-    maxWidth: 300,
-    lineHeight: 18,
-    marginTop: 4,
-  },
-  subtitleLine2: {
-    fontSize: 8,
-    fontWeight: '300',
-    letterSpacing: 2.2,
-    textTransform: 'uppercase',
-    textAlign: 'center',
-    maxWidth: 300,
-    lineHeight: 18,
-    marginTop: 6,
+    maxWidth: 240,
+    lineHeight: 14,
+    opacity: 0.5,
   },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: GRID_SPACING,
-    justifyContent: 'flex-start',
+    gap: 8,
   },
   item: {
-    width: ITEM_WIDTH,
+    width: (width - 24 - 16) / 3, // 3 columns
     alignItems: 'center',
-    marginBottom: 32,
-  },
-  imageShadowContainer: {
-    width: ITEM_WIDTH,
-    aspectRatio: 1,
-    marginBottom: 14,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 16 },
-    shadowOpacity: 0.22,
-    shadowRadius: 20,
-    elevation: 6,
+    marginBottom: 24,
   },
   imageContainer: {
     width: '100%',
-    height: '100%',
-    borderRadius: 26,
+    aspectRatio: 3 / 4, // Matches web spotlight
+    borderRadius: 12,
     overflow: 'hidden',
+    borderWidth: 1,
+    backgroundColor: 'rgba(128,128,128,0.02)',
+    marginBottom: 10,
   },
   image: {
     width: '100%',
     height: '100%',
   },
   emptyImage: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  emptyText: {
-    fontSize: 6,
-    textTransform: 'uppercase',
-    letterSpacing: 2,
+  itemInfo: {
+    width: '100%',
+    alignItems: 'center',
+    gap: 4,
   },
   itemTitle: {
-    fontSize: 8,
-    fontWeight: '600',
     letterSpacing: 1.5,
-    textTransform: 'uppercase',
-    textAlign: 'center',
+    opacity: 0.8,
+  },
+  titleLine: {
+    width: 0, // Animates on web, we can leave as 0 for now or fixed width
+    height: 1,
   },
   skeletonHeader: {
-    height: 60,
-    width: 240,
+    height: 40,
+    width: 200,
     backgroundColor: 'rgba(0,0,0,0.03)',
     alignSelf: 'center',
-    marginBottom: 48,
+    marginBottom: 32,
     borderRadius: 8,
   },
   skeletonItem: {
-    width: ITEM_WIDTH,
-    aspectRatio: 1,
+    width: (width - 24 - 16) / 3,
+    aspectRatio: 3 / 4,
     backgroundColor: 'rgba(0,0,0,0.03)',
-    borderRadius: 26,
-    marginBottom: 32,
+    borderRadius: 12,
   },
 });
+
