@@ -9,6 +9,7 @@ export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  try {
     const { searchParams } = new URL(request.url);
     const userIdParam = searchParams.get('user_id');
 
