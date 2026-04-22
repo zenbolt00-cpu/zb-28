@@ -169,7 +169,7 @@ export default function VendorsPage() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="pb-20 space-y-8 relative z-10"
+      className="pb-20 space-y-6 relative z-10 overflow-hidden"
     >
       {/* Vibrant Orb Backgrounds */}
       <div className="absolute -right-24 -top-24 w-96 h-96 bg-foreground/5 blur-3xl rounded-full pointer-events-none" />

@@ -292,7 +292,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </aside>
 
       {/* ──────── Main content ──────── */}
-      <main className="flex-1 lg:ml-80 flex flex-col min-h-[100dvh] relative z-10">
+      <main className="flex-1 lg:ml-80 flex flex-col min-h-[100dvh] relative z-10 overflow-x-hidden">
         {/* Header */}
         <header className="h-14 lg:h-16 flex items-center justify-between px-4 lg:px-8 m-2 lg:mx-8 lg:my-6 rounded-3xl glass shadow-2xl sticky top-2 lg:top-6 z-40 border border-foreground/5 shrink-0">
           <div className="flex items-center gap-3 lg:gap-6 min-w-0">
@@ -328,8 +328,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </header>
 
         {/* Content area — scrollable */}
-        <div className="flex-1 px-4 lg:px-12 py-4 lg:py-10 overflow-y-auto custom-scrollbar relative w-full">
-          <div className="max-w-[1500px] w-full mx-auto relative">{children}</div>
+        <div className="flex-1 px-4 lg:px-8 py-4 lg:py-8 overflow-y-auto overflow-x-hidden custom-scrollbar relative w-full">
+          <div className="max-w-[1400px] w-full mx-auto relative overflow-x-clip">{children}</div>
         </div>
       </main>
     </div>
