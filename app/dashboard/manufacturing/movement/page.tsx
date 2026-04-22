@@ -42,17 +42,6 @@ function num(v: unknown): number {
   return Number.isFinite(x) ? x : 0;
 }
 
-function runningBalanceLabel(m: Movement): string {
-  const parts: string[] = [];
-  if (m.balanceMetersAfter != null) {
-    parts.push(`${num(m.balanceMetersAfter).toLocaleString("en-IN", { maximumFractionDigits: 2 })} m`);
-  }
-  if (m.balanceWeightAfter != null) {
-    const u = m.fabric.weightUnit === "g" ? "g" : "kg";
-    parts.push(`${num(m.balanceWeightAfter).toLocaleString("en-IN", { maximumFractionDigits: 3 })} ${u}`);
-  }
-  return parts.join(" · ") || "—";
-}
 
 function lowThreshold(f: Fabric): number {
   const t = f.lowStockMetersThreshold;
@@ -114,13 +103,14 @@ export default function FabricMovementPage() {
   const loadMovements = useCallback(async () => {
     setLoading(true);
     try {
-      const url = new URL("/api/admin/manufacturing/movements", window.location.origin);
-      if (filters.q.trim()) url.searchParams.set("q", filters.q.trim());
-      if (filters.type) url.searchParams.set("type", filters.type);
-      if (filters.fabricId) url.searchParams.set("fabricId", filters.fabricId);
-      if (filters.from) url.searchParams.set("from", new Date(filters.from).toISOString());
-      if (filters.to) url.searchParams.set("to", new Date(filters.to).toISOString());
-      const res = await mfgFetch(url.toString());
+      const sp = new URLSearchParams();
+      if (filters.q.trim()) sp.set("q", filters.q.trim());
+      if (filters.type) sp.set("type", filters.type);
+      if (filters.fabricId) sp.set("fabricId", filters.fabricId);
+      if (filters.from) sp.set("from", new Date(filters.from).toISOString());
+      if (filters.to) sp.set("to", new Date(filters.to).toISOString());
+      
+      const res = await mfgFetch(`/api/admin/manufacturing/movements?${sp.toString()}`);
       const data = await res.json();
       setMovements(Array.isArray(data) ? data : []);
     } catch {
@@ -129,7 +119,7 @@ export default function FabricMovementPage() {
     } finally {
       setLoading(false);
     }
-  }, [filters.q, filters.type, filters.fabricId, filters.from, filters.to]);
+  }, [filters]);
 
   useEffect(() => {
     loadFabrics();
@@ -272,7 +262,7 @@ export default function FabricMovementPage() {
             <CalendarDays className="w-6 h-6 text-foreground/40" />
           </div>
           <div className="min-w-0">
-            <h1 className="text-xl lg:text-2xl font-bold text-foreground uppercase tracking-tighter leading-none truncate">
+            <h1 className="text-lg lg:text-xl font-bold text-foreground uppercase tracking-tighter leading-none truncate">
               Fabric Movement
             </h1>
             <p className="text-[9px] lg:text-[10px] text-foreground/40 font-bold uppercase tracking-[0.2em] lg:tracking-[0.3em] mt-1">
@@ -322,7 +312,7 @@ export default function FabricMovementPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1, duration: 0.8 }}
-        className="glass-card rounded-[2rem] lg:rounded-[3rem] p-6 lg:p-8 flex flex-col gap-6"
+        className="glass-card rounded-[2rem] p-4 lg:p-6 flex flex-col gap-4"
       >
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
           <div className="relative">
@@ -357,7 +347,7 @@ export default function FabricMovementPage() {
               <option value="">All Fabrics</option>
               {fabrics.map((f) => (
                 <option key={f.id} value={f.id}>
-                  {f.sku} — {f.name}
+                  {f.sku} - {f.name}
                 </option>
               ))}
             </select>
@@ -461,13 +451,13 @@ export default function FabricMovementPage() {
                           {m.quantity}{m.quantityUnit}
                         </td>
                         <td className="px-4 py-3 font-mono text-[11px] text-foreground/40 italic">
-                          {m.rateAtMovement ? formatInr(num(m.rateAtMovement)) : "—"}
+                          {m.rateAtMovement ? formatInr(num(m.rateAtMovement)) : "-"}
                         </td>
                         <td className="px-4 py-3 font-mono text-[11px] font-bold">
-                          {m.rateAtMovement ? formatInr(num(m.rateAtMovement) * num(m.quantity)) : "—"}
+                          {m.rateAtMovement ? formatInr(num(m.rateAtMovement) * num(m.quantity)) : "-"}
                         </td>
                         <td className="px-4 py-3 max-w-[200px] truncate text-[11px] text-foreground/40 font-medium">
-                          {m.remarks || "—"}
+                          {m.remarks || "-"}
                         </td>
                         <td className="px-4 py-3 text-[11px] text-foreground/40 font-medium">
                           {m.createdByName || "System"}
@@ -487,7 +477,7 @@ export default function FabricMovementPage() {
                               Correct
                             </button>
                           ) : (
-                            "—"
+                            "-"
                           )}
                         </td>
                       </tr>
@@ -530,7 +520,7 @@ export default function FabricMovementPage() {
                     <option value="">Select Fabric...</option>
                     {fabrics.map((f) => (
                       <option key={f.id} value={f.id}>
-                        {f.sku} — {f.name}
+                        {f.sku} - {f.name}
                       </option>
                     ))}
                   </select>

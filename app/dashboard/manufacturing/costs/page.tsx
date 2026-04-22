@@ -8,7 +8,7 @@ import { mfgFetch } from "@/lib/manufacturing/mfg-fetch";
 import { formatDateTimeIST } from "@/lib/manufacturing/ist";
 import { formatInr } from "@/lib/manufacturing/inr";
 
-/** Highlight cost/unit column when above this (₹) — adjust for your margin targets */
+/** Highlight cost/unit column when above this (₹) - adjust for your margin targets */
 const COST_PER_UNIT_WARN_THRESHOLD = 2500;
 
 const MISC_EXPENSE_TYPES = [
@@ -56,7 +56,7 @@ type TrendDeltas = Partial<Record<keyof Summary, number>>;
 
 function DeltaBadge({ delta }: { delta: number | undefined }) {
   if (delta === undefined || !Number.isFinite(delta) || Math.abs(delta) < 0.01) {
-    return <span className="text-[10px] text-foreground/35 font-medium">—</span>;
+    return <span className="text-[10px] text-foreground/35 font-medium">-</span>;
   }
   const up = delta > 0;
   return (

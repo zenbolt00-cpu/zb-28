@@ -386,7 +386,7 @@ export default function ProductionTrackerPage() {
       });
       const j = await res.json();
       if (!res.ok) throw new Error(j.error || "Failed");
-      showToast("Saved — stage updated");
+      showToast("Saved - stage updated");
       setModal(null);
       loadBatches();
     } catch (e: unknown) {
@@ -444,7 +444,7 @@ export default function ProductionTrackerPage() {
              <ClipboardList className="w-6 h-6 text-foreground/40" />
           </div>
           <div className="min-w-0">
-            <h1 className="text-xl lg:text-2xl font-bold text-foreground tracking-tighter leading-none truncate uppercase">
+            <h1 className="text-lg lg:text-xl font-bold text-foreground tracking-tighter leading-none truncate uppercase">
               Production Tracker
             </h1>
             <p className="text-[9px] lg:text-[10px] text-foreground/40 font-bold uppercase tracking-[0.2em] lg:tracking-[0.3em] mt-1">
@@ -454,11 +454,11 @@ export default function ProductionTrackerPage() {
         </div>
         
         <p className="text-[11px] lg:text-[12px] text-foreground/70 tracking-wide max-w-lg font-medium leading-relaxed hidden xl:block">
-           Real-time pipeline monitoring — {batches.length} active batches. Transitions are recorded in the immutable spectrum ledger.
+           Real-time pipeline monitoring - {batches.length} active batches. Transitions are recorded in the immutable spectrum ledger.
         </p>
       </div>
-        
-        <div className="flex flex-wrap items-center gap-2 lg:gap-3">
+
+      <div className="flex flex-wrap items-center gap-2 lg:gap-3">
           <div className="bg-foreground/[0.03] p-1 rounded-xl flex border border-foreground/5 backdrop-blur-sm">
             <button
               onClick={() => setView("card")}
@@ -499,11 +499,11 @@ export default function ProductionTrackerPage() {
           </button>
         </div>
 
-       <motion.div 
+        <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1, duration: 0.8 }}
-        className="glass-card rounded-[1.5rem] lg:rounded-[3rem] p-3 sm:p-4 lg:p-8 flex flex-col gap-5 lg:gap-6"
+        className="glass-card rounded-[1.2rem] lg:rounded-[2rem] p-3 lg:p-6 flex flex-col gap-4 lg:gap-5"
       >
         {/* Stage Pipeline */}
         <div className="bg-foreground/[0.03] backdrop-blur-xl rounded-2xl p-1.5 border border-foreground/5 overflow-hidden shadow-inner">
@@ -514,7 +514,7 @@ export default function ProductionTrackerPage() {
                 <button
                   key={key}
                   onClick={() => setFilterStage((s) => (s === key ? null : key))}
-                  className={`px-5 py-3 rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] whitespace-nowrap transition-all flex items-center gap-2.5 group ${
+                  className={`px-4 py-2.5 rounded-xl text-[9px] font-bold uppercase tracking-[0.2em] whitespace-nowrap transition-all flex items-center gap-2 group ${
                     filterStage === key
                       ? "bg-foreground text-background shadow-2xl scale-[1.02]"
                       : "text-foreground/40 hover:bg-foreground/[0.05] hover:text-foreground"
@@ -529,12 +529,12 @@ export default function ProductionTrackerPage() {
         </div>
 
         <div className="relative w-full sm:max-w-md">
-           <Search className="w-3.5 h-3.5 absolute left-4 top-1/2 -translate-y-1/2 text-foreground/40" />
+           <Search className="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-foreground/40" />
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search batch ID or style…"
-            className="w-full bg-background/50 border border-foreground/10 rounded-xl lg:rounded-2xl pl-10 pr-4 py-2.5 lg:py-3 text-[12px] font-medium text-foreground placeholder:text-foreground/30 focus:outline-none focus:border-foreground/30 transition-all shadow-sm"
+            placeholder="Search batches..."
+            className="w-full bg-background/50 border border-foreground/10 rounded-xl pl-10 pr-4 py-2 lg:py-2.5 text-[12px] font-medium text-foreground placeholder:text-foreground/30 focus:outline-none focus:border-foreground/30 transition-all shadow-sm"
           />
         </div>
 
@@ -583,7 +583,7 @@ export default function ProductionTrackerPage() {
                       {b.fabric ? (
                         <span className="font-mono text-[11px]">{b.fabric.sku}</span>
                       ) : (
-                        "—"
+                        "-"
                       )}
                     </td>
                     <td className="px-5 py-4 font-bold text-[13px]">{formatInr(num(b.totalCostSoFar))}</td>
@@ -769,7 +769,7 @@ export default function ProductionTrackerPage() {
                     <option value="">None (Optional)</option>
                     {fabrics.map((f) => (
                       <option key={f.id} value={f.id}>
-                        {f.sku} — {f.name}
+                        {f.sku} - {f.name}
                       </option>
                     ))}
                   </select>

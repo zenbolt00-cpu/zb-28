@@ -210,7 +210,7 @@ export default function VendorsPage() {
         </div>
         
         <p className="text-[11px] lg:text-[12px] text-foreground/70 tracking-wide max-w-lg font-medium leading-relaxed hidden xl:block">
-           Manage your manufacturing nodes — {vendors.length} entities. Real-time ledger of vendors, categories, and supply chain activity.
+           Manage your manufacturing nodes - {vendors.length} entities. Real-time ledger of vendors, categories, and supply chain activity.
         </p>
 
         <div className="flex items-center gap-3 w-full lg:w-auto">
@@ -241,17 +241,17 @@ export default function VendorsPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1, duration: 0.8 }}
-        className="glass-card rounded-[2rem] lg:rounded-[3rem] p-6 lg:p-8 flex flex-col gap-6"
+        className="glass-card rounded-[1.5rem] lg:rounded-[2rem] p-4 lg:p-6 flex flex-col gap-5"
       >
         {/* Filters & Search */}
         <div className="flex flex-col xl:flex-row gap-6 items-start xl:items-center justify-between">
-          <div className="relative w-full sm:max-w-lg group">
-             <Search className="w-3.5 h-3.5 absolute left-4 top-1/2 -translate-y-1/2 text-foreground/30 group-focus-within:text-foreground transition-colors" />
+          <div className="relative w-full sm:max-w-md group">
+             <Search className="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-foreground/30 group-focus-within:text-foreground transition-colors" />
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Search manufacturing nodes..."
-              className="w-full bg-background/50 border border-foreground/10 rounded-xl lg:rounded-2xl pl-10 pr-4 py-2.5 lg:py-4 text-[13px] font-medium text-foreground placeholder:text-foreground/30 focus:outline-none focus:border-foreground/30 transition-all shadow-sm focus:shadow-xl focus:bg-background"
+              placeholder="Search nodes..."
+              className="w-full bg-background/50 border border-foreground/10 rounded-xl pl-10 pr-4 py-2 lg:py-2.5 text-[12px] font-medium text-foreground placeholder:text-foreground/30 focus:outline-none focus:border-foreground/30 transition-all shadow-sm focus:shadow-xl focus:bg-background"
             />
           </div>
 
@@ -259,13 +259,13 @@ export default function VendorsPage() {
             <div className="flex overflow-x-auto custom-scrollbar gap-2 py-1 px-1 hide-scroll">
               <button
                 onClick={() => setFilterCategory(null)}
-                className={`px-5 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] whitespace-nowrap transition-all flex items-center gap-2 ${
+                className={`px-4 py-2 rounded-xl text-[9px] font-bold uppercase tracking-[0.15em] whitespace-nowrap transition-all flex items-center gap-2 ${
                   !filterCategory
                     ? "bg-foreground text-background shadow-2xl scale-[1.02]"
                     : "text-foreground/40 hover:bg-foreground/[0.05] hover:text-foreground"
                 }`}
               >
-                All Entities
+                All Nodes
               </button>
               {CATEGORIES.map((cat) => {
                 const Icon = CAT_ICONS[cat] || Briefcase;
@@ -312,7 +312,7 @@ export default function VendorsPage() {
                   transition={{ delay: i * 0.05 }}
                   whileHover={{ y: -3, scale: 1.01 }}
                   key={v.id}
-                  className="bg-background/40 backdrop-blur-3xl border border-foreground/[0.06] hover:border-foreground/15 rounded-[1.2rem] lg:rounded-[1.5rem] p-4 lg:p-6 shadow-sm hover:shadow-xl transition-all duration-500 group flex flex-col relative overflow-hidden"
+                  className="bg-background/40 backdrop-blur-3xl border border-foreground/[0.06] hover:border-foreground/15 rounded-[1.2rem] p-3 lg:p-5 shadow-sm hover:shadow-xl transition-all duration-500 group flex flex-col relative overflow-hidden"
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-foreground/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                   

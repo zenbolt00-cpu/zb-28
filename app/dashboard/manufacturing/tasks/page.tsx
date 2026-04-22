@@ -245,7 +245,7 @@ export default function PendingTasksPage() {
              <ClipboardList className="w-6 h-6 text-foreground/40" />
           </div>
           <div className="min-w-0">
-            <h1 className="text-xl lg:text-2xl font-bold text-foreground tracking-tighter leading-none truncate uppercase">
+            <h1 className="text-lg lg:text-xl font-bold text-foreground tracking-tighter leading-none truncate uppercase">
               Pending Tasks
             </h1>
             <p className="text-[9px] lg:text-[10px] text-foreground/40 font-bold uppercase tracking-[0.2em] lg:tracking-[0.3em] mt-1 font-inter">
@@ -255,7 +255,7 @@ export default function PendingTasksPage() {
         </div>
         
         <p className="text-[11px] lg:text-[12px] text-foreground/70 tracking-wide max-w-lg font-medium leading-relaxed hidden xl:block">
-           Mission control for manufacturing — {tasks.length} active directives. Real-time task matrix synchronized with production stages.
+           Mission control for manufacturing - {tasks.length} active directives. Real-time task matrix synchronized with production stages.
         </p>
         
         <div className="flex items-center gap-2 sm:gap-3">
@@ -280,47 +280,47 @@ export default function PendingTasksPage() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 px-4">
-        <div className="glass-card p-5 rounded-[1.5rem] border border-foreground/5 flex items-center gap-4 transition-all hover:bg-foreground/[0.02]">
-          <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center border border-amber-500/10">
-            <Zap className="w-5 h-5 text-amber-500" />
+        <div className="glass-card p-3 lg:p-4 rounded-[1.2rem] border border-foreground/5 flex items-center gap-3 transition-all hover:bg-foreground/[0.02]">
+          <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center border border-amber-500/10">
+            <Zap className="w-4 h-4 text-amber-500" />
           </div>
           <div>
-            <div className="text-[9px] font-bold text-foreground/40 uppercase tracking-widest leading-none mb-1">Active Nodes</div>
-            <div className="text-xl font-bold text-foreground tracking-tighter">{pendingCount}</div>
+            <div className="text-[8px] font-bold text-foreground/40 uppercase tracking-widest leading-none mb-1">Active Nodes</div>
+            <div className="text-lg font-bold text-foreground tracking-tighter">{pendingCount}</div>
           </div>
         </div>
-        <div className="glass-card p-5 rounded-[1.5rem] border border-foreground/5 flex items-center gap-4 transition-all hover:bg-foreground/[0.02]">
-          <div className="w-10 h-10 rounded-xl bg-rose-500/10 flex items-center justify-center border border-rose-500/10">
-            <AlertCircle className="w-5 h-5 text-rose-500" />
+        <div className="glass-card p-3 lg:p-4 rounded-[1.2rem] border border-foreground/5 flex items-center gap-3 transition-all hover:bg-foreground/[0.02]">
+          <div className="w-9 h-9 rounded-xl bg-rose-500/10 flex items-center justify-center border border-rose-500/10">
+            <AlertCircle className="w-4 h-4 text-rose-500" />
           </div>
           <div>
-            <div className="text-[9px] font-bold text-foreground/40 uppercase tracking-widest leading-none mb-1">Overdue Spectrum</div>
-            <div className="text-xl font-bold text-rose-500 tracking-tighter">{overdueCount}</div>
+            <div className="text-[8px] font-bold text-foreground/40 uppercase tracking-widest leading-none mb-1">Overdue Spectrum</div>
+            <div className="text-lg font-bold text-rose-500 tracking-tighter">{overdueCount}</div>
           </div>
         </div>
-        <div className="glass-card p-5 rounded-[1.5rem] border border-foreground/5 flex items-center gap-4 transition-all hover:bg-foreground/[0.02]">
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/10">
-            <Target className="w-5 h-5 text-emerald-500" />
+        <div className="glass-card p-3 lg:p-4 rounded-[1.2rem] border border-foreground/5 flex items-center gap-3 transition-all hover:bg-foreground/[0.02]">
+          <div className="w-9 h-9 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/10">
+            <Target className="w-4 h-4 text-emerald-500" />
           </div>
           <div>
-            <div className="text-[9px] font-bold text-foreground/40 uppercase tracking-widest leading-none mb-1">Efficiency Goal</div>
-            <div className="text-xl font-bold text-foreground tracking-tighter">94%</div>
+            <div className="text-[8px] font-bold text-foreground/40 uppercase tracking-widest leading-none mb-1">Efficiency Goal</div>
+            <div className="text-lg font-bold text-foreground tracking-tighter">94%</div>
           </div>
         </div>
       </div>
 
       {/* Main Content Area */}
       <div className="px-4">
-        <div className="glass-card rounded-[2rem] border border-foreground/5 p-4 lg:p-6 space-y-6">
+        <div className="glass-card rounded-[1.5rem] border border-foreground/5 p-4 lg:p-5 space-y-4">
           {/* Controls */}
           <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
             <div className="relative w-full sm:max-w-md">
-              <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-foreground/20" />
+              <Search className="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-foreground/20" />
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="Search tasks, batches, or descriptions..."
-                className="w-full bg-foreground/[0.03] border border-foreground/5 rounded-2xl pl-12 pr-4 py-3 text-[13px] font-medium text-foreground placeholder:text-foreground/20 focus:outline-none focus:border-foreground/10 transition-all shadow-inner"
+                className="w-full bg-foreground/[0.03] border border-foreground/5 rounded-xl pl-10 pr-4 py-2 text-[12px] font-medium text-foreground placeholder:text-foreground/20 focus:outline-none focus:border-foreground/10 transition-all shadow-inner"
               />
             </div>
             
@@ -354,7 +354,7 @@ export default function PendingTasksPage() {
                     layout
                     initial={{ opacity: 0, scale: 0.98 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className={`group relative glass-card p-4 lg:p-5 rounded-[1.5rem] border transition-all duration-500 flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
+                    className={`group relative glass-card p-3 lg:p-4 rounded-[1.2rem] border transition-all duration-500 flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
                       task.status === "COMPLETED" 
                         ? "bg-foreground/[0.01] border-foreground/5 opacity-60" 
                         : "bg-background/40 border-foreground/[0.05] hover:border-foreground/15 hover:shadow-xl hover:-translate-y-0.5"

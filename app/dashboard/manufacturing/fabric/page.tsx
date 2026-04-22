@@ -110,7 +110,7 @@ export default function FabricInventoryPage() {
   const validate = () => {
     const e: Record<string, string> = {};
     if (!form.name.trim()) e.name = "Required";
-    // Add: SKU optional — server auto-generates when empty. Edit/scan: keep SKU.
+    // Add: SKU optional - server auto-generates when empty. Edit/scan: keep SKU.
     if (modal !== "add" && !form.sku.trim()) e.sku = "Required";
     const c = Number(form.costPerMeter);
     if (!Number.isFinite(c) || c < 0) e.costPerMeter = "Invalid";
@@ -337,7 +337,7 @@ export default function FabricInventoryPage() {
         </div>
         
         <p className="text-[11px] lg:text-[12px] text-foreground/70 tracking-wide max-w-lg font-medium leading-relaxed hidden xl:block">
-           Manage your fabric spectrum — {allFabrics.length} nodes. Real-time stock levels, cost per meter, and automated low-stock warnings.
+           Manage your fabric spectrum - {allFabrics.length} nodes. Real-time stock levels, cost per meter, and automated low-stock warnings.
         </p>
         
         <div className="flex items-center gap-3">
@@ -374,13 +374,13 @@ export default function FabricInventoryPage() {
               Scan / Quick Update
             </div>
             <p className="text-[11px] text-foreground/50 max-w-md leading-relaxed">
-              Refinery input: Type or scan SKU, press Enter — adjust weight, meters, and price.
+              Refinery input: Type or scan SKU, press Enter - adjust weight, meters, and price.
             </p>
             <input
               value={scanInput}
               onChange={(e) => setScanInput(e.target.value)}
               onKeyDown={handleScanKey}
-              placeholder="SCAN SPECTRUM SKU…"
+              placeholder="SCAN SPECTRUM SKU..."
               className="w-full max-w-lg bg-background border border-foreground/20 rounded-xl px-4 py-3 text-[13px] font-medium text-foreground placeholder:text-foreground/30 focus:outline-none focus:border-foreground/40 transition-all shadow-sm"
             />
           </div>
@@ -391,7 +391,7 @@ export default function FabricInventoryPage() {
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search spectrum nodes…"
+            placeholder="Search spectrum nodes..."
             className="w-full bg-background border border-foreground/10 rounded-xl pl-10 pr-4 py-3 text-[12px] font-medium text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-foreground/30 transition-all shadow-sm"
           />
         </div>
@@ -454,7 +454,7 @@ export default function FabricInventoryPage() {
                         {n(f.totalMeters).toLocaleString("en-IN", { maximumFractionDigits: 2 })} m
                       </td>
                       <td className="px-4 py-3 text-foreground/50 text-[11px] font-medium">
-                        {f.lowStockMetersThreshold != null ? f.lowStockMetersThreshold : "—"}
+                        {f.lowStockMetersThreshold != null ? f.lowStockMetersThreshold : "-"}
                       </td>
                       <td className="px-4 py-3">
                         <span
