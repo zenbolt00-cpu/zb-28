@@ -40,7 +40,7 @@ export const Typography: React.FC<TypographyProps> = ({
   const finalColor = color || themeColors.text;
 
   // Resolve preset styles if provided
-  const presetStyle = preset ? TypographyPresets[preset] : undefined;
+  const presetStyle = preset ? (TypographyPresets[preset] || {}) : {};
 
   // Rocaston is the only custom font we keep; everything else uses system font
   const fontFamily = rocaston ? 'Rocaston' : undefined;
@@ -48,17 +48,16 @@ export const Typography: React.FC<TypographyProps> = ({
   // Determine fontWeight: explicit weight > heading shortcut > preset > default
   const resolvedWeight: TextStyle['fontWeight'] = weight
     ?? (heading ? '600' : undefined)
-    ?? presetStyle?.fontWeight
-    ?? undefined;
+    ?? (presetStyle as TextStyle).fontWeight;
 
   const baseStyle: TextStyle = {
     ...presetStyle,
-    fontSize: size ?? presetStyle?.fontSize ?? 14,
+    fontSize: size ?? (presetStyle as TextStyle).fontSize ?? 14,
     color: finalColor,
-    letterSpacing: letterSpacing ?? (presetStyle as any)?.letterSpacing,
+    letterSpacing: letterSpacing ?? (presetStyle as any).letterSpacing,
     fontWeight: resolvedWeight,
     ...(fontFamily ? { fontFamily } : {}),
-  };
+  } as TextStyle;
 
   return (
     <Text style={[baseStyle, style]} {...props}>

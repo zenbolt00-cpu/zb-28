@@ -10,6 +10,7 @@ import { useThemeStore } from '../store/themeStore';
 import { useUIStore } from '../store/uiStore';
 import { useCartStore } from '../store/cartStore';
 import { Typography } from './Typography';
+import { haptics } from '../utils/haptics';
 
 const { width } = Dimensions.get('window');
 
@@ -33,6 +34,7 @@ export default function GlassHeader({
   const colors = useColors();
   const { theme, toggleTheme } = useThemeStore();
   const setBookmarkOpen = useUIStore((state) => state.setBookmarkOpen);
+  const setMenuOpen = useUIStore((state) => state.setMenuOpen);
   const setCartOpen = useUIStore((state) => state.setCartOpen);
   const cartCount = useCartStore((s) => s.itemCount());
 
@@ -43,7 +45,14 @@ export default function GlassHeader({
       {/* Box 1: Left Action Capsule (Logo/Back) */}
       <TouchableOpacity
         style={[styles.islandBase, styles.leftIsland, { borderColor: colors.borderLight }]}
-        onPress={() => showBack ? (navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Main')) : onPressMenu?.()}
+        onPress={() => {
+          if (showBack) {
+            navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Main');
+          } else {
+            haptics.buttonTap();
+            setMenuOpen(true);
+          }
+        }}
         activeOpacity={0.7}
       >
         <BlurView intensity={80} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />

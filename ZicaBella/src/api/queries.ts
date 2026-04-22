@@ -11,6 +11,11 @@ export const ENDPOINTS = {
   customers: '/customers',
   config: '/config',
   cart: '/cart',
+  profile: '/profile',
+  settings: '/settings',
+  returns: '/returns',
+  exchanges: '/exchanges',
+  returnRequest: '/orders/return',
 } as const;
 
 // Legacy exports maintained for backward compatibility during migration

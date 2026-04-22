@@ -129,6 +129,7 @@ export async function GET(req: Request) {
       razorpayKeyId: s.razorpayKeyId || '',
       razorpayKeySecret: s.razorpayKeySecret || '',
       shiprocketEmail: s.shiprocketEmail || '',
+      shiprocketPassword: s.shiprocketPassword || '',
       shiprocketToken: s.shiprocketToken || '',
       webhookSecret: s.webhookSecret || '',
       heroImage: s.heroImage || '',
@@ -247,7 +248,7 @@ export async function PATCH(req: Request) {
     const allowedKeys = [
       'domain', 'accessToken',
       'delhiveryApiKey', 'razorpayKeyId', 'razorpayKeySecret',
-      'shiprocketEmail', 'shiprocketToken', 'webhookSecret',
+      'shiprocketEmail', 'shiprocketPassword', 'shiprocketToken', 'webhookSecret',
       'heroImage', 'heroVideo', 'heroTitle', 'heroSubtitle', 'heroButtonText',
       'latestCurationTitle', 'latestCurationSubtitle', 'archiveTitle', 'archiveSubtitle',
       'blueprintTitle', 'blueprintSubtitle', 'showHeroText', 'showLatestCuration',

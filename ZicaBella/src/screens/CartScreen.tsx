@@ -68,68 +68,75 @@ export default function CartScreen() {
       {items.length === 0 ? (
         <View style={styles.emptyState}>
           <Ionicons name="bag-outline" size={56} color={colors.borderLight} />
-          <Text style={[styles.emptyTitle, { color: colors.textLight }]}>Your Cart is Empty</Text>
+          <Typography size={10} weight="600" color={colors.textLight} style={styles.emptyTitle}>Your Cart is Empty</Typography>
           <TouchableOpacity style={[styles.emptyCta, { backgroundColor: colors.foreground }]} onPress={handleGoHome} activeOpacity={0.9}>
-            <Text style={[styles.emptyCtaText, { color: colors.background }]}>SHOP NOW</Text>
+            <Typography size={9} weight="700" color={colors.background} style={styles.emptyCtaText}>SHOP NOW</Typography>
           </TouchableOpacity>
         </View>
       ) : (
-        <>
-            <FlatList
-              data={items}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <CartItem
-                  item={item}
-                  onUpdateQuantity={update}
-                  onRemove={remove}
-                  onPress={() => navigation.navigate('ProductDetail', { handle: item.handle })}
-                />
-              )}
-              getItemLayout={(data, index) => (
-                {length: 102, offset: 102 * index, index}
-              )}
-              style={styles.list}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.listContent}
+        <View style={styles.cartContent}>
+          <FlatList
+            data={items}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <CartItem
+                item={item}
+                onUpdateQuantity={update}
+                onRemove={remove}
+                onPress={() => navigation.navigate('ProductDetail', { handle: item.handle })}
+              />
+            )}
+            getItemLayout={(data, index) => ({
+              length: 102,
+              offset: 102 * index,
+              index
+            })}
+            style={styles.list}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.listContent}
             onScroll={onScroll}
             scrollEventThrottle={16}
           />
 
-
-          {/* Bottom: order summary + sticky checkout */}
+          {/* Bottom Action Area */}
           <View style={[
-            styles.bottom, 
-            { paddingBottom: isTabBarVisible ? 94 : 12 }
+            styles.bottomActions,
+            { paddingBottom: isTabBarVisible ? 85 : insets.bottom + 12 }
           ]}>
-            <View style={[styles.summaryCard, { backgroundColor: colors.background, borderColor: colors.borderLight }]}>
+            <View style={[styles.summaryCard, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', borderColor: colors.borderExtraLight }]}>
               <View style={styles.summaryRow}>
-                <Typography size={8} weight="300" color={colors.textMuted} style={styles.summaryLabel}>SUBTOTAL</Typography>
-                <Typography size={9} weight="600" color={colors.text}>{formatPrice(total)}</Typography>
+                <Typography size={8} weight="400" color={colors.textMuted} style={styles.summaryLabel}>SUBTOTAL</Typography>
+                <Typography size={10} weight="600" color={colors.text}>{formatPrice(total)}</Typography>
               </View>
-              <View style={styles.summaryRow}>
-                <Typography size={8} weight="300" color={colors.textMuted} style={styles.summaryLabel}>DISCOUNTS</Typography>
-                <Typography size={8} weight="300" color={colors.textLight}>{formatPrice(-discounts)}</Typography>
-              </View>
+              {discounts > 0 && (
+                <View style={styles.summaryRow}>
+                  <Typography size={8} weight="400" color={colors.textMuted} style={styles.summaryLabel}>DISCOUNTS</Typography>
+                  <Typography size={9} weight="400" color={colors.success}>{formatPrice(-discounts)}</Typography>
+                </View>
+              )}
               <View style={[styles.divider, { backgroundColor: colors.borderExtraLight }]} />
               <View style={styles.summaryRow}>
-                <Typography size={10} weight="600" color={colors.text} style={styles.totalLabel}>TOTAL</Typography>
-                <Typography size={11} weight="700" color={colors.text}>{formatPrice(totalAfterDiscount)}</Typography>
+                <Typography size={10} weight="700" color={colors.text} style={styles.totalLabel}>TOTAL</Typography>
+                <Typography size={12} weight="800" color={colors.text}>{formatPrice(totalAfterDiscount)}</Typography>
               </View>
             </View>
 
-            <TouchableOpacity style={[styles.checkoutButton, { backgroundColor: colors.foreground }]} onPress={handleCheckout} activeOpacity={0.95}>
-              <Typography size={9} weight="700" color={colors.background} style={styles.checkoutText}>
-                {isAuthenticated ? 'Proceed to Checkout' : 'Checkout as Guest'}
+            <TouchableOpacity 
+              style={[styles.checkoutButton, { backgroundColor: colors.foreground }]} 
+              onPress={handleCheckout} 
+              activeOpacity={0.9}
+            >
+              <Typography size={10} weight="800" color={colors.background} style={styles.checkoutText}>
+                {isAuthenticated ? 'CHECKOUT NOW' : 'GUEST CHECKOUT'}
               </Typography>
             </TouchableOpacity>
 
             {!isAuthenticated && (
               <TouchableOpacity
-                style={[styles.loginCta, { borderColor: colors.borderLight }]}
+                style={styles.loginCta}
                 onPress={() => navigation.navigate('Auth')}
               >
-                <Typography size={8} weight="600" color={colors.textSecondary}>OR SIGN IN FOR A FASTER EXPERIENCE</Typography>
+                <Typography size={7} weight="600" color={colors.textExtraLight} style={{ letterSpacing: 1 }}>ALREADY HAVE AN ACCOUNT? SIGN IN</Typography>
               </TouchableOpacity>
             )}
 
@@ -140,11 +147,12 @@ export default function CartScreen() {
                   { text: 'Clear', style: 'destructive', onPress: clear },
                 ])
               }
+              style={styles.clearBtn}
             >
-              <Text style={[styles.clearText, { color: colors.textLight }]}>Clear Cart</Text>
+              <Typography size={7} weight="500" color={colors.textExtraLight} style={{ letterSpacing: 2 }}>CLEAR CART</Typography>
             </TouchableOpacity>
           </View>
-        </>
+        </View>
       )}
     </View>
   );
@@ -208,87 +216,61 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
     textTransform: 'uppercase',
   },
+  cartContent: {
+    flex: 1,
+  },
   listContent: {
-    paddingBottom: 14,
+    paddingBottom: 24,
   },
   list: {
     flex: 1,
   },
-  bottom: {
-    paddingTop: 12,
+  bottomActions: {
+    paddingTop: 16,
+    paddingHorizontal: 4,
   },
   summaryCard: {
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 24,
+    padding: 20,
     borderWidth: 1,
-    marginBottom: 10,
+    marginBottom: 16,
   },
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   summaryLabel: {
-    fontSize: 8,
-    fontWeight: '200',
-    textTransform: 'uppercase',
-    letterSpacing: 3,
-  },
-  summaryValue: {
-    fontSize: 9,
-    fontWeight: '600',
-    letterSpacing: 1,
-  },
-  shippingText: {
-    fontSize: 8,
-    fontWeight: '200',
+    letterSpacing: 2,
   },
   divider: {
-    height: 0.5,
-    marginVertical: 8,
+    height: 1,
+    marginVertical: 12,
   },
   totalLabel: {
-    fontSize: 10,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 3,
-  },
-  totalValue: {
-    fontSize: 12,
-    fontWeight: '700',
+    letterSpacing: 2,
   },
   checkoutButton: {
-    paddingVertical: 16,
-    borderRadius: 16,
+    paddingVertical: 18,
+    borderRadius: 20,
     alignItems: 'center',
-    marginBottom: 8,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.2,
+    shadowRadius: 20,
+    elevation: 8,
   },
   checkoutText: {
-    fontSize: 9,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 2.8,
-  },
-  clearText: {
-    textAlign: 'center',
-    fontSize: 8,
-    fontWeight: '200',
-    textTransform: 'uppercase',
     letterSpacing: 3,
-    paddingVertical: 10,
   },
   loginCta: {
-    height: 54,
-    borderRadius: 16,
-    borderWidth: 1,
-    justifyContent: 'center',
+    paddingVertical: 16,
     alignItems: 'center',
-    marginTop: 12,
-    marginBottom: 20,
+  },
+  clearBtn: {
+    alignItems: 'center',
+    paddingVertical: 8,
+    opacity: 0.6,
   },
 });

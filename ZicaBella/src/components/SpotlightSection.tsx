@@ -101,45 +101,45 @@ export default function SpotlightSection({
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 64,
-    marginBottom: 60,
-    paddingHorizontal: 12,
+    marginTop: 56,
+    marginBottom: 56,
+    paddingHorizontal: 8, // Reduced gap from screen
   },
   header: {
     alignItems: 'center',
-    marginBottom: 40,
-    paddingHorizontal: 20,
+    marginBottom: 32,
+    paddingHorizontal: 16,
   },
   title: {
-    letterSpacing: 4,
-    marginBottom: 10,
+    letterSpacing: 3,
+    marginBottom: 8,
     textAlign: 'center',
   },
   subtitle: {
-    letterSpacing: 2.2,
+    letterSpacing: 2,
     textAlign: 'center',
-    maxWidth: 240,
+    maxWidth: 260,
     lineHeight: 14,
-    opacity: 0.5,
+    opacity: 0.4,
   },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: 6,
   },
   item: {
-    width: (width - 24 - 16) / 3, // 3 columns
+    width: (width - 16 - 12) / 3, // 3 columns with tighter gaps
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 20,
   },
   imageContainer: {
     width: '100%',
-    aspectRatio: 3 / 4, // Matches web spotlight
-    borderRadius: 12,
+    aspectRatio: 3 / 4.95, // Reduced height by ~5% (was 5.2)
+    borderRadius: 16,
     overflow: 'hidden',
-    borderWidth: 1,
+    borderWidth: 0, // Removed border
     backgroundColor: 'rgba(128,128,128,0.02)',
-    marginBottom: 10,
+    marginBottom: 8,
   },
   image: {
     width: '100%',
@@ -153,28 +153,28 @@ const styles = StyleSheet.create({
   itemInfo: {
     width: '100%',
     alignItems: 'center',
-    gap: 4,
+    gap: 3,
   },
   itemTitle: {
-    letterSpacing: 1.5,
-    opacity: 0.8,
+    letterSpacing: 1.2,
+    opacity: 0.5,
   },
   titleLine: {
-    width: 0, // Animates on web, we can leave as 0 for now or fixed width
+    width: 0,
     height: 1,
   },
   skeletonHeader: {
-    height: 40,
-    width: 200,
-    backgroundColor: 'rgba(0,0,0,0.03)',
+    height: 36,
+    width: 180,
+    backgroundColor: 'rgba(0,0,0,0.02)',
     alignSelf: 'center',
-    marginBottom: 32,
+    marginBottom: 28,
     borderRadius: 8,
   },
   skeletonItem: {
-    width: (width - 24 - 16) / 3,
-    aspectRatio: 3 / 4,
-    backgroundColor: 'rgba(0,0,0,0.03)',
+    width: (width - 16 - 12) / 3,
+    aspectRatio: 3 / 4.95,
+    backgroundColor: 'rgba(0,0,0,0.02)',
     borderRadius: 12,
   },
 });

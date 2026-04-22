@@ -135,7 +135,8 @@ export default function PendingTasksPage() {
     try {
       const res = await mfgFetch("/api/admin/manufacturing/tasks?includeProduction=true");
       const data = await res.json();
-      if (!Array.isArray(data)) throw new Error(data.error || "Failed");
+      if (!res.ok) throw new Error(data.error || "Mission data fetch failure");
+      if (!Array.isArray(data)) throw new Error("Received malformed task matrix");
       setTasks(data);
     } catch (e: any) {
       showToast(e.message, "err");
@@ -212,7 +213,7 @@ export default function PendingTasksPage() {
     <motion.div 
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="pb-20 space-y-10 relative z-10"
+      className="pb-20 space-y-8 relative z-10"
     >
       {/* Background Orbs */}
       <div className="absolute -right-24 -top-24 w-96 h-96 bg-foreground/5 blur-3xl rounded-full pointer-events-none" />
@@ -237,21 +238,25 @@ export default function PendingTasksPage() {
         )}
       </AnimatePresence>
 
-      {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8 lg:mb-12 px-4">
+      {/* Header Section */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8 lg:mb-10 relative z-10">
         <div className="flex items-center gap-4 lg:gap-6">
           <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-2xl lg:rounded-[2rem] bg-foreground/5 flex items-center justify-center border border-foreground/10 shadow-inner shrink-0">
              <ClipboardList className="w-6 h-6 lg:w-8 lg:h-8 text-foreground/40" />
           </div>
           <div className="min-w-0">
-            <h1 className="text-2xl lg:text-4xl font-bold text-foreground tracking-tighter leading-none truncate uppercase">
+            <h1 className="text-2xl lg:text-3xl font-bold text-foreground tracking-tighter leading-none truncate uppercase">
               Pending Tasks
             </h1>
-            <p className="text-[10px] lg:text-[11px] text-foreground/40 font-bold uppercase tracking-[0.4em] mt-1.5 lg:mt-2 font-inter">
+            <p className="text-[9px] lg:text-[10px] text-foreground/40 font-bold uppercase tracking-[0.2em] lg:tracking-[0.3em] mt-1.5 lg:mt-2 font-inter">
               Operations & Command
             </p>
           </div>
         </div>
+        
+        <p className="text-[11px] lg:text-[12px] text-foreground/70 tracking-wide max-w-xl font-medium leading-relaxed hidden xl:block">
+           Mission control for manufacturing — {tasks.length} active directives. Real-time task matrix synchronized with production stages.
+        </p>
         
         <div className="flex flex-wrap items-center gap-2 lg:gap-3">
           <button

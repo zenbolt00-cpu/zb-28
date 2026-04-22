@@ -13,9 +13,9 @@ import { FlatCollection } from '../api/types';
 import { Typography } from './Typography';
 
 const { width } = Dimensions.get('window');
-const CARD_WIDTH = width * 0.72;
-const CARD_HEIGHT = CARD_WIDTH * 1.45;
-const OVERLAP_FACTOR = 0.30; // Extreme overlap: 70% of card width is hidden
+const CARD_WIDTH = width * 0.70;
+const CARD_HEIGHT = CARD_WIDTH * 1.35;
+const OVERLAP_FACTOR = 0.6; // Increased from 0.3 for side cards to be visible on edges
 const ITEM_WIDTH = CARD_WIDTH * OVERLAP_FACTOR;
 
 interface Props {
@@ -120,21 +120,14 @@ function AnimatedCard({ item, index, scrollX, onPress }: any) {
     const scale = interpolate(
       scrollX.value,
       input,
-      [0.65, 1, 0.65], // Dramatically smaller side cards
+      [0.85, 1, 0.85], // Milder scaling for side cards
       Extrapolation.CLAMP
     );
 
     const opacity = interpolate(
       scrollX.value,
       input,
-      [0.7, 1, 0.7],
-      Extrapolation.CLAMP
-    );
-
-    const rotateY = interpolate(
-      scrollX.value,
-      input,
-      [20, 0, -20],
+      [1, 1, 1], // Keep card fully opaque, dim using overlay
       Extrapolation.CLAMP
     );
 
@@ -142,8 +135,7 @@ function AnimatedCard({ item, index, scrollX, onPress }: any) {
       opacity,
       transform: [
         { perspective: 1200 },
-        { scale },
-        { rotateY: `${rotateY}deg` as any }
+        { scale }
       ],
     } as any;
   });
@@ -157,7 +149,7 @@ function AnimatedCard({ item, index, scrollX, onPress }: any) {
     const opacity = interpolate(
       scrollX.value,
       input,
-      [0.45, 0, 0.45],
+      [0.6, 0, 0.6],
       Extrapolation.CLAMP
     );
     return { opacity } as any;

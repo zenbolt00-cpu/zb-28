@@ -169,7 +169,7 @@ export default function VendorsPage() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="pb-20 space-y-10 relative z-10"
+      className="pb-20 space-y-8 relative z-10"
     >
       {/* Vibrant Orb Backgrounds */}
       <div className="absolute -right-24 -top-24 w-96 h-96 bg-foreground/5 blur-3xl rounded-full pointer-events-none" />
@@ -194,20 +194,24 @@ export default function VendorsPage() {
       </AnimatePresence>
 
       {/* Header Section */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8 lg:mb-12 px-4 relative z-10">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8 lg:mb-10 relative z-10">
         <div className="flex items-center gap-4 lg:gap-6">
           <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-2xl lg:rounded-[2rem] bg-foreground/5 flex items-center justify-center border border-foreground/10 shadow-inner shrink-0">
              <Building2 className="w-6 h-6 lg:w-8 lg:h-8 text-foreground/40" />
           </div>
-            <div className="min-w-0">
-              <h1 className="text-xl lg:text-4xl font-bold text-foreground tracking-tighter leading-none truncate uppercase">
-                Manufacturing Nodes
-              </h1>
-              <p className="text-[9px] lg:text-[11px] text-foreground/40 font-bold uppercase tracking-[0.2em] lg:tracking-[0.4em] mt-1.5 lg:mt-2">
-                Vendors & Supply Chain
-              </p>
-            </div>
+          <div className="min-w-0">
+            <h1 className="text-2xl lg:text-3xl font-bold text-foreground tracking-tighter leading-none truncate uppercase">
+              Manufacturing Nodes
+            </h1>
+            <p className="text-[9px] lg:text-[10px] text-foreground/40 font-bold uppercase tracking-[0.2em] lg:tracking-[0.3em] mt-1.5 lg:mt-2">
+              Vendors & Supply Chain
+            </p>
+          </div>
         </div>
+        
+        <p className="text-[11px] lg:text-[12px] text-foreground/70 tracking-wide max-w-xl font-medium leading-relaxed hidden xl:block">
+           Manage your manufacturing nodes — {vendors.length} entities. Real-time ledger of vendors, categories, and supply chain activity.
+        </p>
 
         <div className="flex items-center gap-3 w-full lg:w-auto">
            <button

@@ -121,6 +121,7 @@ export async function GET() {
         title: shop.blueprintTitle,
         subtitle: shop.blueprintSubtitle,
         show: shop.showBlueprint,
+        image: shop.featuredMediaImage,
       },
       pdp: {
         showProductVideo: shop.showProductVideo,
@@ -187,7 +188,7 @@ export async function GET() {
 
     return NextResponse.json({ config }, {
       headers: {
-        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+        'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=120',
         'Access-Control-Allow-Origin': '*',
       },
     });

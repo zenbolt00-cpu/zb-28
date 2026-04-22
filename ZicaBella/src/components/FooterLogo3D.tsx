@@ -9,9 +9,9 @@ import type { Group } from 'three';
 const LOGO_SVG = require('../assets/ZB-logo-silver.svg');
 const MODEL = require('../assets/Zicabella-silver-logo.glb');
 
-/** Exact parity with Next.js StorefrontFooter (w-14 h-14 = 56px) */
-const WRAP_W = 56;
-const WRAP_H = 56;
+/** Premium sizing for mobile view (80px matches visual prominence of 56px on web) */
+const WRAP_W = 80;
+const WRAP_H = 80;
 
 function LogoMesh({ uri }: { uri: string }) {
   const gltf = useGLTF(uri);
@@ -20,16 +20,16 @@ function LogoMesh({ uri }: { uri: string }) {
   useFrame((state, dt) => {
     if (group.current) {
       // Smooth auto-rotate matching web's model-viewer
-      group.current.rotation.y += dt * 0.4;
-      // Subtle float
-      group.current.position.y = Math.sin(state.clock.elapsedTime) * 0.05;
+      group.current.rotation.y += dt * 0.45;
+      // Subtle float 
+      group.current.position.y = Math.sin(state.clock.elapsedTime * 1.5) * 0.08;
     }
   });
 
   return (
     <Center top>
       <group ref={group}>
-        <primitive object={gltf.scene} scale={1.25} />
+        <primitive object={gltf.scene} scale={1.35} />
       </group>
     </Center>
   );
@@ -38,10 +38,10 @@ function LogoMesh({ uri }: { uri: string }) {
 function Scene({ uri }: { uri: string }) {
   return (
     <>
-      <ambientLight intensity={0.65} />
-      <directionalLight position={[10, 10, 5]} intensity={1.5} />
-      <directionalLight position={[-10, 5, -5]} intensity={0.8} color="#c8d4ee" />
-      <pointLight position={[0, 2, 5]} intensity={0.5} />
+      <ambientLight intensity={0.8} />
+      <directionalLight position={[5, 10, 5]} intensity={2.5} />
+      <directionalLight position={[-5, 5, -5]} intensity={1.2} color="#c8d4ee" />
+      <pointLight position={[0, -2, 5]} intensity={0.5} />
       <Suspense fallback={null}>
         <LogoMesh uri={uri} />
       </Suspense>
@@ -110,15 +110,18 @@ export default function FooterLogo3D() {
     <LogoErrorBoundary fallback={<SvgMark />}>
       <View style={styles.wrap}>
         <Canvas
-          camera={{ position: [0, 0, 4.5], fov: 28 }}
+          camera={{ position: [0, 0, 4], fov: 32 }}
           gl={{ alpha: true, antialias: true, logarithmicDepthBuffer: true }}
           style={styles.canvas}
+          frameloop="demand"
           onCreated={({ gl }) => {
             gl.setClearColor(0x000000, 0);
           }}
         >
           <Scene uri={uri} />
         </Canvas>
+        {/* Subtle shadow ring beneath */}
+        <View style={styles.shadow} />
       </View>
     </LogoErrorBoundary>
   );
@@ -129,10 +132,11 @@ const styles = StyleSheet.create({
     width: WRAP_W,
     height: WRAP_H,
     alignSelf: 'center',
-    marginBottom: 12, // Exact mb-3 parity
+    marginBottom: 8,
   },
   canvas: {
     flex: 1,
+    zIndex: 2,
   },
   img: {
     width: '100%',
@@ -141,6 +145,19 @@ const styles = StyleSheet.create({
   center: {
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  shadow: {
+    position: 'absolute',
+    bottom: '15%',
+    left: '25%',
+    right: '25%',
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    shadowColor: '#FFF',
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    zIndex: 1,
   },
 });
 

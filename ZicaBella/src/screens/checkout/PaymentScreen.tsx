@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,14 +8,41 @@ import { Typography } from '../../components/Typography';
 import CheckoutSummaryBar from '../../components/CheckoutSummaryBar';
 import { useCartStore } from '../../store/cartStore';
 import { haptics } from '../../utils/haptics';
+import { useAuth } from '../../hooks/useAuth';
+import { config } from '../../constants/config';
+import { formatPrice } from '../../utils/formatPrice';
 
 export default function PaymentScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const colors = useColors();
   const { total, items } = useCartStore();
+  const { user } = useAuth();
 
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'apple' | 'google' | 'cod'>('apple');
+  const [storeCredits, setStoreCredits] = useState(0);
+  const [useStoreCredit, setUseStoreCredit] = useState(false);
+  const [loadingCredits, setLoadingCredits] = useState(false);
+
+  useEffect(() => {
+    fetchStoreCredits();
+  }, []);
+
+  const fetchStoreCredits = async () => {
+    if (!user) return;
+    setLoadingCredits(true);
+    try {
+      const res = await fetch(`${config.appUrl}/api/app/store-credits?customerId=${user.id}`);
+      const json = await res.json();
+      if (res.ok && json.balance !== undefined) {
+        setStoreCredits(json.balance);
+      }
+    } catch (e) {
+      console.error('Fetch store credits error:', e);
+    } finally {
+      setLoadingCredits(false);
+    }
+  };
 
   const methods = [
     { id: 'apple', title: 'APPLE PAY', icon: 'logo-apple', subtitle: 'SECURE ONE-TAP PAYMENT' },
@@ -23,7 +50,9 @@ export default function PaymentScreen() {
     { id: 'cod', title: 'CASH ON DELIVERY', icon: 'cash-outline', subtitle: '₹99 EXTRA SERVICE FEE' },
   ];
 
-  const currentTotal = total() + (paymentMethod === 'cod' ? 99 : 0);
+  const subtotal = total();
+  const appliedCredit = useStoreCredit ? Math.min(storeCredits, subtotal) : 0;
+  const currentTotal = subtotal - appliedCredit + (paymentMethod === 'cod' ? 99 : 0);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -44,6 +73,32 @@ export default function PaymentScreen() {
         showsVerticalScrollIndicator={false}
       >
         <Typography size={22} weight="700" color={colors.text} style={styles.title}>Secure your archival pieces.</Typography>
+
+        {/* Store Credits Section */}
+        {storeCredits > 0 && (
+          <View style={[styles.storeCreditBlock, { backgroundColor: colors.surface, borderColor: useStoreCredit ? colors.success : colors.borderLight }]}>
+            <View style={styles.storeCreditHeader}>
+              <View style={[styles.creditIcon, { backgroundColor: 'rgba(52, 199, 89, 0.1)' }]}>
+                <Ionicons name="wallet-outline" size={20} color={colors.success} />
+              </View>
+              <View style={{ flex: 1, marginLeft: 16 }}>
+                <Typography size={10} weight="700" color={colors.text}>STORE CREDITS</Typography>
+                <Typography size={7} weight="600" color={colors.textExtraLight}>BALANCE: {formatPrice(storeCredits)}</Typography>
+              </View>
+              <TouchableOpacity
+                onPress={() => { haptics.buttonTap(); setUseStoreCredit(!useStoreCredit); }}
+                style={[styles.toggle, { backgroundColor: useStoreCredit ? colors.success : colors.borderLight }]}
+              >
+                <View style={[styles.toggleThumb, { transform: [{ translateX: useStoreCredit ? 20 : 2 }] }]} />
+              </TouchableOpacity>
+            </View>
+            {useStoreCredit && (
+              <View style={styles.creditAppliedRow}>
+                <Typography size={8} weight="600" color={colors.success}>- {formatPrice(appliedCredit)} APPLIED</Typography>
+              </View>
+            )}
+          </View>
+        )}
 
         <View style={styles.options}>
           {methods.map((m) => (
@@ -107,7 +162,7 @@ export default function PaymentScreen() {
         itemCount={items.length}
         total={currentTotal}
         primaryLabel="REVIEW ORDER"
-        onPrimaryPress={() => navigation.navigate('OrderReview')}
+        onPrimaryPress={() => navigation.navigate('OrderReview', { appliedCredit, paymentMethod })}
       />
     </View>
   );
@@ -121,6 +176,12 @@ const styles = StyleSheet.create({
   stepTag: { letterSpacing: 2, marginBottom: 2 },
   scroll: { paddingHorizontal: 24, paddingTop: 20 },
   title: { letterSpacing: -0.5, marginBottom: 32 },
+  storeCreditBlock: { padding: 20, borderRadius: 24, borderWidth: 1.5, marginBottom: 20 },
+  storeCreditHeader: { flexDirection: 'row', alignItems: 'center' },
+  creditIcon: { width: 40, height: 40, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
+  toggle: { width: 44, height: 24, borderRadius: 12, justifyContent: 'center' },
+  toggleThumb: { width: 20, height: 20, borderRadius: 10, backgroundColor: '#FFF' },
+  creditAppliedRow: { marginTop: 12, borderTopWidth: 1, borderTopColor: 'rgba(52,199,89,0.1)', paddingTop: 12, alignItems: 'flex-end' },
   options: { gap: 12 },
   optionCard: {
     flexDirection: 'row',

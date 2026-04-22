@@ -1,9 +1,18 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
+import { getTrackingStatus } from '@/lib/services/logistics';
 
 export const dynamic = 'force-dynamic';
 
-const corsHeaders = { 'Access-Control-Allow-Origin': '*' };
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+};
+
+export async function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders });
+}
 
 export async function GET(req: Request) {
   try {
@@ -11,40 +20,65 @@ export async function GET(req: Request) {
     const customerId = url.searchParams.get('customerId')?.trim();
     const phone = url.searchParams.get('phone')?.trim();
     const email = url.searchParams.get('email')?.trim();
+    const orderId = url.searchParams.get('orderId')?.trim();
     const limitRaw = url.searchParams.get('limit');
     const offsetRaw = url.searchParams.get('offset');
     const limit = limitRaw ? Math.max(1, Math.min(50, parseInt(limitRaw, 10) || 10)) : null;
     const offset = offsetRaw ? Math.max(0, parseInt(offsetRaw, 10) || 0) : 0;
 
-    if (!customerId && !phone && !email) {
+    // Quick count mode for admin sync stats
+    const countOnly = url.searchParams.get('count') === 'true';
+    if (countOnly) {
+      const total = await prisma.order.count();
+      return NextResponse.json({ total }, { headers: corsHeaders });
+    }
+
+    if (!customerId && !phone && !email && !orderId) {
       return NextResponse.json(
-        { orders: [], error: 'customerId, phone or email query parameter required' },
+        { orders: [], error: 'customerId, phone, email or orderId query parameter required' },
         { status: 400, headers: corsHeaders }
       );
     }
 
-    const whereClause: any = { OR: [] };
-    if (customerId) whereClause.OR.push({ id: customerId });
-    if (phone) whereClause.OR.push({ phone });
-    if (email) whereClause.OR.push({ email });
+    let customerIds: string[] = [];
 
-    if (whereClause.OR.length === 0) {
-      return NextResponse.json({ orders: [] }, { headers: corsHeaders });
+    if (orderId) {
+      // Direct order lookup – no need for customer resolution
+    } else {
+      // Build a flexible customer lookup that handles phone number variants
+      const customerWhere: any = { OR: [] };
+
+      if (customerId) customerWhere.OR.push({ id: customerId });
+
+      if (phone) {
+        const phoneDigits = phone.replace(/\D/g, '');
+        const last10 = phoneDigits.slice(-10);
+        customerWhere.OR.push({ phone });
+        if (phoneDigits !== phone) customerWhere.OR.push({ phone: phoneDigits });
+        if (last10.length === 10) {
+          customerWhere.OR.push({ phone: { contains: last10 } });
+        }
+      }
+
+      if (email) customerWhere.OR.push({ email });
+
+      if (customerWhere.OR.length === 0) {
+        return NextResponse.json({ orders: [] }, { headers: corsHeaders });
+      }
+
+      const customers = await prisma.customer.findMany({
+        where: customerWhere,
+        select: { id: true },
+      });
+
+      if (customers.length === 0) {
+        return NextResponse.json({ orders: [] }, { headers: corsHeaders });
+      }
+      customerIds = customers.map((c: { id: string }) => c.id);
     }
-
-    const customers = await prisma.customer.findMany({
-      where: whereClause,
-      select: { id: true },
-    });
-
-    if (customers.length === 0) {
-      return NextResponse.json({ orders: [] }, { headers: corsHeaders });
-    }
-
-    const customerIds = customers.map((c: { id: string }) => c.id);
 
     const orders = await prisma.order.findMany({
-      where: { customerId: { in: customerIds } },
+      where: orderId ? { id: orderId } : { customerId: { in: customerIds } },
       include: {
         items: {
           include: {
@@ -74,44 +108,108 @@ export async function GET(req: Request) {
         }
       }
 
+      let parsedBillingAddress = null;
+      if (o.billingAddress) {
+        try {
+          parsedBillingAddress = JSON.parse(o.billingAddress);
+        } catch {
+          parsedBillingAddress = { raw: o.billingAddress };
+        }
+      }
+
+      // Extract human-readable order number from shopifyOrderId (e.g. "#ZB71451" → "ZB71451")
+      const rawOrderId = o.shopifyOrderId || '';
+      const orderNumber = rawOrderId.replace(/^#/, '');
+
+      // Extract variant/size info from item title (e.g. "URBANGLYPH LOWER - XL" → size "XL")
+      const itemsFormatted = o.items.map((item: any) => {
+        let size: string | null = null;
+        let productName = item.title;
+        
+        // Try to extract size from title like "PRODUCT NAME - SIZE"
+        const sizeMatch = item.title.match(/\s*-\s*(XXS|XS|S|M|L|XL|XXL|XXXL|\d{2,3})$/i);
+        if (sizeMatch) {
+          size = sizeMatch[1].toUpperCase();
+          productName = item.title.replace(sizeMatch[0], '').trim();
+        }
+
+        return {
+          id: item.id,
+          lineItemId: item.shopifyLineItemId,
+          title: productName,
+          fullTitle: item.title,
+          quantity: item.quantity,
+          price: item.price,
+          sku: item.sku,
+          size,
+          productId: item.productId,
+          shopifyProductId: item.product?.shopifyProductId || null,
+          image: null, // Will be resolved by the app if needed
+        };
+      });
+
+      // Status Normalization
+      let normalizedStatus = (o.status || 'PENDING').toUpperCase();
+      if (normalizedStatus.includes(' / ')) {
+        normalizedStatus = normalizedStatus.split(' / ')[0].trim();
+      }
+      
+      // Payment method extraction
+      const paymentGateway = o.payments?.[0]?.gateway || null;
+      const paymentMethod = paymentGateway 
+        ? paymentGateway.includes('COD') || paymentGateway.includes('Cash') 
+          ? 'Cash on Delivery'
+          : paymentGateway
+        : null;
+
+      // Parse note for discount/shipping info
+      let discountInfo = null;
+      let shippingMethodInfo = null;
+      if (o.note) {
+        const discountMatch = o.note.match(/Discount:\s*([^\|]+)/);
+        if (discountMatch) discountInfo = discountMatch[1].trim();
+        const shippingMatch = o.note.match(/Shipping:\s*([^\|]+)/);
+        if (shippingMatch) shippingMethodInfo = shippingMatch[1].trim();
+      }
+
       return {
         id: o.id,
-        orderNumber: o.shopifyOrderId,
+        orderNumber,
+        shopifyOrderId: o.shopifyOrderId,
         createdAt: o.createdAt,
         updatedAt: o.updatedAt,
-        status: o.status,
+        status: normalizedStatus,
+        rawStatus: o.status,
         paymentStatus: o.paymentStatus,
         fulfillmentStatus: o.fulfillmentStatus,
         deliveryStatus: o.deliveryStatus,
         trackingNumber: latestShipment?.trackingNumber || null,
-        trackingUrl: latestShipment?.trackingNumber
-          ? `https://www.delhivery.com/track/package/${latestShipment.trackingNumber}`
-          : null,
+        trackingUrl: latestShipment?.trackingUrl || (latestShipment?.trackingNumber
+          ? latestShipment.courier?.toLowerCase() === 'shiprocket'
+            ? `https://shiprocket.co/tracking/${latestShipment.trackingNumber}`
+            : `https://www.delhivery.com/track/package/${latestShipment.trackingNumber}`
+          : null),
         courier: latestShipment?.courier || null,
         shipmentCreatedAt: latestShipment?.createdAt || null,
         totalPrice: o.totalPrice,
         subtotalPrice: o.subtotalPrice,
+        totalTax: o.totalTax,
         currency: o.currency,
         note: o.note,
-        paymentMethod: o.payments?.[0]?.gateway || null,
+        tags: o.tags,
+        paymentMethod,
+        shippingMethod: shippingMethodInfo,
+        discountInfo,
         shippingAddress: parsedShippingAddress,
-        items: o.items.map((item: any) => ({
-          id: item.id,
-          lineItemId: item.shopifyLineItemId,
-          title: item.title,
-          quantity: item.quantity,
-          price: item.price,
-          sku: item.sku,
-          productId: item.productId,
-          image: item.product?.shopifyProductId
-            ? null // app can resolve images from Shopify product ID if needed
-            : null,
-        })),
+        billingAddress: parsedBillingAddress,
+        items: itemsFormatted,
         returns: (o.returns || []).map((r: any) => ({
           id: r.id,
           productId: r.productId,
           reason: r.reason,
           status: r.status,
+          refundMethod: r.refundMethod,
+          refundAmount: r.refundAmount,
           requestedAt: r.requestedAt,
         })),
         exchanges: (o.exchanges || []).map((e: any) => ({
@@ -134,17 +232,60 @@ export async function GET(req: Request) {
             String(o.deliveryStatus || '').toLowerCase() === 'out_for_delivery' ? o.updatedAt : null,
           deliveredAt: String(o.deliveryStatus || '').toLowerCase() === 'delivered' ? o.updatedAt : null,
         },
+        shipmentEvents: latestShipment?.events ? JSON.parse(latestShipment.events) : [],
       };
     });
 
+    // Real-time tracking refresh if single order requested
+    if (orderId && formatted.length > 0) {
+      const order = formatted[0];
+      if (order.trackingNumber && order.deliveryStatus !== 'delivered') {
+        try {
+          const status = await getTrackingStatus(order.trackingNumber);
+          if (status && status.status !== 'unknown') {
+             // Update the order object in memory for the response
+             order.deliveryStatus = status.status;
+             order.shipmentEvents = status.events;
+             if (status.estimatedDelivery) {
+                (order.timeline as any).estimatedDelivery = status.estimatedDelivery;
+             }
+
+             // Update DB in background
+             prisma.shipment.updateMany({
+               where: { trackingNumber: order.trackingNumber },
+               data: { 
+                 status: status.status,
+                 currentLocation: status.location,
+                 estimatedDelivery: status.estimatedDelivery ? new Date(status.estimatedDelivery) : undefined,
+                 events: JSON.stringify(status.events)
+               }
+             }).catch(e => console.error('DB Status Sync Error:', e));
+
+             // Also update order delivery status if changed
+             if (status.status.toLowerCase() === 'delivered') {
+                prisma.order.update({
+                  where: { id: order.id },
+                  data: { deliveryStatus: 'delivered' }
+                }).catch(e => console.error('DB Order Sync Error:', e));
+             }
+          }
+        } catch (e) {
+          console.error('Real-time sync failed:', e);
+        }
+      }
+    }
+
     // Optional pagination metadata (kept non-breaking: existing callers can ignore).
-    let hasMore: boolean | undefined = undefined;
-    if (limit) {
+    if (limit && !orderId) {
       const total = await prisma.order.count({
         where: { customerId: { in: customerIds } },
       });
-      hasMore = offset + formatted.length < total;
+      const hasMore = offset + formatted.length < total;
       return NextResponse.json({ orders: formatted, page: { limit, offset, total, hasMore } }, { headers: corsHeaders });
+    }
+
+    if (orderId && formatted.length > 0) {
+      return NextResponse.json({ order: formatted[0] }, { headers: corsHeaders });
     }
 
     return NextResponse.json({ orders: formatted }, { headers: corsHeaders });
@@ -160,19 +301,107 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { lineItems, customer, shippingAddress, billingAddress, financialStatus, tags, note } = body;
+    const { 
+      customerId, 
+      lineItems, 
+      shipping_address, 
+      appliedStoreCredits = 0, 
+      payment_method = 'apple',
+      financial_status = 'pending'
+    } = body;
 
-    if (!lineItems?.length || !customer) {
+    if (!lineItems?.length || !customerId) {
       return NextResponse.json(
-        { success: false, error: 'lineItems and customer are required' },
+        { success: false, error: 'lineItems and customerId are required' },
         { status: 400, headers: corsHeaders }
       );
     }
 
-    return NextResponse.json(
-      { success: false, error: 'Direct order creation via this endpoint is disabled. Use checkout flow.' },
-      { status: 403, headers: corsHeaders }
-    );
+    // 1. Handle Store Credits if applied
+    let creditReduction = 0;
+    if (appliedStoreCredits > 0) {
+      const customer = await prisma.customer.findUnique({
+        where: { id: customerId }
+      });
+
+      if (!customer || (customer.storeCredits || 0) < appliedStoreCredits) {
+        return NextResponse.json(
+          { success: false, error: 'Insufficient store credits' },
+          { status: 400, headers: corsHeaders }
+        );
+      }
+
+      creditReduction = appliedStoreCredits;
+
+      // Create transaction
+      await prisma.storeCredit.create({
+        data: {
+          customerId,
+          amount: -creditReduction,
+          type: 'DEBIT',
+          description: 'Order Purchase',
+        }
+      });
+
+      // Update customer balance
+      await prisma.customer.update({
+        where: { id: customerId },
+        data: { storeCredits: { decrement: creditReduction } }
+      });
+    }
+
+    // 2. Create order in Shopify
+    const shopifyOrderPayload = {
+      line_items: lineItems.map((li: any) => ({
+        variant_id: li.variant_id,
+        quantity: li.quantity,
+      })),
+      customer: { id: customerId },
+      shipping_address,
+      financial_status: financial_status === 'paid' ? 'paid' : 'pending',
+      tags: creditReduction > 0 ? `Used Store Credit: ${creditReduction}` : '',
+      note: creditReduction > 0 ? `Customer used ${creditReduction} store credits for this purchase.` : '',
+      use_customer_default_address: !shipping_address,
+    };
+
+    // We need the shopify-admin helpers
+    const { createOrder: createShopifyOrder } = require('@/lib/shopify-admin');
+    const shopifyOrder = await createShopifyOrder(shopifyOrderPayload);
+
+    // 3. Save to local database
+    const shop = await prisma.shop.findFirst();
+    if (!shop) {
+      throw new Error('No shop found in database');
+    }
+
+    const localOrder = await prisma.order.create({
+      data: {
+        shopId: shop.id,
+        customerId,
+        shopifyOrderId: String(shopifyOrder.id),
+        totalPrice: parseFloat(shopifyOrder.total_price),
+        subtotalPrice: parseFloat(shopifyOrder.subtotal_price),
+        currency: shopifyOrder.currency,
+        status: 'OPEN',
+        paymentStatus: shopifyOrder.financial_status,
+        fulfillmentStatus: 'unfulfilled',
+        shippingAddress: JSON.stringify(shopifyOrder.shipping_address || shipping_address),
+        tags: shopifyOrder.tags,
+        items: {
+          create: shopifyOrder.line_items.map((li: any) => ({
+            shopifyLineItemId: String(li.id),
+            productId: li.product_id ? String(li.product_id) : undefined,
+            title: li.title,
+            quantity: li.quantity,
+            price: parseFloat(li.price),
+            sku: li.sku,
+          }))
+        }
+      },
+      include: { items: true }
+    });
+
+    return NextResponse.json({ success: true, order: localOrder }, { headers: corsHeaders });
   } catch (error: any) {
     console.error('[App API] Create order error:', error.message);
     return NextResponse.json(

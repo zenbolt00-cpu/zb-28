@@ -28,8 +28,10 @@ export type CheckoutStackParamList = {
 };
 
 export type ServiceStackParamList = {
-  ServiceList: undefined;
-  ServiceDetail: { id: string };
+  ServiceHistory: undefined;
+  ReturnWizard: { orderId: string; initialItems?: string[] };
+  ExchangeWizard: { orderId: string; initialItems?: string[] };
+  ServiceDetail: { type: 'RETURN' | 'EXCHANGE'; id: string };
 };
 
 export type RootStackParamList = {

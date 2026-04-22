@@ -56,13 +56,19 @@ export async function apiPatch<T>(endpoint: string, body: any): Promise<T> {
 // Higher-level service helpers
 export const serviceApi = {
   returns: {
-    create: (body: any) => apiPost('/returns', body),
-    list: (user_id: string) => apiGet<any[]>('/returns', { user_id }),
-    get: (id: string) => apiGet(`/returns/${id}`),
+    /** Submit a return/exchange request for an order */
+    create: (body: any) => apiPost('/orders/return', body),
+    /** List all returns for a customer */
+    list: (customerId: string) => apiGet<any>('/returns', { customerId }),
+    /** Get a single return by ID (uses order detail endpoint) */
+    get: (id: string) => apiGet(`/returns`, { customerId: id }),
   },
   exchanges: {
-    create: (body: any) => apiPost('/exchanges', body),
-    list: (user_id: string) => apiGet<any[]>('/exchanges', { user_id }),
-    get: (id: string) => apiGet(`/exchanges/${id}`),
-  }
+    /** Submit an exchange request (same endpoint as returns, action: 'exchange') */
+    create: (body: any) => apiPost('/orders/return', body),
+    /** List all exchanges for a customer */
+    list: (customerId: string) => apiGet<any>('/exchanges', { customerId }),
+    /** Get a single exchange by ID */
+    get: (id: string) => apiGet(`/exchanges`, { customerId: id }),
+  },
 };

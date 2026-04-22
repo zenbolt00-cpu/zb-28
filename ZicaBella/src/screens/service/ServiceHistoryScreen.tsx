@@ -28,14 +28,14 @@ export default function ServiceHistoryScreen() {
     if (!user?.id) return;
     try {
       setLoading(true);
-      const [returns, exchanges] = await Promise.all([
+      const [returnsRes, exchangesRes] = await Promise.all([
         serviceApi.returns.list(user.id),
         serviceApi.exchanges.list(user.id)
       ]);
       
       const combined = [
-        ...(returns || []).map(r => ({ ...r, type: 'RETURN' })),
-        ...(exchanges || []).map(e => ({ ...e, type: 'EXCHANGE' }))
+        ...(returnsRes.returns || []).map((r: any) => ({ ...r, type: 'RETURN' })),
+        ...(exchangesRes.exchanges || []).map((e: any) => ({ ...e, type: 'EXCHANGE' }))
       ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       
       setRequests(combined);

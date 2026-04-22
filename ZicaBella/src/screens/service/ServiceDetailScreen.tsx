@@ -11,7 +11,7 @@ import { Typography } from '../../components/Typography';
 import { serviceApi } from '../../api/shopify';
 import { haptics } from '../../utils/haptics';
 import { config } from '../../constants/config';
-import { ServiceStackParamList } from '../../navigation/ServiceNavigator';
+import { ServiceStackParamList } from '../../navigation/types';
 
 export default function ServiceDetailScreen() {
   const insets = useSafeAreaInsets();
@@ -27,7 +27,7 @@ export default function ServiceDetailScreen() {
   const fetchDetail = useCallback(async () => {
     try {
       const res: any = type === 'RETURN' ? await serviceApi.returns.get(id) : await serviceApi.exchanges.get(id);
-      setData(res.return || res.exchange || res);
+      setData(res.returns?.[0] || res.exchanges?.[0] || res.return || res.exchange || res);
     } catch (e) {
       console.error('Fetch Service Detail Error:', e);
     } finally {

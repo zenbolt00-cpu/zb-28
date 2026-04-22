@@ -3,7 +3,15 @@ import prisma from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
-const corsHeaders = { 'Access-Control-Allow-Origin': '*' };
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, PATCH, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+};
+
+export async function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders });
+}
 
 export async function GET(req: Request) {
   try {
@@ -43,6 +51,8 @@ export async function GET(req: Request) {
           image: customer.image,
           defaultAddress: customer.defaultAddress,
           isCommunityMember: !!customer.communityMember,
+          storeCredits: customer.storeCredits ?? 0,
+          storeCreditPreference: customer.storeCreditPreference ?? false,
         },
       },
       { headers: corsHeaders }

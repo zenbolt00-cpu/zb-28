@@ -52,8 +52,7 @@
           }
         }
       ],
-      "expo-asset",
-      "@sentry/react-native"
+      "expo-asset"
     ],
     "extra": {
       "appStoreMetadata": {

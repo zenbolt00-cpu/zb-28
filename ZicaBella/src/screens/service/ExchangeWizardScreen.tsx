@@ -12,7 +12,7 @@ import { haptics } from '../../utils/haptics';
 import { serviceApi, apiGet } from '../../api/shopify';
 import { config } from '../../constants/config';
 import { formatPrice } from '../../utils/formatPrice';
-import { ServiceStackParamList } from '../../navigation/ServiceNavigator';
+import { ServiceStackParamList } from '../../navigation/types';
 
 type Step = 'SELECTION' | 'OPTIONS' | 'PAYMENT' | 'SUCCESS';
 
@@ -37,9 +37,12 @@ export default function ExchangeWizardScreen() {
   useEffect(() => {
     const fetchOrder = async () => {
       try {
-        const res = await fetch(`${config.appUrl}/api/orders/${orderId}`);
+        // Use the secure proxy endpoint with orderId to bypass NextAuth session blockers
+        const res = await fetch(`${config.appUrl}/api/app/orders?orderId=${orderId}`);
         const json = await res.json();
-        if (res.ok) setOrder(json.order);
+        if (res.ok && json.order) {
+          setOrder(json.order);
+        }
       } catch (e) {
         console.error('Fetch Order Error:', e);
       } finally {
@@ -92,7 +95,8 @@ export default function ExchangeWizardScreen() {
         items: [{
           lineItemId: selectedId,
           newVariantId: selectedVariant.id,
-          reason: 'Size/Color Exchange'
+          reason: 'Size/Color Exchange',
+          action: 'exchange' as const,
         }],
         priceDifference: calculateDiff()
       };

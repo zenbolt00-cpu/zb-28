@@ -16,6 +16,7 @@ model Shop {
   razorpayKeyId            String?
   razorpayKeySecret        String?
   shiprocketEmail          String?
+  shiprocketPassword       String?
   shiprocketToken          String?
   webhookSecret            String?
   heroImage                String?
@@ -83,27 +84,30 @@ model Shop {
 }
 
 model Customer {
-  id                String             @id @default(cuid())
-  shopId            String
-  shopifyId         String             @unique
-  email             String?
-  name              String?
-  phone             String?
-  defaultAddress    String?
-  ordersCount       Int                @default(0)
-  totalSpent        Float              @default(0)
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-  image             String?
-  region            String?
-  communityMember   CommunityMember?
-  communityMessages CommunityMessage[]
-  shop              Shop               @relation(fields: [shopId], references: [id])
-  following         Follow[]           @relation("UserFollowing")
-  followers         Follow[]           @relation("UserFollowers")
-  orders            Order[]
-  payments          Payment[]
-  returns           Return[]
+  id                    String             @id @default(cuid())
+  shopId                String
+  shopifyId             String             @unique
+  email                 String?
+  name                  String?
+  phone                 String?
+  defaultAddress        String?
+  ordersCount           Int                @default(0)
+  totalSpent            Float              @default(0)
+  storeCredits          Float              @default(0)
+  storeCreditPreference Boolean            @default(false)
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+  image                 String?
+  region                String?
+  communityMember       CommunityMember?
+  communityMessages     CommunityMessage[]
+  shop                  Shop               @relation(fields: [shopId], references: [id])
+  following             Follow[]           @relation("UserFollowing")
+  followers             Follow[]           @relation("UserFollowers")
+  orders                Order[]
+  payments              Payment[]
+  returns               Return[]
+  storeCreditTxns       StoreCredit[]
 }
 
 model Follow {
@@ -134,6 +138,7 @@ model Order {
   shippingAddress   String?
   billingAddress    String?
   note              String?
+  tags              String?
   createdAt         DateTime    @default(now())
   updatedAt         DateTime    @updatedAt
   exchanges         Exchange[]
@@ -189,22 +194,24 @@ model Inventory {
 }
 
 model Return {
-  id             String   @id @default(cuid())
-  orderId        String
-  productId      String
-  customerId     String
-  sku            String?
-  reason         String
-  status         String   @default("REQUESTED") // REQUESTED, APPROVED, RECEIVED, REFUNDED, REJECTED
-  returnMethod   String?  // PICKUP, DROP_OFF
-  trackingNumber String?
-  refundAmount   Float?
-  refundStatus   String?  // PENDING, COMPLETED, FAILED
-  requestedAt    DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  customer       Customer @relation(fields: [customerId], references: [id])
-  order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product        Product  @relation(fields: [productId], references: [id])
+  id                String   @id @default(cuid())
+  orderId           String
+  productId         String
+  customerId        String
+  sku               String?
+  reason            String
+  status            String   @default("REQUESTED") // REQUESTED, APPROVED, RECEIVED, REFUNDED, REJECTED
+  returnMethod      String?  // PICKUP, DROP_OFF
+  refundMethod      String?  // ORIGINAL, STORE_CREDIT
+  trackingNumber    String?
+  refundAmount      Float?
+  storeCreditAmount Float?
+  refundStatus      String?  // PENDING, COMPLETED, FAILED
+  requestedAt       DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  customer          Customer @relation(fields: [customerId], references: [id])
+  order             Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product           Product  @relation(fields: [productId], references: [id])
 }
 
 model Exchange {
@@ -504,4 +511,20 @@ model MfgVendor {
   category  String   // Fabric, Buttons, Threads, Screen Printing, Digital Printing, Washing, Embroidery, etc.
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// --- Store Credits (for refund-as-credit and checkout usage) ---
+
+model StoreCredit {
+  id          String   @id @default(cuid())
+  customerId  String
+  amount      Float
+  type        String   // CREDIT, DEBIT
+  description String
+  orderId     String?
+  returnId    String?
+  createdAt   DateTime @default(now())
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId, createdAt])
 }

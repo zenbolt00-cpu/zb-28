@@ -83,7 +83,12 @@ export async function GET(req: Request) {
 
     return NextResponse.json(combinedTasks);
   } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    console.error("Fetch Tasks Error:", e);
+    // Be specific about typical Prisma errors
+    const errorMsg = e.message?.includes("does not exist") 
+      ? "Database table 'MfgTask' is missing. Please run 'npx prisma db push'."
+      : e.message;
+    return NextResponse.json({ error: errorMsg }, { status: 500 });
   }
 }
 

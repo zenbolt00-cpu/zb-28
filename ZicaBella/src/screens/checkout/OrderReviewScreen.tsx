@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useColors } from '../../constants/colors';
 import { Typography } from '../../components/Typography';
@@ -15,49 +15,48 @@ import { useAuth } from '../../hooks/useAuth';
 export default function OrderReviewScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();
   const colors = useColors();
   const { total, items, clearCart } = useCartStore();
   const { user } = useAuth();
 
   const [loading, setLoading] = useState(false);
-
+  
+  const appliedCredit = route.params?.appliedCredit || 0;
+  const paymentMethod = route.params?.paymentMethod || 'apple';
   const subtotal = total();
   const shipping = 0;
-  const grandTotal = subtotal + shipping;
+  const codFee = paymentMethod === 'cod' ? 99 : 0;
+  const grandTotal = subtotal + shipping + codFee - appliedCredit;
 
   const handlePlaceOrder = async () => {
     setLoading(true);
     haptics.buttonTap();
 
     try {
-      // API call to /api/orders
-      const res = await fetch(`${config.appUrl}/api/orders`, {
+      // API call to order creation endpoint
+      const res = await fetch(`${config.appUrl}/api/app/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           customerId: user?.id,
-          customerName: user?.name,
-          customerEmail: user?.email,
-          items: items.map(i => ({ 
-            id: i.id, 
-            productId: i.productId, 
+          lineItems: items.map(i => ({ 
+            variant_id: i.variantId, 
             quantity: i.quantity, 
             price: i.price,
-            title: i.title,
-            image: i.image,
-            variantId: i.variantId
+            title: i.title
           })),
-          total: grandTotal,
-          subtotal: subtotal,
-          shippingAddress: {
-            // In a real app, these would come from the previous step state
-            street: '12B Archive Street',
+          appliedStoreCredits: appliedCredit,
+          shipping_address: {
+            first_name: user?.name?.split(' ')[0] || 'Zica',
+            last_name: user?.name?.split(' ')[1] || 'User',
+            address1: '12B Archive Street',
             city: 'New Delhi',
             zip: '110001',
-            country: 'India'
+            country_code: 'IN'
           },
-          paymentStatus: 'PAID',
-          paymentMethod: 'STRIPE'
+          financial_status: appliedCredit >= subtotal ? 'paid' : 'pending',
+          payment_method: paymentMethod
         })
       });
 
@@ -68,7 +67,7 @@ export default function OrderReviewScreen() {
       clearCart();
       navigation.reset({
         index: 0,
-        routes: [{ name: 'OrderConfirmation', params: { orderId: json.order_id || 'ZB-89241' } }],
+        routes: [{ name: 'OrderConfirmation', params: { orderId: json.order?.id || 'ZB-SUCCESS' } }],
       });
     } catch (e: any) {
       haptics.error();
@@ -116,8 +115,8 @@ export default function OrderReviewScreen() {
             <TouchableOpacity onPress={() => navigation.navigate('Payment')}><Typography size={7} weight="600" color={colors.foreground}>EDIT</Typography></TouchableOpacity>
           </View>
           <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.borderLight, flexDirection: 'row', alignItems: 'center' }]}>
-             <Ionicons name="logo-apple" size={20} color={colors.text} />
-             <Typography size={12} weight="600" color={colors.text} style={{ marginLeft: 12 }}>APPLE PAY</Typography>
+             <Ionicons name={paymentMethod === 'apple' ? 'logo-apple' : paymentMethod === 'cod' ? 'cash-outline' : 'card-outline'} size={20} color={colors.text} />
+             <Typography size={12} weight="600" color={colors.text} style={{ marginLeft: 12 }}>{paymentMethod.toUpperCase()} PAY</Typography>
           </View>
         </View>
 
@@ -125,17 +124,29 @@ export default function OrderReviewScreen() {
           <Typography size={7} weight="700" color={colors.textExtraLight} style={styles.sectionLabel}>SUMMARY</Typography>
           <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}>
              <View style={styles.row}>
-               <Typography size={12} color={colors.textSecondary}>Subtotal</Typography>
-               <Typography size={12} weight="600" color={colors.text}>{formatPrice(subtotal)}</Typography>
+               <Typography size={10} color={colors.textSecondary}>Subtotal</Typography>
+               <Typography size={10} weight="600" color={colors.text}>{formatPrice(subtotal)}</Typography>
              </View>
+             {codFee > 0 && (
+               <View style={styles.row}>
+                 <Typography size={10} color={colors.textSecondary}>COD Service Fee</Typography>
+                 <Typography size={10} weight="600" color={colors.text}>{formatPrice(codFee)}</Typography>
+               </View>
+             )}
              <View style={styles.row}>
-               <Typography size={12} color={colors.textSecondary}>Shipping</Typography>
-               <Typography size={12} weight="600" color={colors.success}>FREE</Typography>
+               <Typography size={10} color={colors.textSecondary}>Shipping</Typography>
+               <Typography size={10} weight="600" color={colors.success}>FREE</Typography>
              </View>
+             {appliedCredit > 0 && (
+               <View style={styles.row}>
+                 <Typography size={10} color={colors.success} weight="600">Store Credit Applied</Typography>
+                 <Typography size={10} weight="700" color={colors.success}>- {formatPrice(appliedCredit)}</Typography>
+               </View>
+             )}
              <View style={[styles.divider, { backgroundColor: colors.borderLight }]} />
              <View style={styles.row}>
-               <Typography size={14} weight="700" color={colors.text}>Estimated Total</Typography>
-               <Typography size={18} weight="800" color={colors.text}>{formatPrice(grandTotal)}</Typography>
+               <Typography size={12} weight="700" color={colors.text}>Estimated Total</Typography>
+               <Typography size={16} weight="800" color={colors.text}>{formatPrice(grandTotal)}</Typography>
              </View>
           </View>
         </View>

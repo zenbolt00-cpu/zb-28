@@ -296,7 +296,7 @@ export default function FabricInventoryPage() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="pb-20 space-y-10 relative z-10"
+      className="pb-20 space-y-8 relative z-10"
     >
       {/* Vibrant Orb Backgrounds */}
       <div className="absolute -right-24 -top-24 w-96 h-96 bg-foreground/5 blur-3xl rounded-full pointer-events-none" />
@@ -321,25 +321,24 @@ export default function FabricInventoryPage() {
       </AnimatePresence>
 
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-10 px-4 pt-4 mb-12 relative z-10">
-        <div className="space-y-4">
-          <div className="flex items-center gap-4 mb-2 lg:mb-6">
-            <div className="w-14 h-14 rounded-2xl bg-foreground/5 flex items-center justify-center text-foreground/50 dark:text-foreground/30 border border-foreground/5 shadow-2xl">
-              <Palette className="w-7 h-7" />
-            </div>
-            <div>
-              <h1 className="text-4xl md:text-5xl font-bold text-foreground uppercase tracking-tighter leading-none">
-                Fabric
-              </h1>
-              <p className="text-[11px] text-foreground/50 dark:text-foreground/30 font-bold uppercase tracking-[0.4em] mt-2">
-                Inventory Spectrum
-              </p>
-            </div>
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8 lg:mb-10 relative z-10">
+        <div className="flex items-center gap-4 lg:gap-6">
+          <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-2xl lg:rounded-[2rem] bg-foreground/5 flex items-center justify-center text-foreground/50 dark:text-foreground/30 border border-foreground/5 shadow-2xl shrink-0">
+            <Palette className="w-6 h-6 lg:w-8 lg:h-8" />
           </div>
-          <p className="text-[11px] lg:text-[12px] text-foreground/70 tracking-wide max-w-xl font-medium leading-relaxed">
-             Manage your fabric spectrum — {allFabrics.length} nodes. Real-time stock levels, cost per meter, and automated low-stock warnings.
-          </p>
+          <div className="min-w-0">
+            <h1 className="text-2xl lg:text-3xl font-bold text-foreground uppercase tracking-tighter leading-none truncate">
+              Fabric Inventory
+            </h1>
+            <p className="text-[9px] lg:text-[10px] text-foreground/40 font-bold uppercase tracking-[0.2em] lg:tracking-[0.3em] mt-1.5 lg:mt-2">
+              Spectrum & Stock
+            </p>
+          </div>
         </div>
+        
+        <p className="text-[11px] lg:text-[12px] text-foreground/70 tracking-wide max-w-xl font-medium leading-relaxed hidden xl:block">
+           Manage your fabric spectrum — {allFabrics.length} nodes. Real-time stock levels, cost per meter, and automated low-stock warnings.
+        </p>
         
         <div className="flex flex-wrap items-center gap-3">
           <button

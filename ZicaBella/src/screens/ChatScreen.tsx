@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, memo } from 'react';
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
   FlatList, KeyboardAvoidingView, Platform, ActivityIndicator,
@@ -8,14 +8,15 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import Animated, {
-  useSharedValue, useAnimatedStyle, withSpring, withTiming, Easing, withRepeat,
+  useSharedValue, useAnimatedStyle, withSpring, withTiming, Easing, withRepeat, FadeInDown, FadeInUp,
 } from 'react-native-reanimated';
 import { useColors } from '../constants/colors';
 import { useThemeStore } from '../store/themeStore';
-import { useCartStore } from '../store/cartStore';
 import { config } from '../constants/config';
 import { useUIStore } from '../store/uiStore';
 import GlassHeader from '../components/GlassHeader';
+import { Typography } from '../components/Typography';
+import { haptics } from '../utils/haptics';
 
 const { width, height } = Dimensions.get('window');
 
@@ -27,8 +28,6 @@ interface Message {
   typing?: boolean;
 }
 
-// Zica AI Knowledge Base — contextual responses
-// Zica AI Knowledge Base — minimal, premium responses
 const ZICA_AI_RESPONSES: { [key: string]: string } = {
   hello: "Welcome to Zica Bella. I'm Zica AI, your personal style concierge. How can I assist you in your curation today?",
   hi: "Hello. I'm here to help with your Zica Bella experience. What are you looking for?",
@@ -56,14 +55,13 @@ const ZICA_AI_RESPONSES: { [key: string]: string } = {
 
 function getAIResponse(message: string): string {
   const lower = message.toLowerCase();
-  
   if (lower.includes('hello') || lower.includes('hey')) return ZICA_AI_RESPONSES.hello;
   if (lower.includes('hi ') || lower === 'hi') return ZICA_AI_RESPONSES.hi;
   if (lower.includes('size') || lower.includes('sizing') || lower.includes('fit')) return ZICA_AI_RESPONSES.sizing;
   if (lower.includes('order') && (lower.includes('track') || lower.includes('status') || lower.includes('where'))) return ZICA_AI_RESPONSES.track;
   if (lower.includes('order') || lower.includes('orders')) return ZICA_AI_RESPONSES.order;
   if (lower.includes('ship') || lower.includes('delivery') || lower.includes('deliver')) return ZICA_AI_RESPONSES.shipping;
-  if (lower.includes('return') || lower.includes('refund') && lower.includes('policy')) return ZICA_AI_RESPONSES.return;
+  if (lower.includes('return') || (lower.includes('refund') && lower.includes('policy'))) return ZICA_AI_RESPONSES.return;
   if (lower.includes('refund')) return ZICA_AI_RESPONSES.refund;
   if (lower.includes('exchange')) return ZICA_AI_RESPONSES.exchange;
   if (lower.includes('payment') || lower.includes('pay') || lower.includes('upi') || lower.includes('cod')) return ZICA_AI_RESPONSES.payment;
@@ -78,75 +76,46 @@ function getAIResponse(message: string): string {
   if (lower.includes('wholesale') || lower.includes('bulk') || lower.includes('b2b')) return ZICA_AI_RESPONSES.wholesale;
   if (lower.includes('custom') || lower.includes('print') || lower.includes('personaliz')) return ZICA_AI_RESPONSES.custom;
   if (lower.includes('track') || lower.includes('tracking')) return ZICA_AI_RESPONSES.track;
-  
   return ZICA_AI_RESPONSES.default;
 }
 
 const QUICK_PROMPTS = [
-  'Size guide',
-  'Shipping info',
-  'Return policy',
-  'Trending now',
-  'Payment options',
-  'Fabric quality',
+  { label: 'Size guide', icon: 'shirt-outline' },
+  { label: 'Shipping info', icon: 'car-outline' },
+  { label: 'Return policy', icon: 'refresh-outline' },
+  { label: 'Trending now', icon: 'flame-outline' },
+  { label: 'Payment options', icon: 'card-outline' },
+  { label: 'Fabric quality', icon: 'diamond-outline' },
 ];
 
-const TypingIndicator = () => {
-  const dot1 = useSharedValue(0);
-  const dot2 = useSharedValue(0);
-  const dot3 = useSharedValue(0);
-
-  useEffect(() => {
-    const animate = () => {
-      dot1.value = withTiming(1, { duration: 400 }, () => {
-        dot1.value = withTiming(0, { duration: 400 });
-      });
-      setTimeout(() => {
-        dot2.value = withTiming(1, { duration: 400 }, () => {
-          dot2.value = withTiming(0, { duration: 400 });
-        });
-      }, 150);
-      setTimeout(() => {
-        dot3.value = withTiming(1, { duration: 400 }, () => {
-          dot3.value = withTiming(0, { duration: 400 });
-        });
-      }, 300);
-    };
-    const interval = setInterval(animate, 1000);
-    animate();
-    return () => clearInterval(interval);
-  }, []);
-
-  const s1 = useAnimatedStyle(() => ({ opacity: 0.3 + dot1.value * 0.7, transform: [{ translateY: -dot1.value * 4 }] }));
-  const s2 = useAnimatedStyle(() => ({ opacity: 0.3 + dot2.value * 0.7, transform: [{ translateY: -dot2.value * 4 }] }));
-  const s3 = useAnimatedStyle(() => ({ opacity: 0.3 + dot3.value * 0.7, transform: [{ translateY: -dot3.value * 4 }] }));
-
+const MessageBubble = memo(({ item }: { item: Message }) => {
+  const isUser = item.isUser;
   return (
-    <View style={typingStyles.container}>
-      <Animated.View style={[typingStyles.dot, s1]} />
-      <Animated.View style={[typingStyles.dot, s2]} />
-      <Animated.View style={[typingStyles.dot, s3]} />
-    </View>
+    <Animated.View 
+      entering={FadeInDown.duration(400).springify().damping(20)}
+      style={[msgStyles.row, isUser && msgStyles.rowRight]}
+    >
+      <View style={[
+        msgStyles.bubble,
+        isUser ? msgStyles.userBubble : msgStyles.aiBubble,
+        !isUser && msgStyles.aiBubbleDecoration
+      ]}>
+        <Text style={[msgStyles.text, { color: '#FFF' }]}>
+          {item.content}
+        </Text>
+        <Typography size={8} weight="300" color="rgba(255,255,255,0.3)" style={msgStyles.time}>
+          {item.createdAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+        </Typography>
+      </View>
+    </Animated.View>
   );
-};
-
-const typingStyles = StyleSheet.create({
-  container: { flexDirection: 'row', gap: 5, paddingHorizontal: 6, paddingVertical: 4, alignItems: 'flex-end' },
-  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#999' },
 });
 
 export default function ChatScreen() {
   const insets = useSafeAreaInsets();
   const colors = useColors();
-  const isDark = true; // Forced premium Dark Theme for Zica AI
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '0',
-      content: "Welcome to Zica Bella. I'm Zica AI. I can assist you with sizing, shipping, curations, and more. How may I be of service?",
-      isUser: false,
-      createdAt: new Date(),
-    }
-  ]);
+  const isDark = true; 
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const flatListRef = useRef<FlatList>(null);
@@ -155,45 +124,7 @@ export default function ChatScreen() {
   const isTabBarVisible = useUIStore(s => s.isTabBarVisible);
   const lastScrollY = useRef(0);
 
-  // Animate input bar to slide down and fill the gap when the tab bar hides
   const inputTranslateY = useSharedValue(0);
-
-  // Animated Orbs for AI background effect
-  const orb1TranslateX = useSharedValue(0);
-  const orb1TranslateY = useSharedValue(0);
-  const orb2TranslateX = useSharedValue(0);
-  const orb2TranslateY = useSharedValue(0);
-
-  useEffect(() => {
-    orb1TranslateX.value = withRepeat(
-      withTiming(width * 0.2, { duration: 8000, easing: Easing.inOut(Easing.sin) }),
-      -1,
-      true
-    );
-    orb1TranslateY.value = withRepeat(
-      withTiming(height * 0.1, { duration: 11000, easing: Easing.inOut(Easing.sin) }),
-      -1,
-      true
-    );
-    orb2TranslateX.value = withRepeat(
-      withTiming(-width * 0.15, { duration: 9000, easing: Easing.inOut(Easing.sin) }),
-      -1,
-      true
-    );
-    orb2TranslateY.value = withRepeat(
-      withTiming(-height * 0.12, { duration: 10000, easing: Easing.inOut(Easing.sin) }),
-      -1,
-      true
-    );
-  }, []);
-
-  const orb1Style = useAnimatedStyle(() => ({
-    transform: [{ translateX: orb1TranslateX.value }, { translateY: orb1TranslateY.value }],
-  }));
-
-  const orb2Style = useAnimatedStyle(() => ({
-    transform: [{ translateX: orb2TranslateX.value }, { translateY: orb2TranslateY.value }],
-  }));
 
   useEffect(() => {
     inputTranslateY.value = withTiming(isTabBarVisible ? 0 : 70, {
@@ -206,25 +137,13 @@ export default function ChatScreen() {
     transform: [{ translateY: inputTranslateY.value }],
   }));
 
-  const onScroll = (event: any) => {
-    const currentY = event.nativeEvent.contentOffset.y;
-    const diff = currentY - lastScrollY.current;
-    if (Math.abs(diff) > 5) {
-      const isVisible = useUIStore.getState().isTabBarVisible;
-      const shouldShow = diff <= 0;
-      if (isVisible !== shouldShow) {
-        setTabBarVisible(shouldShow);
-      }
-    }
-    lastScrollY.current = currentY;
-  };
-
   const handleSend = useCallback((text?: string) => {
     const content = (text ?? input).trim();
     if (!content) return;
     
     Keyboard.dismiss();
     setInput('');
+    haptics.buttonTap();
 
     const userMsg: Message = {
       id: Date.now().toString(),
@@ -236,8 +155,7 @@ export default function ChatScreen() {
     setMessages(prev => [...prev, userMsg]);
     setIsTyping(true);
 
-    // Simulate AI thinking delay (0.8–1.5s)
-    const delay = 800 + Math.random() * 700;
+    const delay = 800 + Math.random() * 600;
     setTimeout(() => {
       const response = getAIResponse(content);
       const aiMsg: Message = {
@@ -248,152 +166,98 @@ export default function ChatScreen() {
       };
       setMessages(prev => [...prev, aiMsg]);
       setIsTyping(false);
+      haptics.success();
     }, delay);
   }, [input]);
 
-  const renderMessage = ({ item }: { item: Message }) => {
-    const isUser = item.isUser;
-    return (
-      <View style={[msgStyles.row, isUser && msgStyles.rowRight]}>
-        {!isUser && (
-          <View style={[msgStyles.avatar, { backgroundColor: 'rgba(255,255,255,0.08)' }]}>
-            <Text style={[msgStyles.avatarText, { color: '#FFF' }]}>Z</Text>
-          </View>
-        )}
-        <View style={msgStyles.bubbleWrapper}>
-          <BlurView 
-            intensity={isUser ? 90 : 60} 
-            tint={isUser ? "light" : "dark"} 
-            style={[StyleSheet.absoluteFill, { borderRadius: 20 }]} 
-          />
-          <View style={[
-            msgStyles.bubble,
-            isUser ? msgStyles.userBubble : msgStyles.aiBubble
-          ]}>
-            <View style={msgStyles.textContainer}>
-               {item.content.split('\n').map((line, lidx) => (
-                  <Text key={lidx} style={[
-                    msgStyles.text,
-                    { color: isUser ? '#FFF' : '#FFF' },
-                    line.startsWith('•') && { marginLeft: 8 }
-                  ]}>
-                    {line}
-                  </Text>
-               ))}
-            </View>
-            <Text style={[msgStyles.time, { color: 'rgba(255,255,255,0.4)' }]}>
-              {item.createdAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </Text>
-          </View>
-        </View>
+  const renderOnboarding = () => (
+    <View style={styles.onboarding}>
+      <Animated.View entering={FadeInUp.delay(200).duration(800)}>
+        <Typography heading weight="700" size={32} color="#FFF" style={styles.onboardingTitle}>
+          ZICA AI
+        </Typography>
+        <Typography weight="300" size={12} color="rgba(255,255,255,0.4)" style={styles.onboardingSubtitle}>
+          YOUR ARCHIVAL STYLE CONCIERGE
+        </Typography>
+      </Animated.View>
+
+      <View style={styles.promptGrid}>
+        {QUICK_PROMPTS.map((item, idx) => (
+          <Animated.View key={idx} entering={FadeInDown.delay(400 + idx * 100).duration(600)}>
+            <TouchableOpacity 
+              style={styles.promptCard} 
+              activeOpacity={0.7}
+              onPress={() => handleSend(item.label)}
+            >
+              <Ionicons name={item.icon as any} size={18} color="rgba(255,255,255,0.6)" />
+              <Typography size={10} weight="400" color="#FFF">{item.label}</Typography>
+            </TouchableOpacity>
+          </Animated.View>
+        ))}
       </View>
-    );
-  };
+    </View>
+  );
 
   return (
     <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor: '#000' }]} // Strict deep black background
+      style={[styles.container, { backgroundColor: '#000' }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={0}
     >
-      {/* Cinematic Animated Glass Background */}
-      <View style={StyleSheet.absoluteFill}>
-        <Animated.View style={[styles.orb1, orb1Style]} />
-        <Animated.View style={[styles.orb2, orb2Style]} />
-        <BlurView intensity={100} tint="dark" style={StyleSheet.absoluteFill} />
-      </View>
-
-      {/* Header */}
       <GlassHeader title="ZICA AI" showBack />
 
+      {messages.length === 0 ? (
+        renderOnboarding()
+      ) : (
+        <FlatList
+          ref={flatListRef}
+          data={messages}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => <MessageBubble item={item} />}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 150, paddingTop: insets.top + 70 }}
+          showsVerticalScrollIndicator={false}
+          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+          scrollEventThrottle={16}
+        />
+      )}
 
-
-      {/* Messages */}
-      <FlatList
-        ref={flatListRef}
-        data={messages}
-        keyExtractor={(item) => item.id}
-        renderItem={renderMessage}
-        contentContainerStyle={{ paddingHorizontal: 4, paddingBottom: 100, paddingTop: insets.top + 70 }}
-        showsVerticalScrollIndicator={false}
-        onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
-        onScroll={onScroll}
-        scrollEventThrottle={16}
-      />
-
-      {/* AI Typing Indicator */}
       {isTyping && (
-        <View style={[styles.typingRow, { paddingBottom: 4 }]}>
-          <View style={[msgStyles.avatar, { backgroundColor: 'rgba(255,255,255,0.08)' }]}>
-            <Text style={[msgStyles.avatarText, { color: '#FFF' }]}>Z</Text>
-          </View>
-          <View style={styles.typingBubbleWrapper}>
-            <BlurView intensity={60} tint="dark" style={[StyleSheet.absoluteFill, { borderRadius: 20 }]} />
-            <View style={styles.typingBubble}>
-              <TypingIndicator />
-            </View>
-          </View>
+        <View style={styles.typingRow}>
+          <Typography size={9} weight="700" color="rgba(255,255,255,0.3)" style={{ letterSpacing: 1 }}>
+            ZICA IS THINKING...
+          </Typography>
         </View>
       )}
 
-      {/* Quick Prompts */}
-      {messages.length <= 1 && (
-        <View style={styles.quickPromptsContainer}>
-          <FlatList
-            data={QUICK_PROMPTS}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            keyExtractor={(item) => item}
-            contentContainerStyle={{ paddingHorizontal: 16, gap: 8 }}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={[styles.quickPrompt, { borderColor: 'rgba(255,255,255,0.15)', backgroundColor: 'rgba(255,255,255,0.05)' }]}
-                onPress={() => handleSend(item)}
-                activeOpacity={0.7}
-              >
-                <BlurView intensity={40} tint="dark" style={[StyleSheet.absoluteFill, { borderRadius: 99 }]} />
-                <Text style={[styles.quickPromptText, { color: 'rgba(255,255,255,0.8)' }]}>{item}</Text>
-              </TouchableOpacity>
-            )}
-          />
-        </View>
-      )}
-
-      {/* Input Bar (Floating Glass Pill) */}
       <Animated.View style={[
         styles.inputBarWrapper,
         { paddingBottom: insets.bottom + 90 },
         inputAnimatedStyle
       ]}>
         <View style={styles.inputPill}>
-          <BlurView
-            intensity={80}
-            tint="dark"
-            style={[StyleSheet.absoluteFill, { borderRadius: 30 }]}
-          />
           <TextInput
             value={input}
             onChangeText={setInput}
-            placeholder="Ask anything about Zica Bella…"
-            placeholderTextColor="rgba(255,255,255,0.4)"
+            placeholder="Ask anything..."
+            placeholderTextColor="rgba(255,255,255,0.3)"
             style={styles.input}
             returnKeyType="send"
             onSubmitEditing={() => handleSend()}
             multiline
-            maxLength={500}
+            maxLength={1000}
           />
           <TouchableOpacity
             onPress={() => handleSend()}
             disabled={!input.trim() || isTyping}
             style={[styles.sendButton, {
-              backgroundColor: input.trim() && !isTyping ? '#FFF' : 'rgba(255,255,255,0.1)',
+              backgroundColor: input.trim() && !isTyping ? '#FFF' : 'rgba(255,255,255,0.05)',
             }]}
             activeOpacity={0.8}
           >
             {isTyping ? (
-              <ActivityIndicator size="small" color="#000" />
+              <ActivityIndicator size="small" color="#FFF" />
             ) : (
-              <Ionicons name="arrow-up" size={16} color={input.trim() ? '#000' : 'rgba(255,255,255,0.3)'} />
+              <Ionicons name="arrow-up" size={18} color={input.trim() ? '#000' : 'rgba(255,255,255,0.2)'} />
             )}
           </TouchableOpacity>
         </View>
@@ -404,59 +268,39 @@ export default function ChatScreen() {
 
 const msgStyles = StyleSheet.create({
   row: {
+    marginBottom: 12,
     flexDirection: 'row',
-    marginBottom: 16,
-    gap: 10,
-    paddingHorizontal: 16,
   },
   rowRight: {
-    flexDirection: 'row-reverse',
-  },
-  avatar: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    justifyContent: 'center',
-    alignItems: 'center',
-    alignSelf: 'flex-end',
-    flexShrink: 0,
-  },
-  avatarText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#000',
-    letterSpacing: 0.5,
-  },
-  bubbleWrapper: {
-    maxWidth: width * 0.75,
-    borderRadius: 20,
-    overflow: 'hidden',
+    justifyContent: 'flex-end',
   },
   bubble: {
+    maxWidth: width * 0.8,
     paddingHorizontal: 16,
     paddingVertical: 12,
+    borderRadius: 20,
   },
   userBubble: {
-    backgroundColor: 'rgba(255,255,255,0.08)', // Refined subtle dark styling 
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderBottomRightRadius: 4,
   },
   aiBubble: {
-    backgroundColor: 'rgba(255,255,255,0.02)', // Deeper contrast for AI
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderBottomLeftRadius: 4,
+  },
+  aiBubbleDecoration: {
+    borderLeftWidth: 2,
+    borderLeftColor: 'rgba(52, 199, 89, 0.4)',
   },
   text: {
-    fontSize: 14.5,
+    fontSize: 15,
     lineHeight: 22,
-    fontWeight: '400',
-    letterSpacing: -0.3,
-  },
-  textContainer: {
-    gap: 4,
+    fontWeight: '300',
+    letterSpacing: -0.2,
   },
   time: {
-    fontSize: 9,
-    marginTop: 8,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    opacity: 0.8,
+    marginTop: 6,
+    textAlign: 'right',
   },
 });
 
@@ -464,134 +308,75 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  orb1: {
-    position: 'absolute',
-    top: -height * 0.1,
-    left: -width * 0.2,
-    width: width * 0.8,
-    height: width * 0.8,
-    borderRadius: width * 0.4,
-    backgroundColor: 'rgba(52, 199, 89, 0.4)', // subtle green glow
-  },
-  orb2: {
-    position: 'absolute',
-    bottom: height * 0.1,
-    right: -width * 0.3,
-    width: width * 1.2,
-    height: width * 1.2,
-    borderRadius: width * 0.6,
-    backgroundColor: 'rgba(0, 122, 255, 0.3)', // subtle blue glow
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  onboarding: {
+    flex: 1,
+    paddingHorizontal: 32,
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingBottom: 14,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    overflow: 'hidden',
   },
-  headerLeft: {
+  onboardingTitle: {
+    textAlign: 'center',
+    letterSpacing: 12,
+    marginBottom: 8,
+    textShadowColor: 'rgba(255,255,255,0.1)',
+    textShadowRadius: 10,
+  },
+  onboardingSubtitle: {
+    textAlign: 'center',
+    letterSpacing: 4,
+    marginBottom: 48,
+  },
+  promptGrid: {
     flexDirection: 'row',
-    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 12,
+    justifyContent: 'center',
+  },
+  promptCard: {
+    width: (width - 64 - 12) / 2,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderRadius: 16,
+    padding: 16,
     gap: 10,
-  },
-  aiDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  headerTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    letterSpacing: 2,
-    textTransform: 'uppercase',
-  },
-  headerSub: {
-    fontSize: 9,
-    fontWeight: '300',
-    letterSpacing: 1,
-    marginTop: 1,
-  },
-  aiBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 99,
-  },
-  aiBadgeText: {
-    fontSize: 9,
-    fontWeight: '700',
-    letterSpacing: 1,
-  },
-  messagesList: {
-    paddingTop: 16,
-    paddingBottom: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
   },
   typingRow: {
-    flexDirection: 'row',
-    gap: 10,
-    paddingHorizontal: 16,
-    marginBottom: 8,
-  },
-  typingBubbleWrapper: {
-    borderRadius: 20,
-    overflow: 'hidden',
-  },
-  typingBubble: {
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-  },
-  quickPromptsContainer: {
-    paddingVertical: 10,
-  },
-  quickPrompt: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 99,
-    borderWidth: 1,
-    overflow: 'hidden',
-  },
-  quickPromptText: {
-    fontSize: 12,
-    fontWeight: '300',
-    letterSpacing: 0.5,
+    paddingHorizontal: 24,
+    paddingBottom: 150,
   },
   inputBarWrapper: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     paddingHorizontal: 16,
-    paddingTop: 10,
   },
   inputPill: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    borderRadius: 30,
-    paddingHorizontal: 8,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.15)',
-    overflow: 'hidden',
     backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 32,
+    padding: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   input: {
     flex: 1,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    fontSize: 15,
-    fontWeight: '300',
-    maxHeight: 120,
-    lineHeight: 20,
     color: '#FFF',
+    fontSize: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    maxHeight: 120,
+    fontWeight: '300',
   },
   sendButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
-    flexShrink: 0,
     marginBottom: 2,
+    marginRight: 2,
   },
 });

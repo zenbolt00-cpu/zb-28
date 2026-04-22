@@ -97,19 +97,68 @@ export const PROVIDER_PRESETS: Record<string, { baseUrl: string; endpoints: Reco
 
 // ─── Config Resolution ──────────────────────────────────────────────
 
+async function refreshShiprocketToken(email: string, password: string): Promise<string | null> {
+  try {
+    const res = await fetch('https://apiv2.shiprocket.in/v1/external/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      console.error('[Shiprocket Auth] Login failed:', text);
+      return null;
+    }
+
+    const data = await res.json();
+    return data.token || null;
+  } catch (err) {
+    console.error('[Shiprocket Auth] Error:', err);
+    return null;
+  }
+}
+
 async function getLogisticsConfig(): Promise<LogisticsConfig> {
   try {
     const shop = await prisma.shop.findFirst({
       select: {
+        id: true,
         shiprocketToken: true,
         shiprocketEmail: true,
+        shiprocketPassword: true,
         delhiveryApiKey: true,
         webhookSecret: true,
       },
     });
 
-    // Determine active provider — Shiprocket takes priority if token exists
-    if (shop?.shiprocketToken) {
+    if (!shop) return { provider: 'mock', baseUrl: '', apiKey: '', webhookSecret: '' };
+
+    // Determine active provider — Shiprocket takes priority if email/pass or token exists
+    if (shop.shiprocketEmail && shop.shiprocketPassword) {
+      // Logic to check if token is valid (could ping an API or just refresh if missing)
+      let token = shop.shiprocketToken;
+      if (!token) {
+        token = await refreshShiprocketToken(shop.shiprocketEmail, shop.shiprocketPassword);
+        if (token) {
+          await prisma.shop.update({
+            where: { id: shop.id },
+            data: { shiprocketToken: token },
+          });
+        }
+      }
+
+      if (token) {
+        return {
+          provider: 'shiprocket',
+          baseUrl: PROVIDER_PRESETS.shiprocket.baseUrl,
+          apiKey: token,
+          webhookSecret: shop.webhookSecret || '',
+        };
+      }
+    }
+
+    if (shop.shiprocketToken) {
       return {
         provider: 'shiprocket',
         baseUrl: PROVIDER_PRESETS.shiprocket.baseUrl,
@@ -118,7 +167,7 @@ async function getLogisticsConfig(): Promise<LogisticsConfig> {
       };
     }
 
-    if (shop?.delhiveryApiKey) {
+    if (shop.delhiveryApiKey) {
       return {
         provider: 'delhivery',
         baseUrl: PROVIDER_PRESETS.delhivery.baseUrl,
@@ -132,7 +181,7 @@ async function getLogisticsConfig(): Promise<LogisticsConfig> {
       provider: 'mock',
       baseUrl: '',
       apiKey: '',
-      webhookSecret: shop?.webhookSecret || '',
+      webhookSecret: shop.webhookSecret || '',
     };
   } catch (err) {
     console.error('[Logistics] Config resolution failed:', err);
@@ -145,7 +194,8 @@ async function getLogisticsConfig(): Promise<LogisticsConfig> {
 async function logisticsApiFetch(
   endpoint: string,
   method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET',
-  body?: any
+  body?: any,
+  retry = true
 ): Promise<any> {
   const config = await getLogisticsConfig();
 
@@ -176,6 +226,19 @@ async function logisticsApiFetch(
     body: body ? JSON.stringify(body) : undefined,
     cache: 'no-store',
   });
+
+  if (res.status === 401 && retry && config.provider === 'shiprocket') {
+    console.log('[Logistics] Shiprocket token expired, refreshing...');
+    const shop = await prisma.shop.findFirst({ select: { id: true, shiprocketEmail: true, shiprocketPassword: true } });
+    if (shop?.shiprocketEmail && shop?.shiprocketPassword) {
+      const newToken = await refreshShiprocketToken(shop.shiprocketEmail, shop.shiprocketPassword);
+      if (newToken) {
+        await prisma.shop.update({ where: { id: shop.id }, data: { shiprocketToken: newToken } });
+        // Retry with new token
+        return logisticsApiFetch(endpoint, method, body, false);
+      }
+    }
+  }
 
   if (!res.ok) {
     const text = await res.text();

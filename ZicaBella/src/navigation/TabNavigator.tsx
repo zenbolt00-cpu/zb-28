@@ -26,24 +26,34 @@ import OrderHistoryScreen from '../screens/OrderHistoryScreen';
 import OrderDetailScreen from '../screens/OrderDetailScreen';
 import PolicyScreen from '../screens/PolicyScreen';
 import ShopScreen from '../screens/ShopScreen';
+import WishlistScreen from '../screens/WishlistScreen';
+import StoryScreen from '../screens/StoryScreen';
+import FAQScreen from '../screens/FAQScreen';
+import BlogsScreen from '../screens/BlogsScreen';
+import CollaborationsScreen from '../screens/CollaborationsScreen';
+
 import { BlurView } from 'expo-blur';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import CartDrawer from '../components/CartDrawer';
 import BookmarkDrawer from '../components/BookmarkDrawer';
+import MenuDrawer from '../components/MenuDrawer';
 import { useNavigation } from '@react-navigation/native';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 const { width } = Dimensions.get('window');
 
+// ─── STACKS FOR EACH TAB ─────────────────────────────────────────────
+// This ensures the bottom bar stays visible when navigating deep within a tab.
+
 function HomeStack() {
   return (
     <Stack.Navigator id="HomeStack" screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' } }}>
       <Stack.Screen name="HomeScreen" component={HomeScreen} />
-      <Stack.Screen name="ProductDetail" component={ProductDetailScreen as any} />
       <Stack.Screen name="Collection" component={CollectionScreen as any} />
       <Stack.Screen name="Community" component={CommunityScreen as any} />
       <Stack.Screen name="Policy" component={PolicyScreen as any} />
+      <Stack.Screen name="Story" component={StoryScreen as any} />
     </Stack.Navigator>
   );
 }
@@ -52,11 +62,36 @@ function SearchStack() {
   return (
     <Stack.Navigator id="SearchStack" screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' } }}>
       <Stack.Screen name="SearchScreen" component={SearchScreen} />
-      <Stack.Screen name="ProductDetail" component={ProductDetailScreen as any} />
       <Stack.Screen name="Collection" component={CollectionScreen as any} />
     </Stack.Navigator>
   );
 }
+
+function ShopStack() {
+  return (
+    <Stack.Navigator id="ShopStack" screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' } }}>
+      <Stack.Screen name="ShopScreen" component={ShopScreen} />
+      <Stack.Screen name="Collection" component={CollectionScreen as any} />
+    </Stack.Navigator>
+  );
+}
+
+function ProfileStack() {
+  return (
+    <Stack.Navigator id="ProfileStack" screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' } }}>
+      <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
+      <Stack.Screen name="OrderHistory" component={OrderHistoryScreen as any} />
+      <Stack.Screen name="OrderDetail" component={OrderDetailScreen as any} />
+      <Stack.Screen name="Wishlist" component={WishlistScreen as any} />
+      <Stack.Screen name="Policy" component={PolicyScreen as any} />
+      <Stack.Screen name="FAQ" component={FAQScreen as any} />
+      <Stack.Screen name="Blogs" component={BlogsScreen as any} />
+      <Stack.Screen name="Collaborations" component={CollaborationsScreen as any} />
+    </Stack.Navigator>
+  );
+}
+
+// ───────────────────────────────────────────────────────────────────
 
 function CustomTabBar({ state, descriptors, navigation }: any) {
   const isTabBarVisible = useUIStore(s => s.isTabBarVisible);
@@ -103,7 +138,7 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
           }
         };
 
-        const Icon = options.tabBarIcon;
+        const Icon = options?.tabBarIcon;
 
         return (
           <TouchableOpacity
@@ -112,12 +147,12 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
             style={styles.tabItem}
             activeOpacity={0.7}
           >
-            <View style={[styles.iconWrapper, isFocused && styles.activeIconWrapper]}>
-               {Icon && Icon({ 
+             <View style={[styles.iconWrapper, isFocused && styles.activeIconWrapper]}>
+               {Icon && typeof Icon === 'function' ? Icon({ 
                  focused: isFocused, 
                  color: isFocused ? colors.text : colors.textExtraLight, 
                  size: 18 
-               })}
+               }) : null}
             </View>
             <Text 
               numberOfLines={1}
@@ -137,18 +172,14 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
 }
 
 export const TabNavigator = () => {
-  const { isCartOpen, setCartOpen, isBookmarkOpen, setBookmarkOpen } = useUIStore();
-  const rootNavigation = useNavigation<any>();
-
   return (
-    <>
-      <Tab.Navigator
-        id="MainTabNavigator"
-        tabBar={(props) => <CustomTabBar {...props} />}
-        screenOptions={{
-          headerShown: false,
-        }}
-      >
+    <Tab.Navigator
+      id="MainTabNavigator"
+      tabBar={(props) => <CustomTabBar {...props} />}
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
       <Tab.Screen
         name="HomeTab"
         component={HomeStack}
@@ -174,27 +205,30 @@ export const TabNavigator = () => {
         }}
       />
       <Tab.Screen
+        name="ShopTab"
+        component={ShopStack}
+        options={{
+          tabBarLabel: 'Shop',
+          tabBarIcon: ({ color }) => <Ionicons name="storefront-outline" size={18} color={color} />,
+        }}
+      />
+      <Tab.Screen
         name="ProfileTab"
-        component={ProfileScreen}
+        component={ProfileStack}
         options={{
           tabBarLabel: 'Account',
           tabBarIcon: ({ color }) => <Ionicons name="person-outline" size={18} color={color} />,
         }}
       />
+      <Tab.Screen
+        name="OrdersTab"
+        component={OrderHistoryScreen}
+        options={{
+          tabBarLabel: 'Orders',
+          tabBarIcon: ({ color }) => <Ionicons name="receipt-outline" size={18} color={color} />,
+        }}
+      />
     </Tab.Navigator>
-    <CartDrawer 
-      visible={isCartOpen} 
-      onClose={() => setCartOpen(false)} 
-      onCheckout={() => {
-        setCartOpen(false);
-        setTimeout(() => rootNavigation.navigate('CheckoutFlow'), 300);
-      }}
-    />
-    <BookmarkDrawer
-      visible={isBookmarkOpen}
-      onClose={() => setBookmarkOpen(false)}
-    />
-    </>
   );
 };
 
@@ -236,7 +270,6 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   activeIconWrapper: {
-    // Subtle background for active tab if needed
   },
   tabLabel: {
     fontSize: 6.5,

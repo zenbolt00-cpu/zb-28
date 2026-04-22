@@ -1,0 +1,93 @@
+import { NextResponse } from 'next/server';
+import prisma from '@/lib/db';
+import { getTrackingStatus } from '@/lib/services/logistics';
+
+export async function POST() {
+  try {
+    // 1. Find all orders that are not yet delivered
+    const orders = await prisma.order.findMany({
+      where: {
+        deliveryStatus: {
+          not: 'delivered',
+        },
+      },
+      include: {
+        shipments: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+        },
+      },
+    });
+
+    const syncResults = [];
+
+    for (const order of orders) {
+      const latestShipment = order.shipments[0];
+      if (latestShipment?.trackingNumber) {
+        try {
+          const status = await getTrackingStatus(latestShipment.trackingNumber);
+          if (status && status.status !== 'unknown') {
+            // Update shipment
+            await prisma.shipment.update({
+              where: { id: latestShipment.id },
+              data: {
+                status: status.status,
+                currentLocation: status.location,
+                estimatedDelivery: status.estimatedDelivery ? new Date(status.estimatedDelivery) : undefined,
+                events: JSON.stringify(status.events),
+              },
+            });
+
+            // Update order delivery status if changed
+            if (status.status.toLowerCase() === 'delivered' && order.deliveryStatus !== 'delivered') {
+              await prisma.order.update({
+                where: { id: order.id },
+                data: { deliveryStatus: 'delivered' },
+              });
+            }
+
+            syncResults.push({ orderId: order.id, status: status.status });
+          }
+        } catch (err) {
+          console.error(`Sync failed for order ${order.id}:`, err);
+        }
+      }
+    }
+
+    // 2. Find all active returns with tracking numbers
+    const activeReturns = await prisma.return.findMany({
+      where: {
+        status: { in: ['REQUESTED', 'APPROVED', 'PICKED_UP'] },
+        trackingNumber: { not: null },
+      },
+    });
+
+    for (const ret of activeReturns) {
+      if (ret.trackingNumber) {
+        try {
+          const status = await getTrackingStatus(ret.trackingNumber);
+          if (status && status.status !== 'unknown') {
+            await prisma.return.update({
+              where: { id: ret.id },
+              data: {
+                status: status.status.toUpperCase(),
+              },
+            });
+            syncResults.push({ returnId: ret.id, status: status.status });
+          }
+        } catch (err) {
+          console.error(`Sync failed for return ${ret.id}:`, err);
+        }
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      syncedCount: syncResults.length,
+      details: syncResults,
+    });
+  } catch (error: any) {
+    console.error('[Sync API] error:', error);
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}

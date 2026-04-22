@@ -24,133 +24,116 @@ export default function CommunitySection({
   const isDark = theme === 'dark';
   const { users, loading } = useFeaturedUsers(true);
 
-  // Fallback default looks in case API is empty or failing
+  // Fallback default looks
   const defaultLooks = [
-    { id: '1', imageUrl: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1000', name: 'ZICABELLA' },
-    { id: '2', imageUrl: 'https://images.unsplash.com/photo-1539109132314-dc477555d656?q=80&w=1000', name: 'ZICABELLA' },
-    { id: '3', imageUrl: 'https://images.unsplash.com/photo-1496747611176-843222e1e57c?q=80&w=1000', name: 'ZICABELLA' },
+    { id: '1', imageUrl: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1000', name: 'DUSKYN' },
+    { id: '2', imageUrl: 'https://images.unsplash.com/photo-1539109132314-dc477555d656?q=80&w=1000', name: 'MEGHAN' },
+    { id: '3', imageUrl: 'https://images.unsplash.com/photo-1496747611176-843222e1e57c?q=80&w=1000', name: 'ARAV' },
   ];
 
   const displayUsers = users && users.length > 0 ? users : defaultLooks;
+  
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Typography size={7} color={colors.textLight} weight="300" style={styles.subtitle}>{subtitle}</Typography>
-        <Typography heading size={10} color={colors.foreground} weight="600" style={styles.title}>{title}</Typography>
+        <Typography heading size={10} color={colors.foreground} weight="700" style={styles.title}>{title}</Typography>
       </View>
 
       <ScrollView 
         horizontal 
         showsHorizontalScrollIndicator={false} 
         contentContainerStyle={styles.list}
-        snapToInterval={width * 0.7 + 16}
+        snapToInterval={width * 0.72 + 16}
         decelerationRate="fast"
+        scrollEventThrottle={16}
       >
         {displayUsers.map((look) => (
           <TouchableOpacity 
             key={look.id} 
             style={[styles.item, { 
-              backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
-              borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'
+              backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+              borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'
             }]} 
-            activeOpacity={0.9}
+            activeOpacity={0.95}
           >
             <Image 
               source={{ uri: look.imageUrl }} 
               style={styles.image} 
               contentFit="cover" 
-              transition={400}
+              transition={800}
             />
-            <BlurView 
-              intensity={isDark ? 80 : 100} 
-              tint={isDark ? 'dark' : 'light'} 
-              style={[styles.glassLabel, { borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)' }]}
-            >
-              <Typography size={7} color={colors.text} weight="600" style={styles.labelText}>
-                @{look.name ? look.name.toUpperCase().slice(0, 12) : 'ZICABELLA'}
-              </Typography>
-            </BlurView>
+            <View style={styles.labelContainer}>
+              <BlurView 
+                intensity={isDark ? 40 : 60} 
+                tint={isDark ? 'dark' : 'light'} 
+                style={[styles.glassLabel, { borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}
+              >
+                <Typography size={6.5} color={colors.text} weight="700" style={styles.labelText}>
+                  @{look.name ? look.name.toUpperCase().slice(0, 14) : 'USER'}
+                </Typography>
+              </BlurView>
+            </View>
           </TouchableOpacity>
         ))}
       </ScrollView>
-
-      <TouchableOpacity 
-        style={[styles.joinBtn, { 
-          borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)', 
-          backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)' 
-        }]}
-      >
-        <Typography size={8} color={colors.textSecondary} weight="300" style={styles.joinText}>Join the Collective</Typography>
-      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 48,
-    marginBottom: 60,
+    marginTop: 64,
+    marginBottom: 40,
   },
   header: {
     paddingHorizontal: 24,
-    marginBottom: 24,
+    marginBottom: 28,
   },
   subtitle: {
-    fontSize: 7,
-    fontWeight: '300',
-    letterSpacing: 4,
-    color: 'rgba(0,0,0,0.3)',
+    letterSpacing: 4.5,
+    opacity: 0.4,
     textTransform: 'uppercase',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   title: {
-    fontSize: 10,
-    fontWeight: '600',
-    letterSpacing: 4,
+    letterSpacing: 4.2,
     textTransform: 'uppercase',
   },
   list: {
-    paddingHorizontal: 24,
-    gap: 16,
+    paddingHorizontal: 12, // Reduced gap from screen
+    paddingRight: 24,
+    gap: 12,
   },
   item: {
-    width: width * 0.7,
-    aspectRatio: 4 / 5,
+    width: width * 0.82, // Increased width
+    aspectRatio: 3 / 4.9, // Reduced height by ~5% (was 5.2)
     borderRadius: 24,
     overflow: 'hidden',
-    borderWidth: 1,
+    borderWidth: 0, // Removed border
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 16,
+    elevation: 4,
   },
   image: {
     width: '100%',
     height: '100%',
   },
-  glassLabel: {
+  labelContainer: {
     position: 'absolute',
     bottom: 16,
     left: 16,
-    paddingHorizontal: 12,
+  },
+  glassLabel: {
+    paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: 12,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: 1,
     overflow: 'hidden',
   },
   labelText: {
-    fontSize: 7,
-    fontWeight: '600',
-    letterSpacing: 1,
-  },
-  joinBtn: {
-    alignSelf: 'center',
-    marginTop: 32,
-    paddingHorizontal: 32,
-    paddingVertical: 14,
-    borderRadius: 99,
-    borderWidth: 1,
-  },
-  joinText: {
-    fontSize: 8,
-    fontWeight: '300',
-    letterSpacing: 3,
-    textTransform: 'uppercase',
+    letterSpacing: 1.2,
   },
 });

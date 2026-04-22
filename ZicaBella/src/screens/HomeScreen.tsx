@@ -68,21 +68,20 @@ export default function HomeScreen() {
   const setTabBarVisible = useUIStore(s => s.setTabBarVisible);
   const lastScrollY = useRef(0);
 
-  const onScroll = (event: any) => {
+  const onScroll = useCallback((event: any) => {
     const currentY = event.nativeEvent.contentOffset.y;
     const diff = currentY - lastScrollY.current;
     
-    // Only toggle if scrolled significantly to avoid flickering on micro-jitters
-    if (Math.abs(diff) > 5) {
+    if (Math.abs(diff) > 8) {
       const isVisible = useUIStore.getState().isTabBarVisible;
-      if (diff > 0 && currentY > 100) {
+      if (diff > 0 && currentY > 120) {
         if (isVisible) setTabBarVisible(false);
       } else {
         if (!isVisible) setTabBarVisible(true);
       }
+      lastScrollY.current = currentY;
     }
-    lastScrollY.current = currentY;
-  };
+  }, [setTabBarVisible]);
 
   const handleQuickAdd = useCallback((product: FlatProduct) => {
     setSelectedProduct(product);
@@ -109,6 +108,7 @@ export default function HomeScreen() {
       />
       <ScrollView
         showsVerticalScrollIndicator={false}
+        removeClippedSubviews={true}
         refreshControl={
           <RefreshControl 
             refreshing={refreshing} 
@@ -118,7 +118,7 @@ export default function HomeScreen() {
           />
         }
         onScroll={onScroll}
-        scrollEventThrottle={16}
+        scrollEventThrottle={32} // Increased for performance
       >
         {/* ═══ HERO VIDEO ═══ */}
         <View style={{ position: 'relative' }}>
@@ -148,7 +148,7 @@ export default function HomeScreen() {
           <View style={styles.sectionHeader}>
             <View style={styles.headerLeft}>
               <Typography size={6} color={colors.textExtraLight} weight="300" style={styles.sectionTag}>{latestCurationSubtitle}</Typography>
-              <Typography size={8} color={colors.text} weight="600" style={styles.sectionTitle}>{latestCurationTitle}</Typography>
+              <Typography size={8} color={colors.text} weight="700" style={styles.sectionTitle}>{latestCurationTitle}</Typography>
             </View>
             <TouchableOpacity onPress={() => navigation.navigate('ShopTab')} style={styles.headerRight}>
               <Typography size={7} color={colors.textExtraLight} weight="400">VIEW ALL</Typography>
@@ -173,7 +173,7 @@ export default function HomeScreen() {
 
           <View style={styles.collectionsSection}>
             <View style={styles.archiveLabel}>
-              <Typography size={7.5} color={colors.textExtraLight} weight="300" style={styles.archiveLabelText}>— {settings?.archive?.title || 'THE WARDROBE'} —</Typography>
+              <Typography size={7.5} color={colors.textExtraLight} weight="300" style={styles.archiveLabelText}>— {settings?.archive?.title || 'THE ARCHIVE'} —</Typography>
             </View>
 
             <CollectionCarousel collections={collections} />
@@ -198,7 +198,7 @@ export default function HomeScreen() {
           {/* ═══ FEATURED MEDIA / BLUEPRINT ═══ */}
           {settings?.blueprint?.video ? (
             <View style={styles.blueprintSection}>
-               <HeroVideo source={settings.blueprint.video} height={460} borderRadius={16} />
+               <HeroVideo source={settings.blueprint.video} height={520} borderRadius={16} />
             </View>
           ) : (
             <View style={styles.blueprintSection}>
@@ -224,7 +224,7 @@ export default function HomeScreen() {
         </View>
 
         {/* Bottom padding for tab bar */}
-        <View style={{ height: 100 + insets.bottom }} />
+        <View style={{ height: 120 + insets.bottom }} />
       </ScrollView>
 
       {/* Drawers */}

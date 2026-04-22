@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { 
-  View, Text, StyleSheet, Modal, TouchableOpacity, 
-  Dimensions, Pressable, FlatList, ActivityIndicator
+  View, StyleSheet, Modal, TouchableOpacity, 
+  Dimensions, Pressable, FlatList, ActivityIndicator 
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,9 +19,10 @@ import { useThemeStore } from '../store/themeStore';
 import { formatPrice } from '../utils/formatPrice';
 import CartItem from './CartItem';
 import { Typography } from './Typography';
+import { haptics } from '../utils/haptics';
 
 const { width, height } = Dimensions.get('window');
-const DRAWER_WIDTH = Math.min(width * 0.9, 380);
+const SHEET_HEIGHT = height * 0.85;
 
 interface Props {
   visible: boolean;
@@ -37,71 +38,87 @@ export default function CartDrawer({ visible, onClose, onCheckout }: Props) {
   const isDark = theme === 'dark';
   const { items, total, updateQuantity, removeItem, itemCount } = useCartStore();
 
-  const translateX = useSharedValue(DRAWER_WIDTH);
-  const opacity = useSharedValue(0);
+  const translateY = useSharedValue(height);
+  const backdropOpacity = useSharedValue(0);
 
   useEffect(() => {
     if (visible) {
-      opacity.value = withTiming(1, { duration: 300 });
-      translateX.value = withSpring(0, { damping: 30, stiffness: 200 });
+      backdropOpacity.value = withTiming(1, { duration: 400 });
+      translateY.value = withSpring(height - SHEET_HEIGHT, { 
+        damping: 24, 
+        stiffness: 180,
+        mass: 0.8
+      });
+      haptics.buttonTap();
     } else {
-      opacity.value = withTiming(0, { duration: 250 });
-      translateX.value = withTiming(DRAWER_WIDTH, { duration: 250 });
+      backdropOpacity.value = withTiming(0, { duration: 300 });
+      translateY.value = withTiming(height, { duration: 300 });
     }
   }, [visible]);
 
-  const animatedDrawerStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
+  const animatedSheetStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
   }));
 
   const animatedBackdropStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
+    opacity: backdropOpacity.value,
   }));
 
-  if (!visible && opacity.value === 0) return null;
+  if (!visible && backdropOpacity.value === 0) return null;
 
   return (
     <Modal visible={visible} transparent onRequestClose={onClose}>
       <View style={styles.container}>
+        {/* Backdrop with Glass Blur */}
         <Animated.View style={[styles.backdrop, animatedBackdropStyle]}>
           <Pressable style={StyleSheet.absoluteFill} onPress={onClose}>
-            <BlurView intensity={isDark ? 30 : 20} tint={isDark ? 'dark' : 'default'} style={StyleSheet.absoluteFill} />
+            <BlurView 
+              intensity={isDark ? 20 : 40} 
+              tint={isDark ? 'dark' : 'light'} 
+              style={StyleSheet.absoluteFill} 
+            />
           </Pressable>
         </Animated.View>
 
+        {/* Bottom Sheet Cart */}
         <Animated.View style={[
-          styles.drawer, 
-          animatedDrawerStyle,
+          styles.sheet,
+          animatedSheetStyle,
           { 
-            backgroundColor: isDark ? 'rgba(8, 8, 8, 0.72)' : 'rgba(255, 255, 255, 0.72)',
+            backgroundColor: isDark ? 'rgba(10, 10, 10, 0.7)' : 'rgba(255, 255, 255, 0.75)',
             borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
-            top: insets.top + 12,
-            bottom: insets.bottom + 12,
+            borderTopLeftRadius: 32,
+            borderTopRightRadius: 32,
           }
         ]}>
-          <BlurView intensity={isDark ? 80 : 100} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+          <BlurView intensity={80} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
           
+          {/* Grab Bar */}
+          <View style={styles.grabBarContainer}>
+             <View style={[styles.grabBar, { backgroundColor: colors.textExtraLight, opacity: 0.15 }]} />
+          </View>
+
           <View style={styles.header}>
             <View style={styles.headerLeft}>
-              <Ionicons name="bag-outline" size={14} color={colors.textExtraLight} style={{ opacity: 0.6 }} />
-              <Typography rocaston size={10} weight="400" color={colors.textSecondary} style={styles.drawerTitle}>ZICA BELLA</Typography>
+              <Ionicons name="bag-handle" size={16} color={colors.text} style={{ opacity: 0.4 }} />
+              <Typography size={10} weight="800" color={colors.text} style={styles.drawerTitle}>SHOPPING BAG</Typography>
               {itemCount() > 0 && (
-                <View style={[styles.countBadge, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}>
-                  <Typography size={8} weight="600" color={colors.textExtraLight}>{itemCount()}</Typography>
+                <View style={[styles.countBadge, { backgroundColor: colors.text }]}>
+                  <Typography size={8} weight="800" color={colors.background}>{itemCount()}</Typography>
                 </View>
               )}
             </View>
-            <TouchableOpacity onPress={onClose} style={[styles.closeBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }]}>
-              <Ionicons name="close" size={16} color={colors.textExtraLight} />
+            <TouchableOpacity onPress={onClose} style={[styles.closeBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)' }]}>
+              <Ionicons name="close" size={18} color={colors.text} />
             </TouchableOpacity>
           </View>
 
           {items.length === 0 ? (
             <View style={styles.emptyState}>
-              <Ionicons name="bag-outline" size={40} color={colors.textExtraLight} style={{ opacity: 0.1 }} />
-              <Typography size={9} weight="400" color={colors.textExtraLight} style={styles.emptyText}>YOUR BAG IS EMPTY</Typography>
-              <TouchableOpacity onPress={onClose} style={styles.shopBtn}>
-                <Typography size={8} weight="600" color={colors.textSecondary} style={styles.shopBtnText}>START SHOPPING</Typography>
+              <Ionicons name="bag-outline" size={60} color={colors.textExtraLight} style={{ opacity: 0.05 }} />
+              <Typography size={9} weight="400" color={colors.textExtraLight} style={styles.emptyText}>BAG IS CURRENTLY EMPTY</Typography>
+              <TouchableOpacity onPress={onClose} style={[styles.shopBtn, { borderColor: colors.borderLight }]}>
+                <Typography size={8} weight="800" color={colors.textSecondary} style={styles.shopBtnText}>BROWSE ARCHIVE</Typography>
               </TouchableOpacity>
             </View>
           ) : (
@@ -109,14 +126,14 @@ export default function CartDrawer({ visible, onClose, onCheckout }: Props) {
               <FlatList
                 data={items}
                 keyExtractor={(item) => item.id}
-                contentContainerStyle={styles.listContent}
+                contentContainerStyle={[styles.listContent, { paddingBottom: 180 + insets.bottom }]}
                 showsVerticalScrollIndicator={false}
                 renderItem={({ item }) => (
                   <View style={styles.itemWrapper}>
                     <CartItem 
                       item={item} 
-                      onUpdateQuantity={(id, q) => updateQuantity(id, q)}
-                      onRemove={(id) => removeItem(id)}
+                      onUpdateQuantity={(id, q) => { haptics.buttonTap(); updateQuantity(id, q); }}
+                      onRemove={(id) => { haptics.buttonTap(); removeItem(id); }}
                       onPress={() => {
                         onClose();
                         setTimeout(() => navigation.navigate('ProductDetail', { handle: item.handle }), 300);
@@ -126,21 +143,25 @@ export default function CartDrawer({ visible, onClose, onCheckout }: Props) {
                 )}
               />
 
-              <View style={[styles.footer, { borderTopColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.03)' }]}>
-                <View style={[styles.footerBlur, { backgroundColor: isDark ? 'rgba(8, 8, 8, 0.3)' : 'rgba(255, 255, 255, 0.3)' }]}>
-                  <BlurView intensity={20} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
-                  
+              {/* Floating Footer Area */}
+              <View style={[styles.footerContainer, { paddingBottom: insets.bottom + 8 }]}>
+                <BlurView intensity={30} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+                <View style={[styles.footer, { borderTopColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }]}>
                   <View style={styles.totalRow}>
-                    <Typography size={8} weight="200" color={colors.textExtraLight} style={styles.totalLabel}>ESTIMATED TOTAL</Typography>
-                    <Typography size={16} weight="400" color={colors.textSecondary}>{formatPrice(total())}</Typography>
+                    <View>
+                      <Typography size={7} weight="800" color={colors.textExtraLight} style={styles.totalLabel}>TOTAL ESTIMATE</Typography>
+                      <Typography weight="300" size={10} color={colors.textMuted}>Incl. all duties & taxes</Typography>
+                    </View>
+                    <Typography size={18} weight="300" color={colors.text}>{formatPrice(total())}</Typography>
                   </View>
                   
                   <TouchableOpacity 
-                    style={[styles.checkoutBtn, { backgroundColor: colors.text }]} 
+                    style={[styles.checkoutBtn, { backgroundColor: colors.foreground }]} 
                     onPress={onCheckout}
                     activeOpacity={0.9}
                   >
-                    <Typography size={9} weight="700" color={colors.background} style={styles.checkoutBtnText}>CHECKOUT</Typography>
+                    <Typography size={9} weight="800" color={colors.background} style={styles.checkoutBtnText}>PROCEED TO CHECKOUT</Typography>
+                    <Ionicons name="arrow-forward" size={14} color={colors.background} style={{ marginLeft: 8 }} />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -155,64 +176,69 @@ export default function CartDrawer({ visible, onClose, onCheckout }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'flex-end',
+    justifyContent: 'flex-end',
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: 'rgba(0,0,0,0.4)',
   },
-  drawer: {
+  sheet: {
     position: 'absolute',
-    right: 12,
-    width: DRAWER_WIDTH,
-    borderRadius: 32,
+    left: 0,
+    right: 0,
+    height: SHEET_HEIGHT,
     overflow: 'hidden',
     borderWidth: 1,
     shadowColor: '#000',
-    shadowOffset: { width: -20, height: 0 },
-    shadowOpacity: 0.25,
-    shadowRadius: 80,
+    shadowOffset: { width: 0, height: -10 },
+    shadowOpacity: 0.15,
+    shadowRadius: 30,
     elevation: 20,
+  },
+  grabBarContainer: {
+    alignItems: 'center',
+    paddingTop: 12,
+  },
+  grabBar: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingTop: 24,
-    paddingBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.03)',
+    paddingHorizontal: 28,
+    paddingTop: 20,
+    paddingBottom: 24,
   },
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 12,
   },
   drawerTitle: {
     letterSpacing: 4,
-    opacity: 0.8,
   },
   countBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
+    width: 20,
+    height: 20,
     borderRadius: 10,
-    marginLeft: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   closeBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
   },
   listContent: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 160,
+    paddingHorizontal: 24,
   },
   itemWrapper: {
-    marginBottom: 12,
+    marginBottom: 8,
   },
   emptyState: {
     flex: 1,
@@ -222,50 +248,54 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     letterSpacing: 4,
-    opacity: 0.4,
-    marginTop: 16,
-    marginBottom: 24,
+    opacity: 0.3,
+    marginTop: 20,
+    marginBottom: 30,
   },
   shopBtn: {
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.1)',
-    paddingBottom: 2,
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 14,
+    borderWidth: 1,
   },
   shopBtnText: {
     letterSpacing: 3,
-    opacity: 0.6,
   },
-  footer: {
+  footerContainer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
     borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.05)',
   },
-  footerBlur: {
-    padding: 24,
+  footer: {
+    paddingHorizontal: 28,
+    paddingTop: 16,
+    paddingBottom: 12, // Significant reduction
   },
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 14, // Reduced from 24
   },
   totalLabel: {
-    letterSpacing: 3,
+    letterSpacing: 2.2,
   },
   checkoutBtn: {
-    height: 56,
-    borderRadius: 20,
+    height: 54, // Reduced from 64
+    borderRadius: 18,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
+    shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.2,
-    shadowRadius: 16,
+    shadowRadius: 12,
+    elevation: 8,
   },
   checkoutBtnText: {
-    letterSpacing: 5,
+    letterSpacing: 2,
   },
 });
-

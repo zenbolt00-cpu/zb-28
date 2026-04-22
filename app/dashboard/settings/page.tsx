@@ -15,6 +15,7 @@ interface SettingsData {
   razorpayKeyId: string;
   razorpayKeySecret: string;
   shiprocketEmail: string;
+  shiprocketPassword: string;
   shiprocketToken: string;
   webhookSecret: string;
   [key: string]: any;
@@ -131,7 +132,7 @@ export default function AdminSettingsPage() {
     const adminKeys: (keyof SettingsData)[] = [
         'shopDomain', 'accessToken', 'delhiveryApiKey',
         'razorpayKeyId', 'razorpayKeySecret',
-        'shiprocketEmail', 'shiprocketToken', 'webhookSecret',
+        'shiprocketEmail', 'shiprocketPassword', 'shiprocketToken', 'webhookSecret',
         'ringCarouselItems'
     ];
 

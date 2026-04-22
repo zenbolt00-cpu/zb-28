@@ -4,25 +4,16 @@ import { StatusBar, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
-import * as Sentry from '@sentry/react-native';
+
 import RootNavigator from './src/navigation/RootNavigator';
 import { ConsentModal } from './src/components/ConsentModal';
 import { useThemeStore } from './src/store/themeStore';
 import { useFonts } from 'expo-font';
 import { getColors } from './src/constants/colors';
 
-const sentryDsn = process.env.EXPO_PUBLIC_SENTRY_DSN?.trim() ?? '';
-const shouldEnableSentry =
-  sentryDsn.length > 0 &&
-  !sentryDsn.includes('mock');
+// Sentry initialization is disabled during local development to prevent Expo Go native module crashes.
+// It will be enabled in the final EAS build.
 
-if (shouldEnableSentry) {
-  Sentry.init({
-    dsn: sentryDsn,
-    debug: false,
-    tracesSampleRate: 1.0,
-  });
-}
 
 // Keep the splash screen visible while we fetch resources if needed
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -59,7 +50,7 @@ function App() {
   );
 }
 
-export default shouldEnableSentry ? Sentry.wrap(App) : App;
+export default App;
 
 const styles = StyleSheet.create({
   root: {

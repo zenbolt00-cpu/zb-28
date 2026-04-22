@@ -103,6 +103,7 @@ export default function OrdersPage() {
   const [fulfilling, setFulfilling] = useState<number | null>(null);
   const [delivering, setDelivering] = useState<number | null>(null);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("any");
+  const [syncing, setSyncing] = useState(false);
   const [search, setSearch] = useState("");
   const [toast, setToast] = useState<string | null>(null);
 
@@ -111,6 +112,26 @@ export default function OrdersPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingOrder, setEditingOrder] = useState<ShopifyOrder | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+
+  const syncLogistics = async () => {
+    if (syncing) return;
+    setSyncing(true);
+    try {
+      const res = await fetch("/api/admin/logistics/sync", { method: "POST" });
+      const data = await res.json();
+      if (data.success) {
+        setToast(`Successfully synced ${data.syncedCount} orders.`);
+        fetchOrders();
+      } else {
+        setToast("Sync failed: " + data.error);
+      }
+    } catch (err) {
+      setToast("Sync error");
+    } finally {
+      setSyncing(false);
+      setTimeout(() => setToast(null), 3000);
+    }
+  };
 
   // Forms
   const [createForm, setCreateForm] = useState({
@@ -329,9 +350,21 @@ export default function OrdersPage() {
             New Order
           </button>
           <button
+            onClick={syncLogistics}
+            disabled={syncing || loading}
+            className="flex items-center gap-2 px-4 py-2 bg-foreground text-background rounded-md text-[10px] font-medium uppercase tracking-[0.15em] hover:opacity-90 disabled:opacity-50 transition-opacity"
+          >
+            {syncing ? (
+              <Loader2 className="w-3 h-3 animate-spin" />
+            ) : (
+              <RefreshCw className="w-3 h-3" />
+            )}
+            {syncing ? "Syncing..." : "Sync Shiprocket"}
+          </button>
+          <button
             onClick={fetchOrders}
             disabled={loading}
-            className="flex items-center gap-2 px-4 py-2 bg-foreground text-background rounded-md text-[10px] font-medium uppercase tracking-[0.15em] hover:opacity-90 disabled:opacity-50 transition-opacity"
+            className="flex items-center gap-2 px-4 py-2 bg-foreground/[0.05] text-foreground rounded-md text-[10px] font-medium uppercase tracking-[0.15em] hover:bg-foreground/[0.08] disabled:opacity-50 transition-all"
           >
             <RefreshCw className={`w-3 h-3 ${loading ? "animate-spin" : ""}`} />
             Refresh

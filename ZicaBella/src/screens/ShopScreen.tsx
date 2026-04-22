@@ -17,6 +17,8 @@ import { useColors } from '../constants/colors';
 import { useCollections } from '../hooks/useProducts';
 import { Typography } from '../components/Typography';
 import GlassHeader from '../components/GlassHeader';
+import { useUIStore } from '../store/uiStore';
+import { haptics } from '../utils/haptics';
 
 const { width } = Dimensions.get('window');
 const COLUMN_WIDTH = (width - 40) / 2;
@@ -26,6 +28,7 @@ export default function ShopScreen() {
   const navigation = useNavigation<any>();
   const colors = useColors();
   const { collections, loading, refetch } = useCollections(30, 'page');
+  const setMenuOpen = useUIStore(s => s.setMenuOpen);
 
   const onRefresh = React.useCallback(async () => {
     await refetch();
@@ -62,7 +65,14 @@ export default function ShopScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <GlassHeader hideRightIsland title="SHOP" />
+      <GlassHeader 
+        hideRightIsland 
+        title="SHOP" 
+        onPressMenu={() => {
+          haptics.buttonTap();
+          setMenuOpen(true);
+        }}
+      />
       
       <ScrollView
         showsVerticalScrollIndicator={false}

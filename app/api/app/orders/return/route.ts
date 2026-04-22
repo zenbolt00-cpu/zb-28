@@ -1,24 +1,35 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
+import { shopifyPatch } from '@/lib/shopify-admin';
 
 export const dynamic = 'force-dynamic';
 
-const corsHeaders = { 'Access-Control-Allow-Origin': '*' };
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+};
+
+export async function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders });
+}
 
 interface ReturnItem {
   lineItemId: string;
   quantity: number;
   reason: string;
-  action: 'return' | 'exchange';
+  action?: 'return' | 'exchange';
 }
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { orderId, items, notes } = body as {
+    const { orderId, items, notes, method, refundMethod } = body as {
       orderId: string;
       items: ReturnItem[];
       notes?: string;
+      method?: 'DROP_OFF' | 'PICKUP';
+      refundMethod?: 'ORIGINAL' | 'STORE_CREDIT';
     };
 
     if (!orderId || !items?.length) {
@@ -32,7 +43,7 @@ export async function POST(req: Request) {
       where: { id: orderId },
       include: {
         items: true,
-        customer: { select: { id: true, name: true, email: true, phone: true } },
+        customer: { select: { id: true, name: true, email: true, phone: true, storeCredits: true } },
         shipments: { orderBy: { createdAt: 'desc' as const }, take: 1 },
       },
     });
@@ -67,7 +78,10 @@ export async function POST(req: Request) {
 
       if (!orderItem) continue;
 
-      if (item.action === 'return') {
+      // Default action to 'return' if not specified (backward compatible)
+      const action = item.action || 'return';
+
+      if (action === 'return') {
         const returnRecord = await prisma.return.create({
           data: {
             orderId: order.id,
@@ -76,10 +90,41 @@ export async function POST(req: Request) {
             sku: orderItem.sku,
             reason: item.reason || notes || 'Customer requested return via app',
             status: 'REQUESTED',
+            returnMethod: method || null,
+            refundMethod: refundMethod || 'ORIGINAL',
+            refundAmount: orderItem.price * (item.quantity || 1),
           },
         });
         createdReturns.push(returnRecord);
-      } else if (item.action === 'exchange') {
+
+        // If customer chose store credits, credit immediately and mark as completed
+        if (refundMethod === 'STORE_CREDIT') {
+          const creditAmount = orderItem.price * (item.quantity || 1);
+          await prisma.$transaction([
+            prisma.customer.update({
+              where: { id: order.customerId },
+              data: { storeCredits: { increment: creditAmount } },
+            }),
+            prisma.storeCredit.create({
+              data: {
+                customerId: order.customerId,
+                amount: creditAmount,
+                type: 'CREDIT',
+                description: `Refund for return on order #${order.shopifyOrderId} — ${orderItem.title}`,
+                orderId: order.id,
+                returnId: returnRecord.id,
+              },
+            }),
+            prisma.return.update({
+              where: { id: returnRecord.id },
+              data: {
+                storeCreditAmount: creditAmount,
+                refundStatus: 'COMPLETED',
+              },
+            }),
+          ]);
+        }
+      } else if (action === 'exchange') {
         if (!orderItem.productId) continue;
         const exchangeRecord = await prisma.exchange.create({
           data: {
@@ -102,11 +147,39 @@ export async function POST(req: Request) {
       );
     }
 
+    // ─── SHOPIFY SYNCHRONIZATION ───
+    if (order.shopifyOrderId) {
+      try {
+        const existingTags = (order as any).tags || '';
+        const newTags = existingTags ? `${existingTags}, APP_RETURN_REQUEST` : 'APP_RETURN_REQUEST';
+        const newNote = `${order.note || ''}\n\n[App Return/Exchange Request - ${new Date().toLocaleDateString()}]\nItems: ${items.map(i => `${i.action || 'return'}: ${i.lineItemId} (Reason: ${i.reason})`).join(', ')}${refundMethod === 'STORE_CREDIT' ? '\nRefund: Store Credits' : ''}`;
+        
+        await shopifyPatch(`orders/${order.shopifyOrderId}.json`, {
+          order: {
+            id: parseInt(order.shopifyOrderId, 10),
+            tags: newTags,
+            note: newNote,
+          }
+        });
+
+        // Also update local tags so we don't lose them
+        await prisma.order.update({
+          where: { id: order.id },
+          data: { tags: newTags, note: newNote.trim() },
+        });
+
+        console.log(`[App API] Successfully synced return/exchange for Order ${order.shopifyOrderId} to Shopify`);
+      } catch (shopError: any) {
+        console.warn(`[App API] Failed to sync to Shopify (non-critical):`, shopError.message);
+      }
+    }
+
     return NextResponse.json(
       {
         success: true,
         message: `${totalCreated} request(s) submitted successfully`,
-        returns: createdReturns.map((r: any) => ({ id: r.id, status: r.status })),
+        referenceNumber: `ZB-${createdReturns.length > 0 ? 'RET' : 'EXC'}-${Date.now().toString(36).toUpperCase().slice(-6)}`,
+        returns: createdReturns.map((r: any) => ({ id: r.id, status: r.status, refundMethod: r.refundMethod })),
         exchanges: createdExchanges.map((e: any) => ({ id: e.id, status: e.status })),
       },
       { headers: corsHeaders }

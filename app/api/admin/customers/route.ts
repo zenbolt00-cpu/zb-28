@@ -8,7 +8,13 @@ export async function GET(req: Request) {
   try {
     const url = new URL(req.url);
     const format = url.searchParams.get('format');
+    const search = url.searchParams.get('search')?.trim().toLowerCase();
+    const page = Math.max(1, parseInt(url.searchParams.get('page') || '1', 10));
+    const limit = Math.min(200, Math.max(1, parseInt(url.searchParams.get('limit') || '100', 10)));
+    const offset = (page - 1) * limit;
 
+    // Fetch DB customers and Shopify customers in parallel
+    // Wrap Shopify call so a failure doesn't crash the entire request
     const [dbCustomers, shopifyCustomers] = await Promise.all([
       prisma.customer.findMany({
         orderBy: { createdAt: 'desc' },
@@ -21,7 +27,10 @@ export async function GET(req: Request) {
           },
         },
       }),
-      fetchAllCustomers(250),
+      fetchAllCustomers(250).catch((err: any) => {
+        console.error('[Admin Customers] Shopify fetch failed:', err.message);
+        return [];
+      }),
     ]);
 
     const shopifyMap = new Map<
@@ -45,7 +54,7 @@ export async function GET(req: Request) {
       });
     }
 
-    const payload = dbCustomers.map((c) => {
+    let payload = dbCustomers.map((c) => {
       const s = shopifyMap.get(c.shopifyId);
 
       const shopifyName = s
@@ -61,7 +70,7 @@ export async function GET(req: Request) {
         (c.shopifyId !== 'anonymous' ? c.shopifyId : 'Anonymous User');
 
       const totalOrders = c.orders.length;
-      const totalSpent = c.orders.reduce((sum, o) => sum + o.totalPrice, 0);
+      const totalSpent = c.orders.reduce((sum, o) => sum + (o.totalPrice || 0), 0);
 
       return {
         id: c.id,
@@ -71,13 +80,13 @@ export async function GET(req: Request) {
         phone,
         createdAt: c.createdAt,
         totalOrders,
-        totalSpent,
+        totalSpent: isNaN(totalSpent) ? 0 : totalSpent,
         tags: s?.tags || '',
         orders: c.orders.map((o) => ({
           id: o.id,
           shopifyOrderId: o.shopifyOrderId,
           status: o.status,
-          totalPrice: o.totalPrice,
+          totalPrice: o.totalPrice || 0,
           paymentStatus: o.paymentStatus,
           fulfillmentStatus: o.fulfillmentStatus,
           createdAt: o.createdAt,
@@ -91,6 +100,22 @@ export async function GET(req: Request) {
         })),
       };
     });
+
+    // Search filter
+    if (search) {
+      payload = payload.filter((c) => {
+        const searchable = [
+          c.name,
+          c.email,
+          c.phone,
+          c.shopifyId,
+          c.tags,
+        ].filter(Boolean).join(' ').toLowerCase();
+        return searchable.includes(search);
+      });
+    }
+
+    const total = payload.length;
 
     if (format === 'csv') {
       const header = [
@@ -109,9 +134,9 @@ export async function GET(req: Request) {
         c.name || '',
         c.email || '',
         c.phone || '',
-        c.createdAt.toISOString(),
+        new Date(c.createdAt).toISOString(),
         String(c.totalOrders),
-        c.totalSpent.toFixed(2),
+        (c.totalSpent || 0).toFixed(2),
         c.tags,
       ]);
 
@@ -135,14 +160,22 @@ export async function GET(req: Request) {
       });
     }
 
-    return NextResponse.json({ customers: payload }, { status: 200 });
+    // Paginate
+    const paginated = payload.slice(offset, offset + limit);
+
+    return NextResponse.json({
+      customers: paginated,
+      total,
+      page,
+      limit,
+      hasMore: offset + paginated.length < total,
+    }, { status: 200 });
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Admin Customers API Error:', error);
     return NextResponse.json(
-      { customers: [], error: 'Failed to load customers' },
+      { customers: [], total: 0, error: 'Failed to load customers' },
       { status: 500 },
     );
   }
 }
-

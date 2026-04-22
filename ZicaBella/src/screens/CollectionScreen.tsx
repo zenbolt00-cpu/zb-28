@@ -109,7 +109,7 @@ export default function CollectionScreen() {
       <GlassHeader title={collection?.title || 'Collection'} showBack={true} />
       
       <ScrollView
-        stickyHeaderIndices={[2]}
+        stickyHeaderIndices={[1]}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl 
@@ -122,23 +122,26 @@ export default function CollectionScreen() {
         onScroll={onScroll}
         scrollEventThrottle={16}
       >
-        <View style={{ height: insets.top + 60 }} />
-        
         {/* Web Parity Collection Carousel */}
-        <CollectionHeaderCarousel currentHandle={handle} collections={allCollections as any[]} />
+        <View style={{ marginBottom: insets.top + 60, marginTop: insets.top + 60 }}>
+          <CollectionHeaderCarousel currentHandle={handle} collections={allCollections as any[]} />
+        </View>
 
         {/* Filters Sticky Section */}
-        <View style={[styles.filterSection, { backgroundColor: colors.background }]}>
-          <CollectionFilters 
-            allSizes={allSizes as string[]}
-            selectedSize={selectedSize}
-            onSelectSize={setSelectedSize}
-            sortBy={sortBy}
-            onSelectSort={setSortBy}
-            viewMode={viewMode}
-            onToggleView={toggleView}
-            isTabBarVisible={isTabBarVisible}
-          />
+        <View style={{ marginTop: -(insets.top + 60) }}>
+          <View style={{ height: insets.top + 60 }} />
+          <View style={styles.filterSection}>
+            <CollectionFilters 
+              allSizes={allSizes as string[]}
+              selectedSize={selectedSize}
+              onSelectSize={setSelectedSize}
+              sortBy={sortBy}
+              onSelectSort={setSortBy}
+              viewMode={viewMode}
+              onToggleView={toggleView}
+              isTabBarVisible={isTabBarVisible}
+            />
+          </View>
         </View>
 
         <View style={styles.content}>

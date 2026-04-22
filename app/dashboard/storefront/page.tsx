@@ -379,6 +379,9 @@ export default function StorefrontSettingsPage() {
           <SettingsRow label="Footer Video" icon={Monitor} description="Footer video background">
              <MediaPicker value={settings.footerVideo!} onChange={set('footerVideo')} label="Footer Video" type="video" />
           </SettingsRow>
+          <SettingsRow label="Featured Media" icon={ImageIcon} description="Image above Spotlight section">
+             <MediaPicker value={settings.featuredMediaImage!} onChange={set('featuredMediaImage')} label="Featured Media Image" type="image" />
+          </SettingsRow>
         </SettingsGroup>
 
         {/* Hero Narrative */}
