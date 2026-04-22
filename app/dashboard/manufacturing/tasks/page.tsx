@@ -239,30 +239,30 @@ export default function PendingTasksPage() {
       </AnimatePresence>
 
       {/* Header Section */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8 lg:mb-10 relative z-10">
-        <div className="flex items-center gap-4 lg:gap-6">
-          <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-2xl lg:rounded-[2rem] bg-foreground/5 flex items-center justify-center border border-foreground/10 shadow-inner shrink-0">
-             <ClipboardList className="w-6 h-6 lg:w-8 lg:h-8 text-foreground/40" />
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-6 lg:mb-8 relative z-10">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-foreground/5 flex items-center justify-center border border-foreground/10 shadow-inner shrink-0">
+             <ClipboardList className="w-6 h-6 text-foreground/40" />
           </div>
           <div className="min-w-0">
-            <h1 className="text-2xl lg:text-3xl font-bold text-foreground tracking-tighter leading-none truncate uppercase">
+            <h1 className="text-xl lg:text-2xl font-bold text-foreground tracking-tighter leading-none truncate uppercase">
               Pending Tasks
             </h1>
-            <p className="text-[9px] lg:text-[10px] text-foreground/40 font-bold uppercase tracking-[0.2em] lg:tracking-[0.3em] mt-1.5 lg:mt-2 font-inter">
+            <p className="text-[9px] lg:text-[10px] text-foreground/40 font-bold uppercase tracking-[0.2em] lg:tracking-[0.3em] mt-1 font-inter">
               Operations & Command
             </p>
           </div>
         </div>
         
-        <p className="text-[11px] lg:text-[12px] text-foreground/70 tracking-wide max-w-xl font-medium leading-relaxed hidden xl:block">
+        <p className="text-[11px] lg:text-[12px] text-foreground/70 tracking-wide max-w-lg font-medium leading-relaxed hidden xl:block">
            Mission control for manufacturing — {tasks.length} active directives. Real-time task matrix synchronized with production stages.
         </p>
         
-        <div className="flex flex-wrap items-center gap-2 lg:gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <button
             onClick={loadTasks}
             disabled={loading}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-background border border-foreground/10 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-foreground/[0.02] disabled:opacity-50 transition-all shadow-sm active:scale-95"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-background dark:bg-white/[0.03] border border-foreground/[0.08] text-foreground rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-foreground/[0.02] disabled:opacity-50 transition-all shadow-sm active:scale-95"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
             Sync
@@ -270,48 +270,48 @@ export default function PendingTasksPage() {
 
           <button
             onClick={() => setNewOpen(true)}
-            className="flex items-center justify-center gap-2 px-6 py-2.5 bg-foreground text-background rounded-xl text-[10px] font-bold uppercase tracking-widest hover:opacity-90 transition-all active:scale-95 shadow-xl shadow-foreground/20"
+            className="flex items-center justify-center gap-2 px-5 py-2.5 bg-foreground text-background rounded-xl text-[10px] font-bold uppercase tracking-widest hover:opacity-90 transition-all active:scale-95 shadow-xl shadow-foreground/20"
           >
             <Plus className="w-4 h-4" />
-            Add To-Do
+            Add Task
           </button>
         </div>
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 px-4">
-        <div className="glass-card p-6 rounded-[2rem] border border-foreground/5 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center border border-amber-500/10">
-            <Zap className="w-6 h-6 text-amber-500" />
+        <div className="glass-card p-5 rounded-[1.5rem] border border-foreground/5 flex items-center gap-4 transition-all hover:bg-foreground/[0.02]">
+          <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center border border-amber-500/10">
+            <Zap className="w-5 h-5 text-amber-500" />
           </div>
           <div>
-            <div className="text-[11px] font-bold text-foreground/40 uppercase tracking-widest">Active Nodes</div>
-            <div className="text-2xl font-bold text-foreground tracking-tighter">{pendingCount}</div>
+            <div className="text-[9px] font-bold text-foreground/40 uppercase tracking-widest leading-none mb-1">Active Nodes</div>
+            <div className="text-xl font-bold text-foreground tracking-tighter">{pendingCount}</div>
           </div>
         </div>
-        <div className="glass-card p-6 rounded-[2rem] border border-foreground/5 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-rose-500/10 flex items-center justify-center border border-rose-500/10">
-            <AlertCircle className="w-6 h-6 text-rose-500" />
+        <div className="glass-card p-5 rounded-[1.5rem] border border-foreground/5 flex items-center gap-4 transition-all hover:bg-foreground/[0.02]">
+          <div className="w-10 h-10 rounded-xl bg-rose-500/10 flex items-center justify-center border border-rose-500/10">
+            <AlertCircle className="w-5 h-5 text-rose-500" />
           </div>
           <div>
-            <div className="text-[11px] font-bold text-foreground/40 uppercase tracking-widest">Overdue Spectrum</div>
-            <div className="text-2xl font-bold text-rose-500 tracking-tighter">{overdueCount}</div>
+            <div className="text-[9px] font-bold text-foreground/40 uppercase tracking-widest leading-none mb-1">Overdue Spectrum</div>
+            <div className="text-xl font-bold text-rose-500 tracking-tighter">{overdueCount}</div>
           </div>
         </div>
-        <div className="glass-card p-6 rounded-[2rem] border border-foreground/5 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/10">
-            <Target className="w-6 h-6 text-emerald-500" />
+        <div className="glass-card p-5 rounded-[1.5rem] border border-foreground/5 flex items-center gap-4 transition-all hover:bg-foreground/[0.02]">
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/10">
+            <Target className="w-5 h-5 text-emerald-500" />
           </div>
           <div>
-            <div className="text-[11px] font-bold text-foreground/40 uppercase tracking-widest">Efficiency Goal</div>
-            <div className="text-2xl font-bold text-foreground tracking-tighter">94%</div>
+            <div className="text-[9px] font-bold text-foreground/40 uppercase tracking-widest leading-none mb-1">Efficiency Goal</div>
+            <div className="text-xl font-bold text-foreground tracking-tighter">94%</div>
           </div>
         </div>
       </div>
 
       {/* Main Content Area */}
       <div className="px-4">
-        <div className="glass-card rounded-[2.5rem] border border-foreground/5 p-4 lg:p-8 space-y-8">
+        <div className="glass-card rounded-[2rem] border border-foreground/5 p-4 lg:p-6 space-y-6">
           {/* Controls */}
           <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
             <div className="relative w-full sm:max-w-md">
@@ -354,10 +354,10 @@ export default function PendingTasksPage() {
                     layout
                     initial={{ opacity: 0, scale: 0.98 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className={`group relative glass-card p-6 rounded-[2rem] border transition-all duration-500 flex flex-col sm:flex-row sm:items-center justify-between gap-6 ${
+                    className={`group relative glass-card p-4 lg:p-5 rounded-[1.5rem] border transition-all duration-500 flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
                       task.status === "COMPLETED" 
                         ? "bg-foreground/[0.01] border-foreground/5 opacity-60" 
-                        : "bg-background/40 border-foreground/[0.05] hover:border-foreground/20 hover:shadow-2xl hover:-translate-y-1"
+                        : "bg-background/40 border-foreground/[0.05] hover:border-foreground/15 hover:shadow-xl hover:-translate-y-0.5"
                     }`}
                   >
                     <div className="flex items-start gap-4 flex-1">
@@ -416,9 +416,9 @@ export default function PendingTasksPage() {
                         {task.type === "MANUAL" && (
                           <button 
                             onClick={() => deleteTask(task.id)}
-                            className="p-3 rounded-xl hover:bg-rose-500/10 text-foreground/20 hover:text-rose-500 transition-all active:scale-90"
+                            className="p-2.5 rounded-xl hover:bg-rose-500/10 text-foreground/20 hover:text-rose-500 transition-all active:scale-90"
                           >
-                            <Trash2 className="w-4.5 h-4.5" />
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         )}
                         <button className="p-3 rounded-xl hover:bg-foreground/5 text-foreground/20 hover:text-foreground transition-all active:scale-90">

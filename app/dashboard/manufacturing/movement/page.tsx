@@ -266,22 +266,22 @@ export default function FabricMovementPage() {
       </AnimatePresence>
 
       {/* Header Section */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8 lg:mb-10 relative z-10">
-        <div className="flex items-center gap-4 lg:gap-6">
-          <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-2xl lg:rounded-[2rem] bg-foreground/5 flex items-center justify-center text-foreground/50 dark:text-foreground/30 border border-foreground/5 shadow-2xl shrink-0">
-            <CalendarDays className="w-6 h-6 lg:w-8 lg:h-8" />
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-6 lg:mb-8 relative z-10">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-foreground/5 flex items-center justify-center text-foreground/50 dark:text-foreground/30 border border-foreground/5 shadow-2xl shrink-0">
+            <CalendarDays className="w-6 h-6 text-foreground/40" />
           </div>
           <div className="min-w-0">
-            <h1 className="text-2xl lg:text-3xl font-bold text-foreground uppercase tracking-tighter leading-none truncate">
+            <h1 className="text-xl lg:text-2xl font-bold text-foreground uppercase tracking-tighter leading-none truncate">
               Fabric Movement
             </h1>
-            <p className="text-[9px] lg:text-[10px] text-foreground/40 font-bold uppercase tracking-[0.2em] lg:tracking-[0.3em] mt-1.5 lg:mt-2">
+            <p className="text-[9px] lg:text-[10px] text-foreground/40 font-bold uppercase tracking-[0.2em] lg:tracking-[0.3em] mt-1">
               Immutable Ledger
             </p>
           </div>
         </div>
         
-        <p className="text-[11px] lg:text-[12px] text-foreground/70 tracking-wide max-w-xl font-medium leading-relaxed hidden xl:block">
+        <p className="text-[11px] lg:text-[12px] text-foreground/70 tracking-wide max-w-lg font-medium leading-relaxed hidden xl:block">
            Real-time movement tracking. Immutable ledger recordings ensure data integrity across the manufacturing pipeline.
         </p>
         
@@ -399,16 +399,16 @@ export default function FabricMovementPage() {
             <table className="w-full text-left whitespace-nowrap">
               <thead className="bg-foreground/[0.02] border-b border-foreground/10 text-[10px] uppercase font-bold text-foreground/50 tracking-widest">
                 <tr>
-                  <th className="px-5 py-4">When (IST)</th>
-                  <th className="px-5 py-4">Fabric</th>
-                  <th className="px-5 py-4">Type</th>
-                  <th className="px-5 py-4">Qty</th>
-                  <th className="px-5 py-4">Rate</th>
-                  <th className="px-5 py-4">Value</th>
-                  <th className="px-5 py-4">Notes</th>
-                  <th className="px-5 py-4">By</th>
-                  <th className="px-5 py-4">Balance</th>
-                  <th className="px-5 py-4 text-right">Fix</th>
+                  <th className="px-4 py-3">When (IST)</th>
+                  <th className="px-4 py-3">Fabric</th>
+                  <th className="px-4 py-3">Type</th>
+                  <th className="px-4 py-3">Qty</th>
+                  <th className="px-4 py-3">Rate</th>
+                  <th className="px-4 py-3">Value</th>
+                  <th className="px-4 py-3">Notes</th>
+                  <th className="px-4 py-3">By</th>
+                  <th className="px-4 py-3">Balance</th>
+                  <th className="px-4 py-3 text-right">Fix</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-foreground/5">
@@ -443,46 +443,41 @@ export default function FabricMovementPage() {
                         key={m.id}
                         className={`hover:bg-foreground/[0.02] transition-colors duration-200 group ${borderL}`}
                       >
-                        <td className="px-5 py-4 text-[12px] font-medium text-foreground/70">
+                        <td className="px-4 py-3 text-[11px] text-foreground/60 font-medium">
                           {formatDateTimeIST(m.occurredAt)}
                         </td>
-                        <td className="px-5 py-4">
-                          <div className="font-mono text-[11px] font-medium text-emerald-600 dark:text-emerald-400">{m.fabric.sku}</div>
-                          <div className="font-bold text-[13px] text-foreground">{m.fabric.name}</div>
+                        <td className="px-4 py-3">
+                          <div className="font-mono text-[10px] font-bold text-emerald-600 dark:text-emerald-400">{m.fabric.sku}</div>
+                          <div className="text-[12px] font-semibold text-foreground">{m.fabric.name}</div>
                         </td>
-                        <td className="px-5 py-4">
-                          <span
-                            className={`inline-flex px-2.5 py-1 rounded-md text-[9px] font-bold uppercase tracking-wider ${
-                              m.type === "IN"
-                                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                                : m.type === "OUT"
-                                  ? "bg-rose-500/10 text-rose-600 dark:text-rose-400"
-                                  : "bg-amber-500/10 text-amber-600 dark:text-amber-400"
-                            }`}
-                          >
-                            {typeLabel(m.type)}
+                        <td className="px-4 py-3">
+                          <span className={`px-2 py-0.5 rounded-md text-[9px] font-bold ${
+                            m.type === "IN" ? "bg-emerald-500/10 text-emerald-600" : m.type === "OUT" ? "bg-red-500/10 text-red-600" : "bg-amber-500/10 text-amber-600"
+                          }`}>
+                            {m.type}
                           </span>
                         </td>
-                        <td className="px-5 py-4 font-bold text-[13px]">
-                          {num(m.quantity)} <span className="text-foreground/50">{m.quantityUnit}</span>
+                        <td className="px-4 py-3 font-mono text-[11px] font-bold">
+                          {m.quantity}{m.quantityUnit}
                         </td>
-                        <td className="px-5 py-4 font-bold text-[13px]">{formatInr(num(m.rateAtMovement))}</td>
-                        <td className="px-5 py-4 font-bold text-[13px] text-foreground">
-                          {formatInr(num(m.totalValue))}
+                        <td className="px-4 py-3 font-mono text-[11px] text-foreground/40 italic">
+                          {m.rateAtMovement ? formatInr(num(m.rateAtMovement)) : "—"}
                         </td>
-                        <td className="px-5 py-4 text-foreground/60 text-[12px] font-medium max-w-[160px] truncate">
+                        <td className="px-4 py-3 font-mono text-[11px] font-bold">
+                          {m.rateAtMovement ? formatInr(num(m.rateAtMovement) * num(m.quantity)) : "—"}
+                        </td>
+                        <td className="px-4 py-3 max-w-[200px] truncate text-[11px] text-foreground/40 font-medium">
                           {m.remarks || "—"}
                         </td>
-                        <td className="px-5 py-4 text-[12px] font-medium text-foreground/60">{m.createdByName}</td>
-                        <td
-                          className={`px-5 py-4 font-bold text-[12px] ${
-                            warn ? "text-amber-600 dark:text-amber-400 flex items-center gap-1" : "text-foreground/70"
-                          }`}
-                        >
-                          {warn && <AlertTriangle className="w-3.5 h-3.5" />}
-                          {runningBalanceLabel(m)}
+                        <td className="px-4 py-3 text-[11px] text-foreground/40 font-medium">
+                          {m.createdByName || "System"}
                         </td>
-                        <td className="px-5 py-4 text-right">
+                        <td className="px-4 py-3">
+                           <div className={`text-[11px] font-bold tabular-nums ${warn ? "text-rose-500" : "text-foreground"}`}>
+                             {meters}{m.quantityUnit}
+                           </div>
+                        </td>
+                        <td className="px-4 py-3 text-right">
                           {m.type !== "ADJUSTMENT" ? (
                             <button
                               type="button"

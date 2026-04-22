@@ -438,23 +438,25 @@ export default function ProductionTrackerPage() {
       </AnimatePresence>
 
       {/* Header Section */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8 lg:mb-10">
-          <div className="flex items-center gap-4 lg:gap-6">
-            <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-2xl lg:rounded-[2rem] bg-foreground/5 flex items-center justify-center border border-foreground/10 shadow-inner shrink-0">
-               <ClipboardList className="w-6 h-6 lg:w-8 lg:h-8 text-foreground/40" />
-            </div>
-            <div className="min-w-0">
-              <h1 className="text-2xl lg:text-3xl font-bold text-foreground tracking-tighter leading-none truncate uppercase">
-                Production Tracker
-              </h1>
-              <p className="text-[9px] lg:text-[10px] text-foreground/40 font-bold uppercase tracking-[0.2em] lg:tracking-[0.3em] mt-1.5 lg:mt-2">
-                Operations & Lifecycle
-              </p>
-            </div>
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-6 lg:mb-8 relative z-10">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-foreground/5 flex items-center justify-center border border-foreground/10 shadow-inner shrink-0">
+             <ClipboardList className="w-6 h-6 text-foreground/40" />
           </div>
-          <p className="text-[11px] lg:text-[12px] text-foreground/70 tracking-wide max-w-xl font-medium leading-relaxed hidden xl:block">
-             Real-time pipeline monitoring — {batches.length} active batches. Transitions are recorded in the immutable spectrum ledger.
-          </p>
+          <div className="min-w-0">
+            <h1 className="text-xl lg:text-2xl font-bold text-foreground tracking-tighter leading-none truncate uppercase">
+              Production Tracker
+            </h1>
+            <p className="text-[9px] lg:text-[10px] text-foreground/40 font-bold uppercase tracking-[0.2em] lg:tracking-[0.3em] mt-1">
+              Operations & Lifecycle
+            </p>
+          </div>
+        </div>
+        
+        <p className="text-[11px] lg:text-[12px] text-foreground/70 tracking-wide max-w-lg font-medium leading-relaxed hidden xl:block">
+           Real-time pipeline monitoring — {batches.length} active batches. Transitions are recorded in the immutable spectrum ledger.
+        </p>
+      </div>
         
         <div className="flex flex-wrap items-center gap-2 lg:gap-3">
           <div className="bg-foreground/[0.03] p-1 rounded-xl flex border border-foreground/5 backdrop-blur-sm">
@@ -629,36 +631,36 @@ export default function ProductionTrackerPage() {
                   <button
                     type="button"
                     onClick={() => openDrawer(b.id)}
-                    className="w-full text-left p-6 lg:p-8 pt-8 pb-4 focus:outline-none flex flex-col h-full group"
+                    className="w-full text-left p-5 lg:p-6 pt-7 pb-3 focus:outline-none flex flex-col h-full group"
                   >
-                    <div className="flex justify-between items-start gap-4 mb-6">
-                      <div className="font-mono text-[10px] font-bold text-foreground/40 backdrop-blur-md bg-foreground/[0.03] px-3 py-1.5 rounded-full border border-foreground/5">{b.batchCode}</div>
+                    <div className="flex justify-between items-start gap-4 mb-5">
+                      <div className="font-mono text-[9px] font-bold text-foreground/40 backdrop-blur-md bg-foreground/[0.03] px-2.5 py-1 rounded-full border border-foreground/5">{b.batchCode}</div>
                       <span
-                        className={`px-3 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-[0.2em] leading-none flex items-center gap-2 border ${
+                        className={`px-2.5 py-1 rounded-full text-[8px] font-bold uppercase tracking-[0.2em] leading-none flex items-center gap-2 border ${
                           MFG_STAGE_BADGE_CLASS[b.currentStage] || "bg-foreground/5 text-foreground/60 border border-foreground/10"
                         }`}
                       >
-                        <StageIcon className="w-3 h-3" strokeWidth={2.5} />
+                        <StageIcon className="w-2.5 h-2.5" strokeWidth={2.5} />
                         {MFG_STAGE_LABEL[b.currentStage]}
                       </span>
                     </div>
                     
-                    <h3 className="text-xl lg:text-2xl font-bold text-foreground leading-tight tracking-tighter mb-6 group-hover:text-foreground/80 transition-colors">
+                    <h3 className="text-lg lg:text-xl font-bold text-foreground leading-tight tracking-tighter mb-5 group-hover:text-foreground/80 transition-colors">
                       {b.productName}
                     </h3>
                     
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6 w-full">
-                      <div className="bg-foreground/[0.02] backdrop-blur-md rounded-2xl p-4 border border-foreground/5 space-y-1.5 group-hover:bg-foreground/[0.04] transition-colors">
-                        <div className="text-[9px] font-bold text-foreground/30 uppercase tracking-[0.2em]">Units</div>
-                        <div className="text-[18px] font-bold text-foreground tabular-nums leading-none tracking-tight">{b.quantity}</div>
+                    <div className="grid grid-cols-3 gap-2 mb-5 w-full">
+                      <div className="bg-foreground/[0.02] backdrop-blur-md rounded-xl p-3 border border-foreground/5 space-y-1 group-hover:bg-foreground/[0.04] transition-colors">
+                        <div className="text-[8px] font-bold text-foreground/30 uppercase tracking-[0.15em]">Units</div>
+                        <div className="text-[16px] font-bold text-foreground tabular-nums leading-none tracking-tight">{b.quantity}</div>
                       </div>
-                      <div className="bg-foreground/[0.02] backdrop-blur-md rounded-2xl p-4 border border-foreground/5 space-y-1.5 group-hover:bg-foreground/[0.04] transition-colors">
-                        <div className="text-[9px] font-bold text-foreground/30 uppercase tracking-[0.2em]">Valuation</div>
-                        <div className="text-[18px] font-bold text-foreground tabular-nums leading-none tracking-tight">{formatInr(num(b.totalCostSoFar))}</div>
+                      <div className="bg-foreground/[0.02] backdrop-blur-md rounded-xl p-3 border border-foreground/5 space-y-1 group-hover:bg-foreground/[0.04] transition-colors">
+                        <div className="text-[8px] font-bold text-foreground/30 uppercase tracking-[0.15em]">Valuation</div>
+                        <div className="text-[16px] font-bold text-foreground tabular-nums leading-none tracking-tight">{formatInr(num(b.totalCostSoFar))}</div>
                       </div>
-                      <div className="bg-foreground/[0.02] backdrop-blur-md rounded-2xl p-4 border border-foreground/5 space-y-1.5 group-hover:bg-foreground/[0.04] transition-colors">
-                        <div className="text-[9px] font-bold text-foreground/30 uppercase tracking-[0.2em]">Wash Spend</div>
-                        <div className="text-[18px] font-bold text-foreground tabular-nums leading-none tracking-tight">{formatInr(num(b.washCostTotal))}</div>
+                      <div className="bg-foreground/[0.02] backdrop-blur-md rounded-xl p-3 border border-foreground/5 space-y-1 group-hover:bg-foreground/[0.04] transition-colors">
+                        <div className="text-[8px] font-bold text-foreground/30 uppercase tracking-[0.15em]">Wash</div>
+                        <div className="text-[16px] font-bold text-foreground tabular-nums leading-none tracking-tight">{formatInr(num(b.washCostTotal))}</div>
                       </div>
                     </div>
 

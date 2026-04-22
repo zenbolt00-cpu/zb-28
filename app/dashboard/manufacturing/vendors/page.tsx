@@ -194,22 +194,22 @@ export default function VendorsPage() {
       </AnimatePresence>
 
       {/* Header Section */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8 lg:mb-10 relative z-10">
-        <div className="flex items-center gap-4 lg:gap-6">
-          <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-2xl lg:rounded-[2rem] bg-foreground/5 flex items-center justify-center border border-foreground/10 shadow-inner shrink-0">
-             <Building2 className="w-6 h-6 lg:w-8 lg:h-8 text-foreground/40" />
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-6 lg:mb-8 relative z-10">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-foreground/5 flex items-center justify-center border border-foreground/10 shadow-inner shrink-0">
+             <Building2 className="w-6 h-6 text-foreground/40" />
           </div>
           <div className="min-w-0">
-            <h1 className="text-2xl lg:text-3xl font-bold text-foreground tracking-tighter leading-none truncate uppercase">
+            <h1 className="text-xl lg:text-2xl font-bold text-foreground tracking-tighter leading-none truncate uppercase">
               Manufacturing Nodes
             </h1>
-            <p className="text-[9px] lg:text-[10px] text-foreground/40 font-bold uppercase tracking-[0.2em] lg:tracking-[0.3em] mt-1.5 lg:mt-2">
+            <p className="text-[9px] lg:text-[10px] text-foreground/40 font-bold uppercase tracking-[0.2em] lg:tracking-[0.3em] mt-1">
               Vendors & Supply Chain
             </p>
           </div>
         </div>
         
-        <p className="text-[11px] lg:text-[12px] text-foreground/70 tracking-wide max-w-xl font-medium leading-relaxed hidden xl:block">
+        <p className="text-[11px] lg:text-[12px] text-foreground/70 tracking-wide max-w-lg font-medium leading-relaxed hidden xl:block">
            Manage your manufacturing nodes — {vendors.length} entities. Real-time ledger of vendors, categories, and supply chain activity.
         </p>
 
@@ -310,49 +310,49 @@ export default function VendorsPage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.05 }}
-                  whileHover={{ y: -5, scale: 1.01 }}
+                  whileHover={{ y: -3, scale: 1.01 }}
                   key={v.id}
-                  className="bg-background/40 backdrop-blur-3xl border border-foreground/[0.06] hover:border-foreground/15 rounded-[1.5rem] lg:rounded-[2rem] p-5 lg:p-8 shadow-sm hover:shadow-2xl transition-all duration-500 group flex flex-col relative overflow-hidden"
+                  className="bg-background/40 backdrop-blur-3xl border border-foreground/[0.06] hover:border-foreground/15 rounded-[1.2rem] lg:rounded-[1.5rem] p-4 lg:p-6 shadow-sm hover:shadow-xl transition-all duration-500 group flex flex-col relative overflow-hidden"
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-foreground/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                   
-                  <div className="flex justify-between items-start gap-4 mb-6 lg:mb-8 relative z-10">
-                    <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl lg:rounded-2xl bg-foreground/5 flex items-center justify-center shrink-0 border border-foreground/5 group-hover:bg-foreground group-hover:text-background transition-all duration-500 shadow-inner">
-                       <Icon className="w-4 h-4 lg:w-5 lg:h-5 text-foreground/40 group-hover:text-background" strokeWidth={2.5} />
+                  <div className="flex justify-between items-start gap-3 mb-5 lg:mb-6 relative z-10">
+                    <div className="w-9 h-9 lg:w-10 lg:h-10 rounded-lg lg:rounded-xl bg-foreground/5 flex items-center justify-center shrink-0 border border-foreground/5 group-hover:bg-foreground group-hover:text-background transition-all duration-500 shadow-inner">
+                       <Icon className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-foreground/40 group-hover:text-background" strokeWidth={2.5} />
                     </div>
-                    <span className="px-4 py-1.5 rounded-full bg-foreground/[0.04] border border-foreground/5 text-[9px] font-bold text-foreground/40 uppercase tracking-[0.2em] leading-none">
+                    <span className="px-3 py-1 rounded-full bg-foreground/[0.04] border border-foreground/5 text-[8px] font-bold text-foreground/40 uppercase tracking-[0.2em] leading-none">
                       {v.category}
                     </span>
                   </div>
                   
-                  <h3 className="text-lg lg:text-2xl font-bold text-foreground leading-tight tracking-tighter mb-6 lg:mb-8 group-hover:text-foreground/80 transition-colors relative z-10">
+                  <h3 className="text-lg lg:text-xl font-bold text-foreground leading-tight tracking-tighter mb-4 lg:mb-6 group-hover:text-foreground/80 transition-colors relative z-10">
                     {v.name}
                   </h3>
                   
-                  <div className="space-y-4 flex-1 mb-8 relative z-10 border-t border-foreground/5 pt-6">
-                    <div className="flex items-center gap-4 text-[12px] font-bold text-foreground/50 tracking-tight">
-                      <div className="w-8 h-8 rounded-xl bg-foreground/[0.03] flex items-center justify-center shrink-0 border border-foreground/5"><Phone className="w-3.5 h-3.5 opacity-40 group-hover:opacity-100 transition-opacity" strokeWidth={2.5} /></div>
+                  <div className="space-y-3 flex-1 mb-6 relative z-10 border-t border-foreground/5 pt-4">
+                    <div className="flex items-center gap-3 text-[11px] font-bold text-foreground/50 tracking-tight">
+                      <div className="w-7 h-7 rounded-lg bg-foreground/[0.03] flex items-center justify-center shrink-0 border border-foreground/5"><Phone className="w-3 h-3 opacity-40 group-hover:opacity-100 transition-opacity" strokeWidth={2.5} /></div>
                       <span className="truncate font-mono">{v.mobile || "N/A"}</span>
                     </div>
-                     <div className="flex items-start gap-4 text-[12px] font-bold text-foreground/50 tracking-tight leading-relaxed">
-                      <div className="w-8 h-8 rounded-xl bg-foreground/[0.03] flex items-center justify-center shrink-0 mt-0.5 border border-foreground/5"><MapPin className="w-3.5 h-3.5 opacity-40 group-hover:opacity-100 transition-opacity" strokeWidth={2.5} /></div>
+                     <div className="flex items-start gap-3 text-[11px] font-bold text-foreground/50 tracking-tight leading-relaxed">
+                      <div className="w-7 h-7 rounded-lg bg-foreground/[0.03] flex items-center justify-center shrink-0 mt-0.5 border border-foreground/5"><MapPin className="w-3 h-3 opacity-40 group-hover:opacity-100 transition-opacity" strokeWidth={2.5} /></div>
                       <span className="line-clamp-2">{v.address || "No address log"}</span>
                     </div>
                   </div>
   
-                  <div className="flex gap-3 pt-6 border-t border-foreground/[0.03] relative z-10">
+                  <div className="flex gap-2.5 pt-4 border-t border-foreground/[0.03] relative z-10">
                     <button
                       onClick={() => openEdit(v)}
-                      className="flex-1 px-4 py-3 bg-background/50 border border-foreground/10 rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40 hover:text-foreground hover:bg-foreground hover:text-background transition-all flex items-center justify-center gap-2 shadow-sm active:scale-95"
+                      className="flex-1 px-3 py-2.5 bg-background/50 border border-foreground/10 rounded-xl text-[9px] font-bold uppercase tracking-[0.2em] text-foreground/40 hover:text-foreground hover:bg-foreground hover:text-background transition-all flex items-center justify-center gap-2 shadow-sm active:scale-95"
                     >
                       <Edit2 className="w-3 h-3" strokeWidth={2.5} />
                       Modify
                     </button>
                     <button
                       onClick={() => handleDelete(v.id)}
-                      className="w-12 h-12 bg-rose-500/5 hover:bg-rose-500 border border-rose-500/10 hover:border-rose-500 rounded-xl flex items-center justify-center transition-all text-rose-500 hover:text-white shadow-sm active:scale-90 group/del"
+                      className="w-10 h-10 bg-rose-500/5 hover:bg-rose-500 border border-rose-500/10 hover:border-rose-500 rounded-xl flex items-center justify-center transition-all text-rose-500 hover:text-white shadow-sm active:scale-90 group/del"
                     >
-                      <Trash2 className="w-4 h-4 transition-transform group-hover/del:scale-110" />
+                      <Trash2 className="w-3.5 h-3.5 transition-transform group-hover/del:scale-110" />
                     </button>
                   </div>
                 </motion.div>

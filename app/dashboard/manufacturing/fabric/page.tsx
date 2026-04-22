@@ -321,30 +321,30 @@ export default function FabricInventoryPage() {
       </AnimatePresence>
 
       {/* Header Section */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8 lg:mb-10 relative z-10">
-        <div className="flex items-center gap-4 lg:gap-6">
-          <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-2xl lg:rounded-[2rem] bg-foreground/5 flex items-center justify-center text-foreground/50 dark:text-foreground/30 border border-foreground/5 shadow-2xl shrink-0">
-            <Palette className="w-6 h-6 lg:w-8 lg:h-8" />
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-6 lg:mb-8 relative z-10">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-foreground/5 flex items-center justify-center text-foreground/50 dark:text-foreground/30 border border-foreground/5 shadow-2xl shrink-0">
+            <Layers2 className="w-6 h-6" />
           </div>
           <div className="min-w-0">
-            <h1 className="text-2xl lg:text-3xl font-bold text-foreground uppercase tracking-tighter leading-none truncate">
+            <h1 className="text-xl lg:text-2xl font-bold text-foreground uppercase tracking-tighter leading-none truncate">
               Fabric Inventory
             </h1>
-            <p className="text-[9px] lg:text-[10px] text-foreground/40 font-bold uppercase tracking-[0.2em] lg:tracking-[0.3em] mt-1.5 lg:mt-2">
+            <p className="text-[9px] lg:text-[10px] text-foreground/40 font-bold uppercase tracking-[0.2em] lg:tracking-[0.3em] mt-1">
               Spectrum & Stock
             </p>
           </div>
         </div>
         
-        <p className="text-[11px] lg:text-[12px] text-foreground/70 tracking-wide max-w-xl font-medium leading-relaxed hidden xl:block">
+        <p className="text-[11px] lg:text-[12px] text-foreground/70 tracking-wide max-w-lg font-medium leading-relaxed hidden xl:block">
            Manage your fabric spectrum — {allFabrics.length} nodes. Real-time stock levels, cost per meter, and automated low-stock warnings.
         </p>
         
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-3">
           <button
             onClick={load}
             disabled={loading}
-            className="flex items-center gap-3 px-6 py-3 bg-background dark:bg-white/[0.03] border border-foreground/[0.08] text-foreground rounded-2xl text-[10px] font-bold uppercase tracking-[0.3em] hover:bg-foreground/[0.02] disabled:opacity-50 transition-all shadow-sm active:scale-95"
+            className="flex items-center gap-3 px-6 py-2.5 bg-background dark:bg-white/[0.03] border border-foreground/[0.08] text-foreground rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-foreground/[0.02] disabled:opacity-50 transition-all shadow-sm active:scale-95"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} strokeWidth={2.5} />
             Refresh
@@ -352,10 +352,10 @@ export default function FabricInventoryPage() {
 
           <button
             onClick={openAdd}
-            className="flex items-center gap-3 px-8 py-3 bg-foreground text-background rounded-2xl text-[10px] font-bold uppercase tracking-[0.3em] hover:opacity-90 transition-all active:scale-95 shadow-xl shadow-foreground/20"
+            className="flex items-center gap-3 px-6 py-2.5 bg-foreground text-background rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] hover:opacity-90 transition-all active:scale-95 shadow-xl shadow-foreground/20"
           >
             <Plus className="w-4 h-4" strokeWidth={2.5} />
-            Add New Fabric
+            Add Fabric
           </button>
         </div>
       </div>
@@ -401,15 +401,15 @@ export default function FabricInventoryPage() {
             <table className="w-full text-left whitespace-nowrap">
               <thead className="bg-foreground/[0.02] border-b border-foreground/10 text-[10px] uppercase font-bold text-foreground/50 tracking-widest">
                 <tr>
-                  <th className="px-5 py-4 w-10">Icon</th>
-                  <th className="px-5 py-4">Fabric</th>
-                  <th className="px-5 py-4">SKU</th>
-                  <th className="px-5 py-4">₹ / m</th>
-                  <th className="px-5 py-4">Weight</th>
-                  <th className="px-5 py-4">Meters</th>
-                  <th className="px-5 py-4">Low Stock</th>
-                  <th className="px-5 py-4">Status</th>
-                  <th className="px-5 py-4 text-right">Actions</th>
+                  <th className="px-4 py-3 w-10">Icon</th>
+                  <th className="px-4 py-3">Fabric</th>
+                  <th className="px-4 py-3">SKU</th>
+                  <th className="px-4 py-3">₹ / m</th>
+                  <th className="px-4 py-3">Weight</th>
+                  <th className="px-4 py-3">Meters</th>
+                  <th className="px-4 py-3">Low Stock</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-foreground/5">
@@ -436,27 +436,27 @@ export default function FabricInventoryPage() {
                       key={f.id}
                       className="hover:bg-foreground/[0.02] transition-colors duration-200 group"
                     >
-                      <td className="px-5 py-4">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500/10 to-amber-400/10 border border-foreground/5 flex items-center justify-center">
-                          <Palette className="w-4 h-4 text-foreground/40" />
+                      <td className="px-4 py-3">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500/10 to-amber-400/10 border border-foreground/5 flex items-center justify-center">
+                          <Palette className="w-3.5 h-3.5 text-foreground/40" />
                         </div>
                       </td>
-                      <td className="px-5 py-4 font-bold text-[13px] text-foreground">{f.name}</td>
-                      <td className="px-5 py-4 font-mono text-[11px] text-emerald-600/90 dark:text-emerald-400 font-medium">
+                      <td className="px-4 py-3 font-bold text-[12px] text-foreground">{f.name}</td>
+                      <td className="px-4 py-3 font-mono text-[10px] text-emerald-600/90 dark:text-emerald-400 font-medium">
                         {f.sku}
                       </td>
-                      <td className="px-5 py-4 font-bold text-[13px]">{formatInr(n(f.costPerMeter))}</td>
-                      <td className="px-5 py-4 text-[13px] font-medium">
+                      <td className="px-4 py-3 font-bold text-[12px]">{formatInr(n(f.costPerMeter))}</td>
+                      <td className="px-4 py-3 text-[12px] font-medium">
                         {n(f.weightValue).toLocaleString("en-IN", { maximumFractionDigits: 3 })}{" "}
-                        <span className="text-foreground/40 text-[11px] font-bold">{f.weightUnit}</span>
+                        <span className="text-[10px] text-foreground/40">{f.weightUnit}</span>
                       </td>
-                      <td className="px-5 py-4 text-[13px] font-bold">
+                      <td className="px-4 py-3 text-[12px] font-bold">
                         {n(f.totalMeters).toLocaleString("en-IN", { maximumFractionDigits: 2 })} m
                       </td>
-                      <td className="px-5 py-4 text-foreground/50 text-[11px] font-medium">
+                      <td className="px-4 py-3 text-foreground/50 text-[11px] font-medium">
                         {f.lowStockMetersThreshold != null ? f.lowStockMetersThreshold : "—"}
                       </td>
-                      <td className="px-5 py-4">
+                      <td className="px-4 py-3">
                         <span
                           className={`inline-flex px-2.5 py-1 rounded-md text-[9px] font-bold uppercase tracking-wider ${
                             f.status === "ACTIVE"
