@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import Animated, { useAnimatedStyle, interpolate, Extrapolation } from 'react-native-reanimated';
 import { Image } from 'expo-image';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { useColors } from '../constants/colors';
@@ -14,6 +15,7 @@ interface FlipbookProps {
   tag?: string;
   title?: string;
   desc?: string;
+  scrollY?: Animated.SharedValue<number>;
 }
 
 const DEFAULTS = {
@@ -23,7 +25,7 @@ const DEFAULTS = {
   desc: "Engineered for those who move without compromise.",
 };
 
-export default function FlipbookSection({ imgUrl, videoUrl, tag, title, desc }: FlipbookProps) {
+export default function FlipbookSection({ imgUrl, videoUrl, tag, title, desc, scrollY }: FlipbookProps) {
   const colors = useColors();
   const { settings } = useAdminSettings();
   const shopData = settings?.shop || settings || {};
@@ -36,27 +38,39 @@ export default function FlipbookSection({ imgUrl, videoUrl, tag, title, desc }: 
   const displayTitle = title    || settings?.flipbook?.title  || DEFAULTS.title;
   const displayDesc  = desc     || settings?.flipbook?.description   || DEFAULTS.desc;
 
+  const [layoutY, setLayoutY] = React.useState(0);
   const player = useVideoPlayer(resolvedVideoUrl ?? null, (player) => {
-    if (!videoUrl) {
-      return;
-    }
-
+    if (!resolvedVideoUrl) return;
     player.loop = true;
     player.muted = true;
     player.play();
   });
 
-  return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Tag Section */}
-      <View style={styles.tagWrapper}>
-        <Typography size={7} color={colors.textLight} weight="600" style={styles.tagText}>{displayTag}</Typography>
-        <View style={[styles.tagLine, { backgroundColor: colors.borderLight }]} />
-      </View>
+  const imageAnimatedStyle = useAnimatedStyle(() => {
+    if (!scrollY) return {};
+    
+    // Calculate the scale based on scroll position
+    // Zoom in as the section approaches the center of the screen
+    const scale = interpolate(
+      scrollY.value,
+      [layoutY - 600, layoutY, layoutY + 600],
+      [1, 1.15, 1.25],
+      Extrapolation.CLAMP
+    );
 
+    return {
+      transform: [{ scale }],
+    };
+  });
+
+  return (
+    <View 
+      style={[styles.container, { backgroundColor: colors.background }]}
+      onLayout={(e) => setLayoutY(e.nativeEvent.layout.y)}
+    >
       {/* Card Section */}
       <View style={styles.card}>
-        <View style={styles.mediaContainer}>
+        <Animated.View style={[styles.mediaContainer, imageAnimatedStyle]}>
           {resolvedVideoUrl ? (
             <VideoView
               player={player}
@@ -74,6 +88,11 @@ export default function FlipbookSection({ imgUrl, videoUrl, tag, title, desc }: 
           )}
           {/* Subtle dark overlay for text legibility */}
           <View style={styles.overlay} />
+        </Animated.View>
+
+        {/* Floating Tag Overlay - Added for "Unique" feel */}
+        <View style={styles.floatingTag}>
+           <Typography size={7} color="#FFFFFF" weight="600" style={styles.tagText}>{displayTag}</Typography>
         </View>
 
         <View style={styles.textContent}>
@@ -88,8 +107,9 @@ export default function FlipbookSection({ imgUrl, videoUrl, tag, title, desc }: 
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 60,
+    paddingVertical: 40, // Reduced vertical padding
     alignItems: 'center',
+    width: '100%',
   },
   tagWrapper: {
     alignItems: 'center',
@@ -107,9 +127,8 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   card: {
-    width: width * 0.94, // Increased width
-    aspectRatio: 3 / 5.85, // Reduced height by ~5% (was 6.2)
-    borderRadius: 40,
+    width: width, // Full Screen Width (Edge to Edge)
+    aspectRatio: 3 / 4.8, // Reduced height (was 3 / 5.85)
     overflow: 'hidden',
     backgroundColor: '#000',
     shadowColor: '#000',
@@ -123,7 +142,18 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.15)',
+    backgroundColor: 'rgba(0,0,0,0.25)', // Slightly darker for better contrast
+  },
+  floatingTag: {
+    position: 'absolute',
+    top: 32,
+    alignSelf: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.15)',
   },
   textContent: {
     position: 'absolute',

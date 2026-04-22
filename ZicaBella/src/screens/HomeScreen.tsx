@@ -1,8 +1,9 @@
 import React, { useCallback, useState, useRef } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, Dimensions,
+  View, Text, StyleSheet, Dimensions,
   RefreshControl, TouchableOpacity, ActivityIndicator,
 } from 'react-native';
+import Animated, { useSharedValue, useAnimatedScrollHandler } from 'react-native-reanimated';
 import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -65,11 +66,30 @@ export default function HomeScreen() {
     setRefreshing(false);
   }, [refetch, refetchCollections]);
 
-  const setTabBarVisible = useUIStore(s => s.setTabBarVisible);
+  const scrollY = useSharedValue(0);
   const lastScrollY = useRef(0);
+  const setTabBarVisible = useUIStore(s => s.setTabBarVisible);
+
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
+      
+      // Handle tab bar visibility logic in UI thread for smoothness
+      const currentY = event.contentOffset.y;
+      const diff = currentY - lastScrollY.current;
+      
+      if (Math.abs(diff) > 8) {
+        // Note: we can't directly call setTabBarVisible here because it's a JS function
+        // but we can use 'runOnJS' if needed. However, the existing logic was JS-based.
+        // For now, let's keep the JS scroll handler for the tab bar logic to avoid complexity.
+      }
+    },
+  });
 
   const onScroll = useCallback((event: any) => {
     const currentY = event.nativeEvent.contentOffset.y;
+    scrollY.value = currentY; // Sync shared value
+    
     const diff = currentY - lastScrollY.current;
     
     if (Math.abs(diff) > 8) {
@@ -106,7 +126,7 @@ export default function HomeScreen() {
       <GlassHeader 
         onPressMenu={() => setMenuVisible(true)}
       />
-      <ScrollView
+      <Animated.ScrollView
         showsVerticalScrollIndicator={false}
         removeClippedSubviews={true}
         refreshControl={
@@ -118,7 +138,7 @@ export default function HomeScreen() {
           />
         }
         onScroll={onScroll}
-        scrollEventThrottle={32} // Increased for performance
+        scrollEventThrottle={16} // Increased for parallax smoothness
       >
         {/* ═══ HERO VIDEO ═══ */}
         <View style={{ position: 'relative' }}>
@@ -190,7 +210,7 @@ export default function HomeScreen() {
           />
 
           {/* ═══ FLIPBOOK SECTION ═══ */}
-          <FlipbookSection />
+          <FlipbookSection scrollY={scrollY} />
 
           {/* ═══ PRODUCT GRID 2 ═══ */}
           {renderProductGrid(products.slice(4, 8))}
@@ -225,7 +245,7 @@ export default function HomeScreen() {
 
         {/* Bottom padding for tab bar */}
         <View style={{ height: 120 + insets.bottom }} />
-      </ScrollView>
+      </Animated.ScrollView>
 
       {/* Drawers */}
       <MenuDrawer 
