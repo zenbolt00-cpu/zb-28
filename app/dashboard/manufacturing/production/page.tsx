@@ -498,7 +498,6 @@ export default function ProductionTrackerPage() {
             Initiate Batch
           </button>
         </div>
-      </div>
 
        <motion.div 
         initial={{ opacity: 0, y: 20 }}

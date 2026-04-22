@@ -18,7 +18,7 @@ import {
   clearShopConfigCache
 } from './shopify-client';
 
-export { getShopConfig, shopifyFetch, adminUrl, headers, clearShopConfigCache };
+export { getShopConfig, shopifyFetch, adminUrl, headers, clearShopConfigCache, shopifyPatch };
 
 async function shopifyFetchPage<T>(urlStr: string): Promise<{ data: T; nextPageUrl?: string }> {
   const res = await fetch(urlStr, {
