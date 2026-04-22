@@ -438,52 +438,48 @@ export default function ProductionTrackerPage() {
       </AnimatePresence>
 
       {/* Header Section */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-6 lg:mb-8 relative z-10">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-foreground/5 flex items-center justify-center border border-foreground/10 shadow-inner shrink-0">
-             <ClipboardList className="w-6 h-6 text-foreground/40" />
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4 lg:mb-6 relative z-10">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-foreground/5 flex items-center justify-center border border-foreground/5 shadow-inner shrink-0">
+             <ClipboardList className="w-5 h-5 text-foreground/40" />
           </div>
           <div className="min-w-0">
-            <h1 className="text-lg lg:text-xl font-bold text-foreground tracking-tighter leading-none truncate uppercase">
+            <h1 className="text-lg lg:text-xl font-bold text-foreground tracking-tight leading-none truncate uppercase">
               Production Tracker
             </h1>
-            <p className="text-[9px] lg:text-[10px] text-foreground/40 font-bold uppercase tracking-[0.2em] lg:tracking-[0.3em] mt-1">
-              Operations & Lifecycle
+            <p className="text-[9px] text-foreground/40 font-bold uppercase tracking-[0.2em] mt-0.5">
+              Operations · {batches.length} batches
             </p>
           </div>
         </div>
-        
-        <p className="text-[11px] lg:text-[12px] text-foreground/70 tracking-wide max-w-lg font-medium leading-relaxed hidden xl:block">
-           Real-time pipeline monitoring - {batches.length} active batches. Transitions are recorded in the immutable spectrum ledger.
-        </p>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 lg:gap-3">
-          <div className="bg-foreground/[0.03] p-1 rounded-xl flex border border-foreground/5 backdrop-blur-sm">
+      <div className="flex flex-wrap items-center gap-2">
+          <div className="bg-foreground/[0.03] p-0.5 rounded-lg flex border border-foreground/5">
             <button
               onClick={() => setView("card")}
-              className={`p-2 rounded-lg transition-all ${
+              className={`p-1.5 rounded-md transition-all ${
                 view === "card" ? "bg-background shadow-md text-foreground" : "text-foreground/40 hover:text-foreground"
               }`}
             >
-              <LayoutGrid className="w-3.5 h-3.5 lg:w-4 h-4" />
+              <LayoutGrid className="w-3.5 h-3.5" />
             </button>
              <button
               onClick={() => setView("table")}
-              className={`p-2 rounded-lg transition-all ${
+              className={`p-1.5 rounded-md transition-all ${
                 view === "table" ? "bg-background shadow-md text-foreground" : "text-foreground/40 hover:text-foreground"
               }`}
             >
-              <Table2 className="w-3.5 h-3.5 lg:w-4 h-4" />
+              <Table2 className="w-3.5 h-3.5" />
             </button>
           </div>
 
           <button
             onClick={loadBatches}
             disabled={loading}
-            className="flex flex-1 sm:flex-none items-center justify-center gap-2 lg:gap-3 px-4 lg:px-6 py-2.5 lg:py-3 bg-background dark:bg-white/[0.03] border border-foreground/[0.08] text-foreground rounded-xl lg:rounded-2xl text-[9px] lg:text-[10px] font-bold uppercase tracking-[0.1em] lg:tracking-[0.3em] hover:bg-foreground/[0.02] disabled:opacity-50 transition-all shadow-sm active:scale-95"
+            className="flex items-center gap-2 px-4 py-2 bg-background border border-foreground/[0.08] text-foreground rounded-xl text-[9px] font-bold uppercase tracking-[0.15em] hover:bg-foreground/[0.02] disabled:opacity-50 transition-all active:scale-95"
           >
-            <RefreshCw className={`w-3 h-3 lg:w-3.5 lg:h-3.5 ${loading ? "animate-spin" : ""}`} strokeWidth={2.5} />
+            <RefreshCw className={`w-3 h-3 ${loading ? "animate-spin" : ""}`} strokeWidth={2.5} />
             Refresh
           </button>
 
@@ -492,10 +488,10 @@ export default function ProductionTrackerPage() {
               setNewOpen(true);
               setNbErr({});
             }}
-            className="flex flex-1 sm:flex-none items-center justify-center gap-2 lg:gap-3 px-6 lg:px-8 py-2.5 lg:py-3 bg-foreground text-background rounded-xl lg:rounded-2xl text-[9px] lg:text-[10px] font-bold uppercase tracking-[0.1em] lg:tracking-[0.3em] hover:opacity-90 transition-all active:scale-95 shadow-xl shadow-foreground/20"
+            className="flex items-center gap-2 px-5 py-2 bg-foreground text-background rounded-xl text-[9px] font-bold uppercase tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-foreground/15"
           >
-            <Plus className="w-3.5 h-3.5 lg:w-4 h-4" strokeWidth={2.5} />
-            Initiate Batch
+            <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
+            New Batch
           </button>
         </div>
 

@@ -194,32 +194,28 @@ export default function VendorsPage() {
       </AnimatePresence>
 
       {/* Header Section */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-6 lg:mb-8 relative z-10">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-foreground/5 flex items-center justify-center border border-foreground/10 shadow-inner shrink-0">
-             <Building2 className="w-6 h-6 text-foreground/40" />
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4 lg:mb-6 relative z-10">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-foreground/5 flex items-center justify-center border border-foreground/5 shadow-inner shrink-0">
+             <Building2 className="w-5 h-5 text-foreground/40" />
           </div>
           <div className="min-w-0">
-            <h1 className="text-xl lg:text-2xl font-bold text-foreground tracking-tighter leading-none truncate uppercase">
-              Manufacturing Nodes
+            <h1 className="text-lg lg:text-xl font-bold text-foreground tracking-tight leading-none truncate uppercase">
+              Vendors
             </h1>
-            <p className="text-[9px] lg:text-[10px] text-foreground/40 font-bold uppercase tracking-[0.2em] lg:tracking-[0.3em] mt-1">
-              Vendors & Supply Chain
+            <p className="text-[9px] text-foreground/40 font-bold uppercase tracking-[0.2em] mt-0.5">
+              Supply Chain · {vendors.length} nodes
             </p>
           </div>
         </div>
-        
-        <p className="text-[11px] lg:text-[12px] text-foreground/70 tracking-wide max-w-lg font-medium leading-relaxed hidden xl:block">
-           Manage your manufacturing nodes - {vendors.length} entities. Real-time ledger of vendors, categories, and supply chain activity.
-        </p>
 
-        <div className="flex items-center gap-3 w-full lg:w-auto">
+        <div className="flex items-center gap-2 w-full lg:w-auto">
            <button
             onClick={loadVendors}
             disabled={loading}
-            className="flex-1 lg:flex-none flex items-center justify-center gap-3 px-6 py-3 bg-background dark:bg-white/[0.03] border border-foreground/[0.08] text-foreground rounded-xl lg:rounded-2xl text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-foreground/[0.02] disabled:opacity-50 transition-all shadow-sm active:scale-95"
+            className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-background border border-foreground/[0.08] text-foreground rounded-xl text-[9px] font-bold uppercase tracking-[0.15em] hover:bg-foreground/[0.02] disabled:opacity-50 transition-all active:scale-95"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} strokeWidth={2.5} />
+            <RefreshCw className={`w-3 h-3 ${loading ? "animate-spin" : ""}`} strokeWidth={2.5} />
             Refresh
           </button>
           <button
@@ -228,9 +224,9 @@ export default function VendorsPage() {
               setForm({ name: "", address: "", mobile: "", category: "Fabric", customCategory: "" });
               setModalOpen(true);
             }}
-            className="flex-1 lg:flex-none flex items-center justify-center gap-3 px-8 py-3 bg-foreground text-background rounded-xl lg:rounded-2xl text-[10px] font-bold uppercase tracking-[0.2em] hover:opacity-90 disabled:opacity-50 transition-all active:scale-95 shadow-xl shadow-foreground/20"
+            className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-5 py-2 bg-foreground text-background rounded-xl text-[9px] font-bold uppercase tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-foreground/15"
           >
-            <Plus className="w-4 h-4" strokeWidth={2.5} />
+            <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
             Add Vendor
           </button>
         </div>
@@ -302,7 +298,7 @@ export default function VendorsPage() {
             <p className="text-[11px] text-foreground/40 mt-1">Adjust search or filters</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {filteredVendors.map((v, i) => {
               const Icon = CAT_ICONS[v.category] || Building2;
               return (
@@ -316,43 +312,43 @@ export default function VendorsPage() {
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-foreground/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                   
-                  <div className="flex justify-between items-start gap-3 mb-5 lg:mb-6 relative z-10">
-                    <div className="w-9 h-9 lg:w-10 lg:h-10 rounded-lg lg:rounded-xl bg-foreground/5 flex items-center justify-center shrink-0 border border-foreground/5 group-hover:bg-foreground group-hover:text-background transition-all duration-500 shadow-inner">
-                       <Icon className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-foreground/40 group-hover:text-background" strokeWidth={2.5} />
+                  <div className="flex justify-between items-start gap-2 mb-3 relative z-10">
+                    <div className="w-8 h-8 rounded-lg bg-foreground/5 flex items-center justify-center shrink-0 border border-foreground/5 group-hover:bg-foreground group-hover:text-background transition-all duration-500">
+                       <Icon className="w-3.5 h-3.5 text-foreground/40 group-hover:text-background" strokeWidth={2.5} />
                     </div>
-                    <span className="px-3 py-1 rounded-full bg-foreground/[0.04] border border-foreground/5 text-[8px] font-bold text-foreground/40 uppercase tracking-[0.2em] leading-none">
+                    <span className="px-2 py-0.5 rounded-full bg-foreground/[0.04] border border-foreground/5 text-[7px] font-bold text-foreground/40 uppercase tracking-[0.15em] leading-none">
                       {v.category}
                     </span>
                   </div>
                   
-                  <h3 className="text-lg lg:text-xl font-bold text-foreground leading-tight tracking-tighter mb-4 lg:mb-6 group-hover:text-foreground/80 transition-colors relative z-10">
+                  <h3 className="text-[14px] font-bold text-foreground leading-tight tracking-tight mb-3 group-hover:text-foreground/80 transition-colors relative z-10">
                     {v.name}
                   </h3>
                   
-                  <div className="space-y-3 flex-1 mb-6 relative z-10 border-t border-foreground/5 pt-4">
-                    <div className="flex items-center gap-3 text-[11px] font-bold text-foreground/50 tracking-tight">
-                      <div className="w-7 h-7 rounded-lg bg-foreground/[0.03] flex items-center justify-center shrink-0 border border-foreground/5"><Phone className="w-3 h-3 opacity-40 group-hover:opacity-100 transition-opacity" strokeWidth={2.5} /></div>
+                  <div className="space-y-2 flex-1 mb-4 relative z-10 border-t border-foreground/5 pt-3">
+                    <div className="flex items-center gap-2 text-[10px] font-medium text-foreground/50 tracking-tight">
+                      <div className="w-6 h-6 rounded-md bg-foreground/[0.03] flex items-center justify-center shrink-0 border border-foreground/5"><Phone className="w-2.5 h-2.5 opacity-40 group-hover:opacity-100 transition-opacity" strokeWidth={2.5} /></div>
                       <span className="truncate font-mono">{v.mobile || "N/A"}</span>
                     </div>
-                     <div className="flex items-start gap-3 text-[11px] font-bold text-foreground/50 tracking-tight leading-relaxed">
-                      <div className="w-7 h-7 rounded-lg bg-foreground/[0.03] flex items-center justify-center shrink-0 mt-0.5 border border-foreground/5"><MapPin className="w-3 h-3 opacity-40 group-hover:opacity-100 transition-opacity" strokeWidth={2.5} /></div>
-                      <span className="line-clamp-2">{v.address || "No address log"}</span>
+                     <div className="flex items-start gap-2 text-[10px] font-medium text-foreground/50 tracking-tight leading-relaxed">
+                      <div className="w-6 h-6 rounded-md bg-foreground/[0.03] flex items-center justify-center shrink-0 mt-0.5 border border-foreground/5"><MapPin className="w-2.5 h-2.5 opacity-40 group-hover:opacity-100 transition-opacity" strokeWidth={2.5} /></div>
+                      <span className="line-clamp-2">{v.address || "No address"}</span>
                     </div>
                   </div>
   
-                  <div className="flex gap-2.5 pt-4 border-t border-foreground/[0.03] relative z-10">
+                  <div className="flex gap-2 pt-3 border-t border-foreground/[0.03] relative z-10">
                     <button
                       onClick={() => openEdit(v)}
-                      className="flex-1 px-3 py-2.5 bg-background/50 border border-foreground/10 rounded-xl text-[9px] font-bold uppercase tracking-[0.2em] text-foreground/40 hover:text-foreground hover:bg-foreground hover:text-background transition-all flex items-center justify-center gap-2 shadow-sm active:scale-95"
+                      className="flex-1 px-2 py-2 bg-background/50 border border-foreground/10 rounded-lg text-[8px] font-bold uppercase tracking-[0.15em] text-foreground/40 hover:text-foreground hover:bg-foreground hover:text-background transition-all flex items-center justify-center gap-1.5 active:scale-95"
                     >
-                      <Edit2 className="w-3 h-3" strokeWidth={2.5} />
-                      Modify
+                      <Edit2 className="w-2.5 h-2.5" strokeWidth={2.5} />
+                      Edit
                     </button>
                     <button
                       onClick={() => handleDelete(v.id)}
-                      className="w-10 h-10 bg-rose-500/5 hover:bg-rose-500 border border-rose-500/10 hover:border-rose-500 rounded-xl flex items-center justify-center transition-all text-rose-500 hover:text-white shadow-sm active:scale-90 group/del"
+                      className="w-8 h-8 bg-rose-500/5 hover:bg-rose-500 border border-rose-500/10 hover:border-rose-500 rounded-lg flex items-center justify-center transition-all text-rose-500 hover:text-white active:scale-90 group/del"
                     >
-                      <Trash2 className="w-3.5 h-3.5 transition-transform group-hover/del:scale-110" />
+                      <Trash2 className="w-3 h-3 transition-transform group-hover/del:scale-110" />
                     </button>
                   </div>
                 </motion.div>

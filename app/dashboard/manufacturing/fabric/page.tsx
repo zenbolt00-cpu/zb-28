@@ -12,6 +12,7 @@ import {
   Palette,
   Search,
   Check,
+  Layers,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { suggestFabricSku } from "@/lib/manufacturing/sku";
@@ -321,40 +322,35 @@ export default function FabricInventoryPage() {
       </AnimatePresence>
 
       {/* Header Section */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-6 lg:mb-8 relative z-10">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-foreground/5 flex items-center justify-center text-foreground/50 dark:text-foreground/30 border border-foreground/5 shadow-2xl shrink-0">
-            <Layers2 className="w-6 h-6" />
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4 lg:mb-6 relative z-10">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-foreground/5 flex items-center justify-center border border-foreground/5 shadow-inner shrink-0">
+            <Layers className="w-5 h-5 text-foreground/40" />
           </div>
           <div className="min-w-0">
-            <h1 className="text-xl lg:text-2xl font-bold text-foreground uppercase tracking-tighter leading-none truncate">
+            <h1 className="text-lg lg:text-xl font-bold text-foreground uppercase tracking-tight leading-none truncate">
               Fabric Inventory
             </h1>
-            <p className="text-[9px] lg:text-[10px] text-foreground/40 font-bold uppercase tracking-[0.2em] lg:tracking-[0.3em] mt-1">
-              Spectrum & Stock
+            <p className="text-[9px] text-foreground/40 font-bold uppercase tracking-[0.2em] mt-0.5">
+              Stock & Materials · {allFabrics.length} items
             </p>
           </div>
         </div>
         
-        <p className="text-[11px] lg:text-[12px] text-foreground/70 tracking-wide max-w-lg font-medium leading-relaxed hidden xl:block">
-           Manage your fabric spectrum - {allFabrics.length} nodes. Real-time stock levels, cost per meter, and automated low-stock warnings.
-        </p>
-        
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <button
             onClick={load}
             disabled={loading}
-            className="flex items-center gap-3 px-6 py-2.5 bg-background dark:bg-white/[0.03] border border-foreground/[0.08] text-foreground rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-foreground/[0.02] disabled:opacity-50 transition-all shadow-sm active:scale-95"
+            className="flex items-center gap-2 px-4 py-2 bg-background border border-foreground/[0.08] text-foreground rounded-xl text-[9px] font-bold uppercase tracking-[0.15em] hover:bg-foreground/[0.02] disabled:opacity-50 transition-all active:scale-95"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} strokeWidth={2.5} />
+            <RefreshCw className={`w-3 h-3 ${loading ? "animate-spin" : ""}`} strokeWidth={2.5} />
             Refresh
           </button>
-
           <button
             onClick={openAdd}
-            className="flex items-center gap-3 px-6 py-2.5 bg-foreground text-background rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] hover:opacity-90 transition-all active:scale-95 shadow-xl shadow-foreground/20"
+            className="flex items-center gap-2 px-5 py-2 bg-foreground text-background rounded-xl text-[9px] font-bold uppercase tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-foreground/15"
           >
-            <Plus className="w-4 h-4" strokeWidth={2.5} />
+            <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
             Add Fabric
           </button>
         </div>
@@ -363,53 +359,50 @@ export default function FabricInventoryPage() {
        <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1, duration: 0.8 }}
-        className="glass-card rounded-[2rem] lg:rounded-[3rem] p-6 lg:p-8 flex flex-col gap-6"
+        transition={{ delay: 0.1, duration: 0.5 }}
+        className="glass-card rounded-2xl p-4 lg:p-5 flex flex-col gap-4"
       >
-        <div className="bg-background border border-foreground/10 rounded-2xl p-6 shadow-sm relative overflow-hidden group">
+        <div className="bg-background border border-foreground/10 rounded-xl p-4 relative overflow-hidden group">
           <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-transparent opacity-50 group-hover:opacity-100 transition-opacity" />
-          <div className="relative z-10 flex flex-col gap-3">
-             <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-emerald-600/80 dark:text-emerald-500/80">
-              <ScanLine className="w-4 h-4" />
-              Scan / Quick Update
+          <div className="relative z-10 flex flex-col gap-2">
+             <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest text-emerald-600/80 dark:text-emerald-500/80">
+              <ScanLine className="w-3.5 h-3.5" />
+              Quick Scan
             </div>
-            <p className="text-[11px] text-foreground/50 max-w-md leading-relaxed">
-              Refinery input: Type or scan SKU, press Enter - adjust weight, meters, and price.
-            </p>
             <input
               value={scanInput}
               onChange={(e) => setScanInput(e.target.value)}
               onKeyDown={handleScanKey}
-              placeholder="SCAN SPECTRUM SKU..."
-              className="w-full max-w-lg bg-background border border-foreground/20 rounded-xl px-4 py-3 text-[13px] font-medium text-foreground placeholder:text-foreground/30 focus:outline-none focus:border-foreground/40 transition-all shadow-sm"
+              placeholder="Scan or type SKU, press Enter..."
+              className="w-full max-w-md bg-background border border-foreground/15 rounded-lg px-3 py-2 text-[12px] font-medium text-foreground placeholder:text-foreground/25 focus:outline-none focus:border-foreground/30 transition-all"
             />
           </div>
         </div>
 
-        <div className="relative w-full max-w-md">
-           <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-foreground/40" />
+        <div className="relative w-full max-w-sm">
+           <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-foreground/30" />
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search spectrum nodes..."
-            className="w-full bg-background border border-foreground/10 rounded-xl pl-10 pr-4 py-3 text-[12px] font-medium text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-foreground/30 transition-all shadow-sm"
+            placeholder="Filter fabrics..."
+            className="w-full bg-background border border-foreground/10 rounded-lg pl-9 pr-3 py-2 text-[11px] font-medium text-foreground placeholder:text-foreground/30 focus:outline-none focus:border-foreground/25 transition-all"
           />
         </div>
 
-        <div className="w-full rounded-2xl border border-foreground/10 overflow-hidden bg-background shadow-sm mt-2">
+        <div className="w-full rounded-xl border border-foreground/10 overflow-hidden bg-background">
           <div className="overflow-x-auto w-full custom-scrollbar">
             <table className="w-full text-left whitespace-nowrap">
-              <thead className="bg-foreground/[0.02] border-b border-foreground/10 text-[10px] uppercase font-bold text-foreground/50 tracking-widest">
+              <thead className="bg-foreground/[0.02] border-b border-foreground/10 text-[9px] uppercase font-bold text-foreground/40 tracking-widest">
                 <tr>
-                  <th className="px-4 py-3 w-10">Icon</th>
-                  <th className="px-4 py-3">Fabric</th>
-                  <th className="px-4 py-3">SKU</th>
-                  <th className="px-4 py-3">₹ / m</th>
-                  <th className="px-4 py-3">Weight</th>
-                  <th className="px-4 py-3">Meters</th>
-                  <th className="px-4 py-3">Low Stock</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3 text-right">Actions</th>
+                  <th className="px-3 py-2.5 w-8"></th>
+                  <th className="px-3 py-2.5">Fabric</th>
+                  <th className="px-3 py-2.5">SKU</th>
+                  <th className="px-3 py-2.5">₹/m</th>
+                  <th className="px-3 py-2.5">Weight</th>
+                  <th className="px-3 py-2.5">Meters</th>
+                  <th className="px-3 py-2.5">Low Stock</th>
+                  <th className="px-3 py-2.5">Status</th>
+                  <th className="px-3 py-2.5 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-foreground/5">
@@ -436,29 +429,30 @@ export default function FabricInventoryPage() {
                       key={f.id}
                       className="hover:bg-foreground/[0.02] transition-colors duration-200 group"
                     >
-                      <td className="px-4 py-3">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500/10 to-amber-400/10 border border-foreground/5 flex items-center justify-center">
-                          <Palette className="w-3.5 h-3.5 text-foreground/40" />
+                      <td className="px-3 py-2.5">
+                        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500/10 to-amber-400/10 border border-foreground/5 flex items-center justify-center">
+                          <Palette className="w-3 h-3 text-foreground/40" />
                         </div>
                       </td>
-                      <td className="px-4 py-3 font-bold text-[12px] text-foreground">{f.name}</td>
-                      <td className="px-4 py-3 font-mono text-[10px] text-emerald-600/90 dark:text-emerald-400 font-medium">
+                      <td className="px-3 py-2.5 font-semibold text-[11px] text-foreground">{f.name}</td>
+                      <td className="px-3 py-2.5 font-mono text-[10px] text-emerald-600/80 dark:text-emerald-400 font-medium">
                         {f.sku}
                       </td>
-                      <td className="px-4 py-3 font-bold text-[12px]">{formatInr(n(f.costPerMeter))}</td>
-                      <td className="px-4 py-3 text-[12px] font-medium">
-                        {n(f.weightValue).toLocaleString("en-IN", { maximumFractionDigits: 3 })}{" "}
-                        <span className="text-[10px] text-foreground/40">{f.weightUnit}</span>
+                      <td className="px-3 py-2.5 font-semibold text-[11px]">{formatInr(n(f.costPerMeter))}</td>
+                      <td className="px-3 py-2.5 text-[11px] font-medium text-foreground/70">
+                        {n(f.weightValue).toLocaleString("en-IN", { maximumFractionDigits: 3 })}
+                        <span className="text-[9px] text-foreground/30 ml-0.5">{f.weightUnit}</span>
                       </td>
-                      <td className="px-4 py-3 text-[12px] font-bold">
-                        {n(f.totalMeters).toLocaleString("en-IN", { maximumFractionDigits: 2 })} m
+                      <td className="px-3 py-2.5 text-[11px] font-semibold">
+                        {n(f.totalMeters).toLocaleString("en-IN", { maximumFractionDigits: 2 })}
+                        <span className="text-[9px] text-foreground/30 ml-0.5">m</span>
                       </td>
-                      <td className="px-4 py-3 text-foreground/50 text-[11px] font-medium">
-                        {f.lowStockMetersThreshold != null ? f.lowStockMetersThreshold : "-"}
+                      <td className="px-3 py-2.5 text-foreground/40 text-[10px] font-medium">
+                        {f.lowStockMetersThreshold != null ? `${f.lowStockMetersThreshold}m` : "—"}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-2.5">
                         <span
-                          className={`inline-flex px-2.5 py-1 rounded-md text-[9px] font-bold uppercase tracking-wider ${
+                          className={`inline-flex px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${
                             f.status === "ACTIVE"
                               ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
                               : "bg-foreground/5 text-foreground/40"
@@ -467,21 +461,21 @@ export default function FabricInventoryPage() {
                           {f.status}
                         </span>
                       </td>
-                      <td className="px-5 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
+                      <td className="px-3 py-2.5 text-right">
+                        <div className="flex items-center justify-end gap-1">
                           <button
                             type="button"
                             onClick={() => openEdit(f)}
-                            className="p-2 bg-foreground/5 rounded-lg text-foreground/40 hover:text-foreground hover:bg-foreground/10 transition-colors"
+                            className="p-1.5 rounded-lg text-foreground/30 hover:text-foreground hover:bg-foreground/5 transition-colors"
                           >
-                            <Pencil className="w-3.5 h-3.5" />
+                            <Pencil className="w-3 h-3" />
                           </button>
                           <button
                             type="button"
                             onClick={() => remove(f)}
-                            className="p-2 bg-red-500/5 rounded-lg text-red-500/60 hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                            className="p-1.5 rounded-lg text-red-500/40 hover:text-red-500 hover:bg-red-500/5 transition-colors"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            <Trash2 className="w-3 h-3" />
                           </button>
                         </div>
                       </td>
